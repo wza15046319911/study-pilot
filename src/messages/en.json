@@ -1,0 +1,112 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "save": "Save",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "submit": "Submit",
+    "search": "Search",
+    "noResults": "No results found"
+  },
+  "brand": {
+    "name": "StudyPilot"
+  },
+  "nav": {
+    "home": "Home",
+    "subjects": "Subjects",
+    "bookmarks": "Bookmarks",
+    "profile": "Profile",
+    "login": "Login",
+    "logout": "Logout"
+  },
+  "home": {
+    "title": "StudyPilot — a pilot platform to help students practice smarter for midterms and finals",
+    "subtitle": "Built by students, tested in real courses.",
+    "startPractice": "Start Free Practice",
+    "watchDemo": "Watch Demo",
+    "joinUsers": "Join {count}+ users"
+  },
+  "subjects": {
+    "title": "Choose a Subject",
+    "subtitle": "Select the subject you want to practice and start your learning journey",
+    "allTopics": "All Topics",
+    "questions": "questions",
+    "startPractice": "Start Practice",
+    "hot": "Hot",
+    "new": "New"
+  },
+  "practice": {
+    "title": "Practice Setup",
+    "mode": "Practice Mode",
+    "standard": "Standard",
+    "standardDesc": "Select difficulty, topic, and number of questions. Progress is tracked.",
+    "immersive": "Immersive",
+    "immersiveDesc": "Endless random questions. Minimalist UI. No progress tracking.",
+    "exam": "Mock Exam",
+    "examDesc": "Timed exams with predefined question sets.",
+    "difficulty": "Difficulty Level",
+    "easy": "Easy",
+    "medium": "Medium",
+    "hard": "Hard",
+    "anyDifficulty": "Any Difficulty",
+    "topic": "Topic / Concept",
+    "questionCount": "Number of Questions",
+    "questions": "{count} questions",
+    "estimatedTime": "Est. Minutes",
+    "start": "Start Practice",
+    "enterImmersive": "Enter Immersive Mode",
+    "checkAnswer": "Check Answer",
+    "nextQuestion": "Next Question",
+    "finish": "Finish",
+    "correct": "Correct!",
+    "incorrect": "Incorrect"
+  },
+  "results": {
+    "excellent": "Excellent!",
+    "goodJob": "Good Job!",
+    "keepPracticing": "Keep Practicing!",
+    "completed": "You have completed the practice session",
+    "accuracy": "Accuracy",
+    "correct": "Correct",
+    "wrong": "Wrong",
+    "time": "Time",
+    "reviewMistakes": "Review Mistakes",
+    "again": "Again",
+    "home": "Home"
+  },
+  "profile": {
+    "title": "Profile",
+    "level": "Level",
+    "dayStreak": "Day Streak",
+    "completed": "Completed",
+    "learningProgress": "Learning Progress",
+    "mistakeBook": "Mistake Book",
+    "bookmarks": "Bookmarks",
+    "editProfile": "Edit Profile",
+    "viewAll": "View All",
+    "noProgress": "No progress yet. Start practicing!",
+    "noMistakes": "Great job! No mistakes found.",
+    "noBookmarks": "No bookmarks yet.",
+    "errors": "{count} errors",
+    "review": "Review",
+    "view": "View"
+  },
+  "mistakes": {
+    "title": "Mistake Book",
+    "exportPdf": "Export PDF",
+    "clear": "Clear All",
+    "practiceAll": "Practice All Mistakes",
+    "empty": "No mistakes recorded yet!"
+  },
+  "theme": {
+    "light": "Light Mode",
+    "dark": "Dark Mode",
+    "toggle": "Toggle theme"
+  }
+}

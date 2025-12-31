@@ -1,36 +1,89 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# QuizMaster - 智能刷题平台
 
-## Getting Started
+基于 Next.js 15 + Supabase + Tailwind CSS 构建的现代刷题网站。
 
-First, run the development server:
+## 技术栈
+
+- **前端框架**: Next.js 15 (App Router)
+- **样式**: Tailwind CSS + Glassmorphism 设计
+- **数据库**: Supabase (PostgreSQL)
+- **认证**: Supabase Auth (邮箱验证码 + Google OAuth)
+- **状态管理**: Zustand
+- **部署**: Vercel
+
+## 快速开始
+
+### 1. 安装依赖
+
+```bash
+npm install
+```
+
+### 2. 配置 Supabase
+
+1. 前往 [Supabase](https://supabase.com) 创建新项目
+2. 复制环境变量配置：
+
+```bash
+cp .env.local.example .env.local
+```
+
+3. 填入你的 Supabase 项目 URL 和 anon key：
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 3. 初始化数据库
+
+在 Supabase SQL Editor 中执行 `supabase/schema.sql` 文件的内容。
+
+### 4. 启动开发服务器
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+访问 [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 项目结构
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/                    # Next.js App Router 页面
+│   ├── page.tsx           # 落地页
+│   ├── login/             # 登录页
+│   ├── subjects/          # 科目选择
+│   ├── practice/          # 刷题界面
+│   └── profile/           # 个人中心
+├── components/
+│   ├── ui/                # 通用 UI 组件
+│   └── layout/            # 布局组件
+├── lib/
+│   └── supabase/          # Supabase 客户端配置
+├── stores/                # Zustand 状态管理
+└── types/                 # TypeScript 类型定义
+```
 
-## Learn More
+## 功能特性
 
-To learn more about Next.js, take a look at the following resources:
+- 落地页（营销展示）
+- 邮箱验证码登录 / Google OAuth
+- 科目选择（筛选、搜索）
+- 题型选择（知识点、难度、数量）
+- 刷题界面（多题型支持）
+- 个人中心（学习进度、错题本）
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 部署到 Vercel
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. 将代码推送到 GitHub
+2. 在 [Vercel](https://vercel.com) 导入项目
+3. 配置环境变量
+4. 点击 Deploy
 
-## Deploy on Vercel
+## 配置 Google OAuth（可选）
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. 在 Google Cloud Console 创建 OAuth 应用
+2. 在 Supabase Dashboard > Authentication > Providers 启用 Google
+3. 填入 Client ID 和 Client Secret

@@ -1,0 +1,112 @@
+{
+  "common": {
+    "loading": "加载中...",
+    "error": "发生错误",
+    "save": "保存",
+    "cancel": "取消",
+    "confirm": "确认",
+    "delete": "删除",
+    "edit": "编辑",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "submit": "提交",
+    "search": "搜索",
+    "noResults": "未找到结果"
+  },
+  "brand": {
+    "name": "StudyPilot"
+  },
+  "nav": {
+    "home": "首页",
+    "subjects": "科目",
+    "bookmarks": "收藏夹",
+    "profile": "个人中心",
+    "login": "登录",
+    "logout": "退出"
+  },
+  "home": {
+    "title": "StudyPilot — 助力期中和期末考试的智能刷题领航员",
+    "subtitle": "学生开发，经真实课程验证。",
+    "startPractice": "免费开始刷题",
+    "watchDemo": "观看演示",
+    "joinUsers": "加入 {count}+ 用户"
+  },
+  "subjects": {
+    "title": "选择科目",
+    "subtitle": "选择您想练习的科目，开启学习之旅",
+    "allTopics": "所有主题",
+    "questions": "道题",
+    "startPractice": "开始练习",
+    "hot": "热门",
+    "new": "新"
+  },
+  "practice": {
+    "title": "练习设置",
+    "mode": "练习模式",
+    "standard": "标准模式",
+    "standardDesc": "选择难度、主题和题目数量，进度会被追踪。",
+    "immersive": "沉浸模式",
+    "immersiveDesc": "随机无限刷题，极简界面，不记录进度。",
+    "exam": "模拟考试",
+    "examDesc": "限时考试，预设题目集。",
+    "difficulty": "难度等级",
+    "easy": "简单",
+    "medium": "中等",
+    "hard": "困难",
+    "anyDifficulty": "任意难度",
+    "topic": "主题/概念",
+    "questionCount": "题目数量",
+    "questions": "{count} 道题",
+    "estimatedTime": "预计时间",
+    "start": "开始练习",
+    "enterImmersive": "进入沉浸模式",
+    "checkAnswer": "检查答案",
+    "nextQuestion": "下一题",
+    "finish": "完成",
+    "correct": "正确！",
+    "incorrect": "错误"
+  },
+  "results": {
+    "excellent": "太棒了！",
+    "goodJob": "做得不错！",
+    "keepPracticing": "继续努力！",
+    "completed": "您已完成本次练习",
+    "accuracy": "正确率",
+    "correct": "正确",
+    "wrong": "错误",
+    "time": "用时",
+    "reviewMistakes": "查看错题",
+    "again": "再来一次",
+    "home": "返回首页"
+  },
+  "profile": {
+    "title": "个人中心",
+    "level": "等级",
+    "dayStreak": "连续打卡",
+    "completed": "已完成",
+    "learningProgress": "学习进度",
+    "mistakeBook": "错题本",
+    "bookmarks": "收藏夹",
+    "editProfile": "编辑资料",
+    "viewAll": "查看全部",
+    "noProgress": "还没有进度哦，快开始练习吧！",
+    "noMistakes": "太棒了！没有错题。",
+    "noBookmarks": "还没有收藏哦。",
+    "errors": "{count} 次错误",
+    "review": "复习",
+    "view": "查看"
+  },
+  "mistakes": {
+    "title": "错题本",
+    "exportPdf": "导出PDF",
+    "clear": "清空全部",
+    "practiceAll": "练习全部错题",
+    "empty": "还没有错题记录！"
+  },
+  "theme": {
+    "light": "浅色模式",
+    "dark": "深色模式",
+    "toggle": "切换主题"
+  }
+}
