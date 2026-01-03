@@ -3,30 +3,25 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { GlassPanel } from "@/components/ui/GlassPanel";
+import { motion, AnimatePresence } from "framer-motion";
 import { Switch } from "@/components/ui/Switch";
-import { Button } from "@/components/ui/Button";
 import { Subject, Topic } from "@/types/database";
-import { encodeId } from "@/lib/ids";
 import {
   ChevronRight,
-  Play,
   Sparkles,
   ListChecks,
   FileText,
   Layers,
   Timer,
+  Zap,
 } from "lucide-react";
 
-// Extend Topic type to include question_count
 interface TopicWithCount extends Topic {
   question_count?: number;
 }
 
-// Combined types for props
 interface PracticeSetupContentProps {
   subject: Subject;
-  // Allow passing raw profile data which might have nulls
   user: {
     username: string | null;
     avatar_url?: string | null;
@@ -34,26 +29,74 @@ interface PracticeSetupContentProps {
   topics?: TopicWithCount[];
 }
 
+const modes = [
+  {
+    id: "standard",
+    name: "Standard",
+    description: "Practice with custom filters. Track progress.",
+    icon: ListChecks,
+    color: "text-blue-600",
+    bgColor: "bg-blue-50 dark:bg-blue-900/20",
+    borderColor: "border-blue-200 dark:border-blue-800",
+    ringColor: "ring-blue-500",
+    btnColor:
+      "bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600",
+  },
+  {
+    id: "immersive",
+    name: "Immersive",
+    description: "Endless stream. Minimalist. Pure focus.",
+    icon: Sparkles,
+    color: "text-purple-600",
+    bgColor: "bg-purple-50 dark:bg-purple-900/20",
+    borderColor: "border-purple-200 dark:border-purple-800",
+    ringColor: "ring-purple-500",
+    btnColor: "bg-purple-600 hover:bg-purple-700 text-white",
+  },
+  {
+    id: "flashcards",
+    name: "Flashcards",
+    description: "Quick memory checks and spaced repetition.",
+    icon: Layers,
+    color: "text-emerald-600",
+    bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
+    borderColor: "border-emerald-200 dark:border-emerald-800",
+    ringColor: "ring-emerald-500",
+    btnColor: "bg-emerald-600 hover:bg-emerald-700 text-white",
+  },
+  {
+    id: "exam",
+    name: "Mock Exam",
+    description: "Timed simulation under exam conditions.",
+    icon: FileText,
+    color: "text-orange-600",
+    bgColor: "bg-orange-50 dark:bg-orange-900/20",
+    borderColor: "border-orange-200 dark:border-orange-800",
+    ringColor: "ring-orange-500",
+    btnColor: "bg-orange-600 hover:bg-orange-700 text-white",
+  },
+];
+
 const difficulties = [
   {
     value: "easy",
     label: "Easy",
-    color: "bg-green-100 text-green-600 border-green-200",
+    color: "bg-green-100 text-green-700 border-green-200",
   },
   {
     value: "medium",
     label: "Medium",
-    color: "bg-yellow-100 text-yellow-600 border-yellow-200",
+    color: "bg-yellow-100 text-yellow-700 border-yellow-200",
   },
   {
     value: "hard",
     label: "Hard",
-    color: "bg-red-100 text-red-600 border-red-200",
+    color: "bg-red-100 text-red-700 border-red-200",
   },
   {
     value: "all",
-    label: "Any Difficulty",
-    color: "bg-blue-100 text-blue-600 border-blue-200",
+    label: "Any",
+    color: "bg-slate-100 text-slate-600 border-slate-200",
   },
 ];
 
@@ -66,332 +109,288 @@ export function PracticeSetupContent({
     "standard" | "immersive" | "exam" | "flashcards"
   >("standard");
   const [difficulty, setDifficulty] = useState("all");
-  const [topic, setTopic] = useState("all");
+  const [selectedTopics, setSelectedTopics] = useState<string[]>(["all"]);
   const [enableTimer, setEnableTimer] = useState(true);
+
+  const toggleTopic = (slug: string) => {
+    if (slug === "all") {
+      setSelectedTopics(["all"]);
+      return;
+    }
+
+    setSelectedTopics((prev) => {
+      // If currently "all", wipe it and start with new selection
+      let newSelection = prev.includes("all") ? [] : [...prev];
+
+      if (newSelection.includes(slug)) {
+        newSelection = newSelection.filter((s) => s !== slug);
+      } else {
+        newSelection.push(slug);
+      }
+
+      // If empty, revert to "all"
+      return newSelection.length === 0 ? ["all"] : newSelection;
+    });
+  };
 
   const handleStart = () => {
     if (mode === "immersive") {
       router.push(`/practice/${subject.slug}/immersive`);
       return;
     }
-
     if (mode === "flashcards") {
       router.push(`/practice/${subject.slug}/flashcards`);
       return;
     }
-
     if (mode === "exam") {
       router.push(`/practice/${subject.slug}/exams`);
       return;
     }
 
-    // ... standard mode logic
     const params = new URLSearchParams();
     if (difficulty !== "all") params.set("difficulty", difficulty);
-    if (topic !== "all") params.set("topic", topic); // Topic is now slug
+
+    // Join topics with comma if not "all"
+    if (!selectedTopics.includes("all")) {
+      params.set("topic", selectedTopics.join(","));
+    }
+
     params.set("count", "all");
     params.set("timer", enableTimer.toString());
-
     router.push(`/practice/${subject.slug}?${params.toString()}`);
   };
 
+  const selectedMode = modes.find((m) => m.id === mode)!;
+
   return (
-    <div className="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-[#4c669a] mb-6">
-        <Link href="/subjects" className="hover:text-[#135bec]">
+      <div className="flex items-center gap-2 text-sm text-gray-400 mb-12">
+        <Link
+          href="/subjects"
+          className="hover:text-gray-900 dark:hover:text-white transition-colors"
+        >
           Subjects
         </Link>
         <ChevronRight className="size-4" />
-        <span>{subject.name}</span>
-        <ChevronRight className="size-4" />
-        <span className="text-[#0d121b] font-medium">Setup Practice</span>
+        <span className="text-gray-900 dark:text-white font-medium">
+          {subject.name}
+        </span>
       </div>
 
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Select Practice Mode</h1>
-        <p className="text-[#4c669a]">
-          Choose how you want to practice{" "}
-          <span className="font-semibold text-[#135bec]">{subject.name}</span>
-        </p>
-      </div>
-      <div className="space-y-8">
-        {/* Mode Selection */}
-        <GlassPanel className="p-6">
-          <h2 className="text-lg font-bold mb-4">Practice Mode</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Standard */}
-            <button
-              onClick={() => setMode("standard")}
-              className={`p-6 rounded-xl border-2 text-left transition-all ${
-                mode === "standard"
-                  ? "border-[#135bec] bg-blue-50/50 shadow-lg"
-                  : "border-gray-200 hover:border-gray-300 bg-white/50"
-              }`}
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div
-                  className={`p-2 rounded-lg ${
-                    mode === "standard"
-                      ? "bg-[#135bec] text-white"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  <ListChecks className="size-5" />
-                </div>
-                <span className="font-bold text-lg">Standard</span>
-              </div>
-              <p className="text-sm text-[#4c669a]">
-                Select difficulty, topic, and number of questions. Progress is
-                tracked.
-              </p>
-            </button>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+        <div>
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-800 mb-4"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">
+              Setup Session
+            </span>
+          </motion.div>
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight"
+          >
+            Practice Setup
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-gray-500 mt-2 text-lg"
+          >
+            Customize your learning experience for{" "}
+            <span className="text-gray-900 dark:text-white font-semibold">
+              {subject.name}
+            </span>
+          </motion.p>
+        </div>
 
-            {/* Immersive */}
-            <button
-              onClick={() => setMode("immersive")}
-              className={`p-6 rounded-xl border-2 text-left transition-all ${
-                mode === "immersive"
-                  ? "border-purple-500 bg-purple-50/50 shadow-lg"
-                  : "border-gray-200 hover:border-gray-300 bg-white/50"
-              }`}
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div
-                  className={`p-2 rounded-lg ${
-                    mode === "immersive"
-                      ? "bg-purple-500 text-white"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  <Sparkles className="size-5" />
-                </div>
-                <span className="font-bold text-lg">Immersive</span>
-              </div>
-              <p className="text-sm text-[#4c669a]">
-                Endless random questions. Minimalist UI. No progress tracking.
-                Exit anytime.
-              </p>
-            </button>
-
-            {/* Flashcards - NEW */}
-            <button
-              onClick={() => setMode("flashcards")}
-              className={`p-6 rounded-xl border-2 text-left transition-all ${
-                mode === "flashcards"
-                  ? "border-green-500 bg-green-50/50 shadow-lg"
-                  : "border-gray-200 hover:border-gray-300 bg-white/50"
-              }`}
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div
-                  className={`p-2 rounded-lg ${
-                    mode === "flashcards"
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  <Layers className="size-5" />
-                </div>
-                <span className="font-bold text-lg">Flashcards</span>
-              </div>
-              <p className="text-sm text-[#4c669a]">
-                Flip cards to test your memory. Great for quick reviews and
-                definition checks.
-              </p>
-            </button>
-
-            {/* Mock Exam */}
-            <button
-              onClick={() => setMode("exam")}
-              className={`p-6 rounded-xl border-2 text-left transition-all ${
-                mode === "exam"
-                  ? "border-orange-500 bg-orange-50/50 shadow-lg"
-                  : "border-gray-200 hover:border-gray-300 bg-white/50"
-              }`}
-            >
-              <div className="flex items-center gap-3 mb-2">
-                <div
-                  className={`p-2 rounded-lg ${
-                    mode === "exam"
-                      ? "bg-orange-500 text-white"
-                      : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  <FileText className="size-5" />
-                </div>
-                <span className="font-bold text-lg">Mock Exam</span>
-              </div>
-              <p className="text-sm text-[#4c669a]">
-                Timed exams with predefined question sets. Simulates real test
-                conditions.
-              </p>
-            </button>
+        <div className="hidden md:block text-right">
+          <div className="text-3xl font-bold text-gray-900 dark:text-white">
+            {subject.question_count || 0}
           </div>
-        </GlassPanel>
+          <div className="text-sm text-gray-500">Total Questions</div>
+        </div>
+      </div>
 
-        {/* Standard Mode Options */}
-        {mode === "standard" && (
-          <>
-            {/* Difficulty Selection */}
-            <GlassPanel className="p-6">
-              <h2 className="text-lg font-bold mb-4">Difficulty Level</h2>
-              <div className="flex flex-wrap gap-3">
-                {difficulties.map((d) => (
-                  <button
-                    key={d.value}
-                    onClick={() => setDifficulty(d.value)}
-                    className={`px-5 py-2.5 rounded-xl font-medium transition-all border ${
-                      difficulty === d.value
-                        ? "bg-[#135bec] text-white border-[#135bec] shadow-lg shadow-blue-500/25"
-                        : `${d.color} hover:opacity-80`
-                    }`}
-                  >
-                    {d.label}
-                  </button>
-                ))}
+      {/* Mode Cards */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+        {modes.map((m, index) => {
+          const Icon = m.icon;
+          const isSelected = mode === m.id;
+          return (
+            <motion.button
+              key={m.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 * (index + 1) }}
+              onClick={() => setMode(m.id as any)}
+              className={`group relative p-5 text-left rounded-2xl transition-all duration-300 border-2 ${
+                isSelected
+                  ? `bg-white dark:bg-slate-800 ${m.borderColor} ${m.ringColor} ring-1 shadow-xl translate-y-[-2px]`
+                  : "bg-white/50 dark:bg-slate-900/50 border-transparent hover:border-gray-200 dark:hover:border-gray-700 hover:bg-white dark:hover:bg-slate-800"
+              }`}
+            >
+              <div
+                className={`size-10 rounded-xl flex items-center justify-center mb-4 transition-colors ${
+                  isSelected
+                    ? m.bgColor
+                    : "bg-gray-100 dark:bg-gray-800 group-hover:bg-gray-200 dark:group-hover:bg-gray-700"
+                }`}
+              >
+                <Icon
+                  className={`size-5 transition-colors ${
+                    isSelected ? m.color : "text-gray-500"
+                  }`}
+                />
               </div>
-            </GlassPanel>
+              <h3
+                className={`font-bold mb-1 ${
+                  isSelected
+                    ? "text-gray-900 dark:text-white"
+                    : "text-gray-700 dark:text-gray-300"
+                }`}
+              >
+                {m.name}
+              </h3>
+              <p className="text-xs text-gray-500 leading-relaxed dark:text-gray-400">
+                {m.description}
+              </p>
+            </motion.button>
+          );
+        })}
+      </div>
 
-            {/* Topic Selection */}
-            {topics.length > 0 && (
-              <GlassPanel className="p-6">
-                <h2 className="text-lg font-bold mb-4">Topic / Concept</h2>
+      {/* Standard Mode Options */}
+      <AnimatePresence>
+        {mode === "standard" && (
+          <motion.div
+            initial={{ opacity: 0, height: 0, scale: 0.98 }}
+            animate={{ opacity: 1, height: "auto", scale: 1 }}
+            exit={{ opacity: 0, height: 0, scale: 0.98 }}
+            transition={{ type: "spring", bounce: 0, duration: 0.4 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-100 dark:border-gray-800 p-8 mb-10 shadow-sm relative">
+              {/* Option: Difficulty */}
+              <div className="mb-8">
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
+                  Select Difficulty
+                </h3>
                 <div className="flex flex-wrap gap-3">
-                  <button
-                    onClick={() => setTopic("all")}
-                    className={`px-5 py-2.5 rounded-xl font-medium transition-all border ${
-                      topic === "all"
-                        ? "bg-[#135bec] text-white border-[#135bec] shadow-lg shadow-blue-500/25"
-                        : "bg-blue-50 text-blue-600 border-blue-200 hover:opacity-80"
-                    }`}
-                  >
-                    All Topics
-                  </button>
-                  {topics.map((t) => (
+                  {difficulties.map((d) => (
                     <button
-                      key={t.id}
-                      onClick={() => setTopic(t.slug)}
-                      className={`px-5 py-2.5 rounded-xl font-medium transition-all border ${
-                        topic === t.slug
-                          ? "bg-[#135bec] text-white border-[#135bec] shadow-lg shadow-blue-500/25"
-                          : "bg-white/50 hover:bg-white text-[#0d121b] border-gray-200"
+                      key={d.value}
+                      onClick={() => setDifficulty(d.value)}
+                      className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all border ${
+                        difficulty === d.value
+                          ? `${d.color} shadow-sm scale-105`
+                          : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-gray-300"
                       }`}
                     >
-                      {t.name}
-                      {(t.question_count || 0) > 0 && (
-                        <span
-                          className={`ml-2 text-xs py-0.5 px-1.5 rounded-full ${
-                            topic === t.id.toString()
-                              ? "bg-white/20 text-white"
-                              : "bg-gray-100 text-gray-500"
-                          }`}
-                        >
-                          {t.question_count}
-                        </span>
-                      )}
+                      {d.label}
                     </button>
                   ))}
                 </div>
-              </GlassPanel>
-            )}
+              </div>
 
-            {/* Timer Selection */}
-            <GlassPanel className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-bold flex items-center gap-2">
-                    <Timer className="size-5 text-[#4c669a]" />
-                    Practice Timer
-                  </h2>
-                  <p className="text-sm text-[#4c669a]">
-                    Track your time spent on each question
-                  </p>
+              {/* Option: Topics */}
+              {topics.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
+                    Focus Topic{" "}
+                    <span className="text-xs text-gray-400 font-normal ml-1">
+                      (Multi-select enabled)
+                    </span>
+                  </h3>
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      onClick={() => toggleTopic("all")}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
+                        selectedTopics.includes("all")
+                          ? "bg-blue-600 text-white border-blue-600 dark:bg-blue-500"
+                          : "bg-white dark:bg-slate-800 text-gray-600 border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                      }`}
+                    >
+                      All Topics
+                    </button>
+                    {topics.map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => toggleTopic(t.slug)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
+                          selectedTopics.includes(t.slug)
+                            ? "bg-blue-600 text-white border-blue-600 dark:bg-blue-500"
+                            : "bg-white dark:bg-slate-800 text-gray-600 border-gray-200 dark:border-gray-700 hover:border-gray-300"
+                        }`}
+                      >
+                        {t.name}
+                        {(t.question_count || 0) > 0 && (
+                          <span
+                            className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-full ${
+                              selectedTopics.includes(t.slug)
+                                ? "bg-white/20 text-white"
+                                : "bg-gray-100 dark:bg-gray-700 text-gray-500"
+                            }`}
+                          >
+                            {t.question_count}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex items-center justify-between pt-6 border-t border-gray-100 dark:border-gray-800">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-blue-600">
+                    <Timer className="size-5" />
+                  </div>
+                  <div className="text-sm">
+                    <span className="block font-bold text-gray-900 dark:text-white">
+                      Timer
+                    </span>
+                    <span className="text-gray-500">
+                      Track per-question time
+                    </span>
+                  </div>
                 </div>
                 <Switch
                   checked={enableTimer}
                   onCheckedChange={setEnableTimer}
                 />
               </div>
-            </GlassPanel>
-          </>
+            </div>
+          </motion.div>
         )}
+      </AnimatePresence>
 
-        {/* Summary & Start */}
-        <GlassPanel className="p-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            {/* Summary text dynamic update */}
-            {mode === "standard" && (
-              <div className="flex items-center gap-3">
-                <ListChecks className="size-6 text-[#135bec]" />
-                <div>
-                  <p className="font-bold text-[#0d121b]">Standard Mode</p>
-                  <p className="text-sm text-[#4c669a]">
-                    Practice all matched questions
-                  </p>
-                </div>
-              </div>
-            )}
-            {mode === "immersive" && (
-              <div className="flex items-center gap-3">
-                <Sparkles className="size-6 text-purple-500" />
-                <div>
-                  <p className="font-bold text-[#0d121b]">Immersive Mode</p>
-                  <p className="text-sm text-[#4c669a]">
-                    Random questions, no time limit
-                  </p>
-                </div>
-              </div>
-            )}
-            {mode === "flashcards" && (
-              <div className="flex items-center gap-3">
-                <Layers className="size-6 text-green-500" />
-                <div>
-                  <p className="font-bold text-[#0d121b]">Flashcards Mode</p>
-                  <p className="text-sm text-[#4c669a]">
-                    Review key concepts card by card
-                  </p>
-                </div>
-              </div>
-            )}
-            {mode === "exam" && (
-              <div className="flex items-center gap-3">
-                <FileText className="size-6 text-orange-500" />
-                <div>
-                  <p className="font-bold text-[#0d121b]">Exam Mode</p>
-                  <p className="text-sm text-[#4c669a]">
-                    Timed full-length mock exams
-                  </p>
-                </div>
-              </div>
-            )}
-
-            <Button
-              size="lg"
-              onClick={handleStart}
-              className={`w-full sm:w-auto ${
-                mode === "immersive"
-                  ? "bg-purple-500 hover:bg-purple-600"
-                  : mode === "flashcards"
-                  ? "bg-green-500 hover:bg-green-600"
-                  : mode === "exam"
-                  ? "bg-orange-500 hover:bg-orange-600"
-                  : ""
-              }`}
-            >
-              <Play className="mr-2 size-5" />
-              {mode === "standard"
-                ? "Start Practice"
-                : mode === "immersive"
-                ? "Enter Immersive Mode"
-                : mode === "flashcards"
-                ? "Start Flashcards"
-                : "View Exams"}
-            </Button>
-          </div>
-        </GlassPanel>
-      </div>
+      {/* Action Bar */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="flex justify-end"
+      >
+        <button
+          onClick={handleStart}
+          className={`group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl text-base font-bold shadow-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-xl ${selectedMode.btnColor}`}
+        >
+          <span>Start Session</span>
+          <ChevronRight className="size-5 opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+        </button>
+      </motion.div>
     </div>
   );
 }

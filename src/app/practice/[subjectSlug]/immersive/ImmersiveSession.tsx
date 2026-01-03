@@ -10,12 +10,18 @@ import { Question, Profile, QuestionOption } from "@/types/database";
 import {
   Bookmark,
   AlertTriangle,
-  X,
+  ChevronLeft,
   ChevronRight,
   CheckCircle2,
   XCircle,
+  X,
   Sparkles,
+  Timer,
+  Maximize2,
+  Minimize2,
+  Loader2,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 interface ImmersiveSessionProps {
   initialQuestion: Question | null;
@@ -43,6 +49,41 @@ export default function ImmersiveSession({
   const [isChecked, setIsChecked] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [questionsAnswered, setQuestionsAnswered] = useState(0);
+
+  // Flow Mode State
+  const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes
+  const [isTimerActive, setIsTimerActive] = useState(false);
+  const [isFocusMode, setIsFocusMode] = useState(false);
+
+  // AI Tutor State
+  const [isLoadingAI, setIsLoadingAI] = useState(false);
+  const [aiExplanation, setAiExplanation] = useState<string | null>(null);
+
+  // Timer Logic
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (isTimerActive && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft((prev) => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0) {
+      setIsTimerActive(false);
+      // Play sound or notify?
+    }
+    return () => clearInterval(interval);
+  }, [isTimerActive, timeLeft]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  const toggleTimer = () => setIsTimerActive(!isTimerActive);
+  const resetTimer = () => {
+    setIsTimerActive(false);
+    setTimeLeft(25 * 60);
+  };
 
   // Local bookmarks state
   const [isBookmarked, setIsBookmarked] = useState(false);
@@ -97,7 +138,11 @@ export default function ImmersiveSession({
 
     const isCorrect = userAnswer === currentQuestion.answer;
 
-    // Only record mistake if wrong (no progress tracking)
+    // Record answer for progress tracking
+    const { recordAnswer } = await import("@/lib/actions/recordAnswer");
+    await recordAnswer(currentQuestion.id, userAnswer, isCorrect, "immersive");
+
+    // Only record mistake if wrong
     if (!isCorrect) {
       const { data: existingData } = await supabase
         .from("mistakes")
@@ -193,21 +238,53 @@ export default function ImmersiveSession({
         <X className="size-6" />
       </button>
 
-      {/* Stats */}
-      <div className="absolute top-4 left-4 flex items-center gap-4 text-gray-500 text-sm">
-        <span className="flex items-center gap-2 font-medium text-purple-600">
-          <Sparkles className="size-4" />
-          Immersive Mode
-        </span>
-        <span className="bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
+      {/* Top Left Stats & Timer */}
+      <div
+        className={`absolute top-4 left-4 flex items-center gap-4 transition-opacity duration-500 ${
+          isFocusMode ? "opacity-0 hover:opacity-100" : "opacity-100"
+        }`}
+      >
+        <div className="flex items-center gap-2 bg-white/80 backdrop-blur px-3 py-1.5 rounded-full border border-purple-100 shadow-sm">
+          <button
+            onClick={toggleTimer}
+            className={`flex items-center gap-2 font-mono text-sm font-medium ${
+              isTimerActive ? "text-purple-600" : "text-gray-500"
+            }`}
+          >
+            <Timer
+              className={`size-4 ${isTimerActive ? "animate-pulse" : ""}`}
+            />
+            {formatTime(timeLeft)}
+          </button>
+        </div>
+
+        <span className="bg-gray-100 px-3 py-1 rounded-full border border-gray-200 text-xs text-gray-500">
           {questionsAnswered} answered
         </span>
       </div>
 
+      {/* Focus Mode Toggle (Top Middle) */}
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
+        <button
+          onClick={() => setIsFocusMode(!isFocusMode)}
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all ${
+            isFocusMode
+              ? "bg-purple-600 text-white shadow-lg shadow-purple-500/30"
+              : "bg-white/50 text-gray-400 hover:bg-white hover:text-purple-600"
+          }`}
+        >
+          {isFocusMode ? "Focus Mode On" : "Focus Mode Off"}
+        </button>
+      </div>
+
       {/* Main Content - 3 column layout */}
       <div className="w-full max-w-6xl grid grid-cols-12 gap-6 items-center">
-        {/* Previous Question (faded) */}
-        <div className="col-span-2 hidden lg:block">
+        {/* Previous Question (faded) - Hide in Focus Mode */}
+        <div
+          className={`col-span-2 hidden lg:block transition-opacity duration-500 ${
+            isFocusMode ? "opacity-0" : "opacity-100"
+          }`}
+        >
           {previousQuestion && (
             <div className="opacity-30 scale-90 transform transition-all">
               <GlassPanel className="p-4 bg-gray-50 border-gray-200">
@@ -341,6 +418,83 @@ export default function ImmersiveSession({
                     </span>
                   </p>
                 )}
+
+                {/* AI Tutor Button */}
+                <div className="mt-4 pt-4 border-t border-current/10">
+                  {!aiExplanation ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={async () => {
+                        setIsLoadingAI(true);
+                        const { getExplanation } = await import(
+                          "@/lib/actions/getExplanation"
+                        );
+                        const result = await getExplanation(
+                          currentQuestion.content,
+                          currentQuestion.answer,
+                          currentQuestion.code_snippet || undefined
+                        );
+                        if (result.success && result.explanation) {
+                          setAiExplanation(result.explanation);
+                        }
+                        setIsLoadingAI(false);
+                      }}
+                      disabled={isLoadingAI}
+                      className="gap-2"
+                    >
+                      {isLoadingAI ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="size-4" />
+                      )}
+                      {isLoadingAI ? "Generating..." : "AI Tutor"}
+                    </Button>
+                  ) : (
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                      <div className="flex items-center gap-2 text-blue-600 font-semibold mb-2">
+                        <Sparkles className="size-4" />
+                        AI Tutor
+                      </div>
+                      <div className="text-sm text-blue-800">
+                        <ReactMarkdown
+                          components={{
+                            p: ({ children }) => (
+                              <p className="mb-2 last:mb-0 leading-relaxed">
+                                {children}
+                              </p>
+                            ),
+                            strong: ({ children }) => (
+                              <span className="font-bold text-blue-900">
+                                {children}
+                              </span>
+                            ),
+                            ul: ({ children }) => (
+                              <ul className="list-disc pl-5 mb-2 space-y-1">
+                                {children}
+                              </ul>
+                            ),
+                            ol: ({ children }) => (
+                              <ol className="list-decimal pl-5 mb-2 space-y-1">
+                                {children}
+                              </ol>
+                            ),
+                            li: ({ children }) => (
+                              <li className="pl-1">{children}</li>
+                            ),
+                            code: ({ children }) => (
+                              <code className="bg-blue-100 px-1 py-0.5 rounded font-mono text-xs">
+                                {children}
+                              </code>
+                            ),
+                          }}
+                        >
+                          {aiExplanation}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 

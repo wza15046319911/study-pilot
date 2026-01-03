@@ -94,9 +94,9 @@ export default function LoginPage() {
       {/* Background */}
       <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-[#eff6ff] via-[#f8faff] to-white dark:from-[#0f172a] dark:to-[#1e293b]" />
-        <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-[#135bec]/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] bg-[#60a5fa]/20 rounded-full blur-[100px]" />
-        <div className="absolute top-[40%] right-[20%] w-[300px] h-[300px] bg-[#93c5fd]/20 rounded-full blur-[80px]" />
+        <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-[100px]" />
+        <div className="absolute top-[40%] right-[20%] w-[300px] h-[300px] bg-blue-300/20 rounded-full blur-[80px]" />
       </div>
 
       <GlassPanel className="w-full max-w-[440px] shadow-lg p-8 sm:p-10 relative z-10 flex flex-col gap-8">
@@ -104,7 +104,7 @@ export default function LoginPage() {
         <div className="flex flex-col items-center text-center gap-4">
           <Link
             href="/"
-            className="size-14 rounded-xl bg-[#135bec] text-white flex items-center justify-center shadow-lg shadow-[#135bec]/30"
+            className="size-14 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30"
           >
             <GraduationCap className="size-8" />
           </Link>
@@ -245,7 +245,7 @@ export default function LoginPage() {
           Don&apos;t have an account?
           <Link
             href="/"
-            className="text-[#135bec] font-medium ml-1 hover:underline"
+            className="text-blue-600 font-medium ml-1 hover:underline"
           >
             Sign up free
           </Link>

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { CodeBlock } from "@/components/ui/CodeBlock";
-import { Question, Profile } from "@/types/database";
+import { Question, Profile, FlashcardReview } from "@/types/database";
 import {
   ChevronLeft,
   ChevronRight,
@@ -13,11 +13,17 @@ import {
   X,
   Check,
   Zap,
+  Timer,
+  Award,
 } from "lucide-react";
 import { encodeId } from "@/lib/ids";
+import { getNextReviewIntervals, SRSItem } from "@/lib/srs";
+import { saveFlashcardReview } from "@/app/practice/actions";
+
+type ExtendedQuestion = Question & { review: FlashcardReview | null };
 
 interface FlashcardSessionProps {
-  questions: Question[];
+  questions: ExtendedQuestion[];
   user: Profile;
   subjectId: number;
   subjectName: string;
@@ -31,17 +37,51 @@ export default function FlashcardSession({
 }: FlashcardSessionProps) {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const currentQuestion = questions[currentIndex];
   const [isFlipped, setIsFlipped] = useState(false);
 
-  // Simple state to track "mastered" cards purely for this session (optional gamification)
-  const [masteredCount, setMasteredCount] = useState(0);
+  // State for current card review settings
+  const currentInterval = currentQuestion.review?.interval_days || 0;
+  const currentEase = currentQuestion.review?.ease_factor || 2.5;
+  const currentRepetitions = currentQuestion.review?.repetitions || 0;
 
-  const currentQuestion = questions[currentIndex];
+  const nextIntervals = getNextReviewIntervals({
+    intervalDays: currentInterval,
+    easeFactor: currentEase,
+    repetitions: currentRepetitions,
+  });
+
+  const handleRate = async (quality: 0 | 3 | 4 | 5) => {
+    // 1. Record the answer for progress tracking
+    const { recordAnswer } = await import("@/lib/actions/recordAnswer");
+    await recordAnswer(
+      currentQuestion.id,
+      quality >= 3 ? "correct" : "incorrect", // Simplified answer text
+      quality >= 3, // isCorrect: quality 3+ means pass
+      "flashcard"
+    );
+
+    // 2. Save SRS review to DB
+    await saveFlashcardReview(
+      currentQuestion.id,
+      quality,
+      currentInterval,
+      currentEase,
+      currentRepetitions
+    );
+
+    // 3. Move to next card
+    handleNext();
+  };
 
   const handleNext = () => {
     setIsFlipped(false);
     if (currentIndex < questions.length - 1) {
-      setTimeout(() => setCurrentIndex((prev) => prev + 1), 300); // Wait for flip back
+      setTimeout(() => setCurrentIndex((prev) => prev + 1), 300);
+    } else {
+      // End of session
+      alert("Session Complete!");
+      router.push(`/practice/${encodeId(subjectId)}/setup`);
     }
   };
 
@@ -52,12 +92,12 @@ export default function FlashcardSession({
     }
   };
 
-  const handleMarkMastered = () => {
-    setMasteredCount((prev) => prev + 1);
-    handleNext();
-  };
-
   const progress = Math.round(((currentIndex + 1) / questions.length) * 100);
+
+  const formatInterval = (days: number) => {
+    if (days < 1) return "<1d";
+    return `${Math.round(days)}d`;
+  };
 
   return (
     <div className="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col h-[calc(100vh-80px)]">
@@ -81,9 +121,9 @@ export default function FlashcardSession({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-          <Check className="size-4" />
-          {masteredCount} Mastered
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-sm font-medium">
+          <Zap className="size-4" />
+          SRS Mode
         </div>
       </div>
 
@@ -146,60 +186,92 @@ export default function FlashcardSession({
       </div>
 
       {/* Controls */}
-      <div className="flex items-center justify-center gap-4">
-        <Button
-          variant="secondary"
-          size="lg"
-          onClick={(e) => {
-            e.stopPropagation();
-            handlePrev();
-          }}
-          disabled={currentIndex === 0}
-          className="w-32"
-        >
-          <ChevronLeft className="size-5 mr-1" />
-          Prev
-        </Button>
+      <div className="flex flex-col gap-4">
+        {!isFlipped ? (
+          <div className="flex justify-center">
+            <Button
+              size="lg"
+              className="w-full max-w-xs h-14 text-lg font-medium shadow-lg shadow-blue-500/20 bg-[#135bec] hover:bg-blue-600 text-white"
+              onClick={() => setIsFlipped(true)}
+            >
+              Show Answer
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto w-full">
+            <Button
+              variant="outline"
+              className="h-auto py-3 flex flex-col gap-1 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-900/30 dark:hover:bg-red-900/20"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRate(0);
+              }}
+            >
+              <span className="font-bold">Again</span>
+              <span className="text-xs opacity-70">
+                {formatInterval(nextIntervals.again.intervalDays)}
+              </span>
+            </Button>
 
-        <div className="flex gap-2">
+            <Button
+              variant="outline"
+              className="h-auto py-3 flex flex-col gap-1 border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300 dark:border-orange-900/30 dark:hover:bg-orange-900/20"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRate(3);
+              }}
+            >
+              <span className="font-bold">Hard</span>
+              <span className="text-xs opacity-70">
+                {formatInterval(nextIntervals.hard.intervalDays)}
+              </span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-auto py-3 flex flex-col gap-1 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 dark:border-blue-900/30 dark:hover:bg-blue-900/20"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRate(4);
+              }}
+            >
+              <span className="font-bold">Good</span>
+              <span className="text-xs opacity-70">
+                {formatInterval(nextIntervals.good.intervalDays)}
+              </span>
+            </Button>
+
+            <Button
+              variant="outline"
+              className="h-auto py-3 flex flex-col gap-1 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 dark:border-green-900/30 dark:hover:bg-green-900/20"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleRate(5);
+              }}
+            >
+              <span className="font-bold">Easy</span>
+              <span className="text-xs opacity-70">
+                {formatInterval(nextIntervals.easy.intervalDays)}
+              </span>
+            </Button>
+          </div>
+        )}
+
+        <div className="flex justify-center mt-2">
           <Button
-            variant="outline"
-            size="lg"
+            variant="ghost"
+            size="sm"
             onClick={(e) => {
               e.stopPropagation();
-              handleNext();
+              handlePrev();
             }}
-            className="w-32 border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300"
+            disabled={currentIndex === 0}
+            className="text-gray-400 hover:text-gray-600"
           >
-            <X className="size-5 mr-2" />
-            Hard
-          </Button>
-          <Button
-            size="lg"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleMarkMastered();
-            }}
-            className="w-32 bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/25"
-          >
-            <Check className="size-5 mr-2" />
-            Easy
+            <ChevronLeft className="size-4 mr-1" />
+            Previous Card
           </Button>
         </div>
-
-        <Button
-          variant="secondary"
-          size="lg"
-          onClick={(e) => {
-            e.stopPropagation();
-            handleNext();
-          }}
-          disabled={currentIndex === questions.length - 1}
-          className="w-32"
-        >
-          Next
-          <ChevronRight className="size-5 ml-1" />
-        </Button>
       </div>
 
       {/* CSS for 3D Flip */}

@@ -74,17 +74,20 @@ export default async function PracticePage(props: PageProps) {
   }
 
   if (topicSlug && topicSlug !== "all") {
-    // Find topic by slug
-    const { data: topicData } = await supabase
+    // Split slugs by comma
+    const slugs = topicSlug.split(",");
+
+    // Find topics by slugs
+    const { data: topicsData } = await supabase
       .from("topics")
       .select("id")
-      .eq("slug", topicSlug)
-      .single();
+      .in("slug", slugs);
 
-    const topic = topicData as { id: number } | null;
+    const topics = topicsData as { id: number }[] | null;
 
-    if (topic) {
-      query = query.eq("topic_id", topic.id);
+    if (topics && topics.length > 0) {
+      const topicIds = topics.map((t) => t.id);
+      query = query.in("topic_id", topicIds);
     }
   }
 
@@ -176,7 +179,7 @@ export default async function PracticePage(props: PageProps) {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc]">
+    <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
       <AmbientBackground />
       <Header user={userData} />
       <PracticeSession

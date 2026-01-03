@@ -23,14 +23,52 @@
     "bookmarks": "Bookmarks",
     "profile": "Profile",
     "login": "Login",
-    "logout": "Logout"
+    "logout": "Logout",
+    "pricing": "Pricing",
+    "mistakes": "Mistakes"
   },
   "home": {
     "title": "StudyPilot — a pilot platform to help students practice smarter for midterms and finals",
     "subtitle": "Built by students, tested in real courses.",
     "startPractice": "Start Free Practice",
     "watchDemo": "Watch Demo",
-    "joinUsers": "Join {count}+ users"
+    "joinUsers": "Join {count}+ users",
+    "browseSubjects": {
+      "title": "Browse Subjects",
+      "subtitle": "Start practicing with our comprehensive question banks",
+      "viewAll": "View All →"
+    },
+    "features": {
+      "coreFeatures": "Core Features",
+      "title": "Why Choose StudyPilot",
+      "subtitle": "Combining glassmorphism design with powerful practice features for the ultimate learning experience",
+      "bank": {
+        "title": "Massive Question Bank",
+        "description": "Covering real exam questions and practice tests from all industries, updated regularly to ensure every question you practice is valuable and relevant."
+      },
+      "mistakes": {
+        "title": "Mistake Management",
+        "description": "Automatically collects mistakes and supports targeted reinforcement training to eliminate ineffective repetition and solidify your understanding."
+      },
+      "flow": {
+        "title": "Flow State Practice",
+        "description": "Enter Immersive Mode for distraction-free practice. Infinite scroll through random questions to build momentum and stay in the zone."
+      },
+      "flashcards": {
+        "title": "Flashcards & Rapid Review",
+        "description": "Use our new Flashcards mode to quickly review key concepts and definitions. Flip through cards to test your memory retention efficiently."
+      }
+    },
+    "hero": {
+      "completed": "Completed",
+      "tagList": "#List",
+      "tagFunction": "#Function"
+    },
+    "stats": {
+      "users": "Registered Users",
+      "subjects": "Subjects Covered",
+      "questions": "Questions Available"
+    }
   },
   "subjects": {
     "title": "Choose a Subject",

@@ -180,6 +180,7 @@ export interface Database {
           user_answer: string | null;
           is_correct: boolean;
           time_spent: number | null;
+          mode: "practice" | "flashcard" | "immersive" | "exam";
           created_at: string;
         };
         Insert: {
@@ -189,6 +190,7 @@ export interface Database {
           user_answer?: string | null;
           is_correct: boolean;
           time_spent?: number | null;
+          mode?: "practice" | "flashcard" | "immersive" | "exam";
           created_at?: string;
         };
         Update: {
@@ -198,6 +200,7 @@ export interface Database {
           user_answer?: string | null;
           is_correct?: boolean;
           time_spent?: number | null;
+          mode?: "practice" | "flashcard" | "immersive" | "exam";
           created_at?: string;
         };
       };
@@ -251,6 +254,32 @@ export interface Database {
           id?: number;
           user_id?: string;
           subject_id?: number;
+          completed_count?: number;
+          correct_count?: number;
+          updated_at?: string;
+        };
+      };
+      topic_progress: {
+        Row: {
+          id: number;
+          user_id: string;
+          topic_id: number;
+          completed_count: number;
+          correct_count: number;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          user_id: string;
+          topic_id: number;
+          completed_count?: number;
+          correct_count?: number;
+          updated_at?: string;
+        };
+        Update: {
+          id?: number;
+          user_id?: string;
+          topic_id?: number;
           completed_count?: number;
           correct_count?: number;
           updated_at?: string;
@@ -430,6 +459,41 @@ export interface Database {
           created_at?: string;
         };
       };
+      flashcard_reviews: {
+        Row: {
+          id: number;
+          user_id: string;
+          question_id: number;
+          next_review_at: string;
+          interval_days: number;
+          ease_factor: number;
+          repetitions: number;
+          last_reviewed_at: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          user_id: string;
+          question_id: number;
+          next_review_at: string;
+          interval_days?: number;
+          ease_factor?: number;
+          repetitions?: number;
+          last_reviewed_at?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          user_id?: string;
+          question_id?: number;
+          next_review_at?: string;
+          interval_days?: number;
+          ease_factor?: number;
+          repetitions?: number;
+          last_reviewed_at?: string;
+          created_at?: string;
+        };
+      };
     };
   };
 }
@@ -451,6 +515,8 @@ export type QuestionFeedback =
   Database["public"]["Tables"]["question_feedback"]["Row"];
 export type SharedMistakes =
   Database["public"]["Tables"]["shared_mistakes"]["Row"];
+export type FlashcardReview =
+  Database["public"]["Tables"]["flashcard_reviews"]["Row"];
 
 export interface QuestionOption {
   label: string;

@@ -2,7 +2,6 @@
 
 import React from "react";
 import Link from "next/link";
-import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import {
   Profile,
@@ -13,11 +12,13 @@ import {
 } from "@/types/database";
 import {
   Check,
-  CheckCircle2,
   Edit2,
   AlertCircle,
   RotateCw,
   Clock,
+  BookMarked,
+  ChevronRight,
+  TrendingUp,
 } from "lucide-react";
 
 // Combined types for props
@@ -41,6 +42,11 @@ interface ProfileContentProps {
   progress: ProgressWithSubject[];
   mistakes: MistakeWithQuestion[];
   bookmarks: BookmarkWithQuestion[];
+  answerStats: {
+    total: number;
+    correct: number;
+    accuracy: number;
+  };
 }
 
 export function ProfileContent({
@@ -48,237 +54,320 @@ export function ProfileContent({
   progress,
   mistakes,
   bookmarks,
+  answerStats,
 }: ProfileContentProps) {
   // Calculate stats
-  const totalCompleted = progress.reduce(
-    (acc, curr) => acc + (curr.completed_count || 0),
-    0
-  );
+  // unused for now: const totalCompleted = progress.reduce((acc, curr) => acc + (curr.completed_count || 0), 0);
 
   // Format progress data for display
   const progressDisplay = progress.map((p) => {
     const total = p.subjects.question_count || 0;
     const completed = p.completed_count || 0;
-    // Avoid division by zero
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     return {
       subject: p.subjects.name,
+      slug: p.subjects.slug,
       completed,
       total,
       percentage,
-      color: p.subjects.category === "STEM" ? "blue" : "green",
+      color: p.subjects.category === "STEM" ? "blue" : "emerald",
     };
   });
 
-  // Format relative time (simple implementation)
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
     if (diffInSeconds < 60) return "Just now";
-    if (diffInSeconds < 3600)
-      return `${Math.floor(diffInSeconds / 60)} mins ago`;
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
     if (diffInSeconds < 86400)
-      return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-    return `${Math.floor(diffInSeconds / 86400)} days ago`;
+      return `${Math.floor(diffInSeconds / 3600)}h ago`;
+    return `${Math.floor(diffInSeconds / 86400)}d ago`;
   };
 
   return (
-    <div className="grid lg:grid-cols-3 gap-8">
-      {/* Left Column - Profile Card */}
-      <div className="lg:col-span-1">
-        <GlassPanel className="p-8 text-center h-full">
-          {/* Avatar */}
-          <div className="relative mx-auto mb-6">
-            <div className="size-24 rounded-full bg-gradient-to-br from-[#135bec] to-purple-500 p-1">
-              <div
-                className="size-full rounded-full bg-gradient-to-br from-blue-400 to-purple-500 bg-cover bg-center"
-                style={
-                  user.avatar_url
-                    ? { backgroundImage: `url(${user.avatar_url})` }
-                    : undefined
-                }
-              />
-            </div>
-            <div className="absolute bottom-0 right-0 size-8 rounded-full bg-green-500 border-4 border-white flex items-center justify-center">
-              <Check className="text-white size-3.5" />
-            </div>
-          </div>
-
-          {/* User Info */}
-          <h1 className="text-2xl font-bold mb-6">{user.username || "User"}</h1>
-
-          <Button variant="secondary" className="w-full">
-            <Edit2 className="mr-2 size-4" />
-            Edit Profile
-          </Button>
-        </GlassPanel>
+    <div className="max-w-6xl mx-auto space-y-8">
+      {/* Header / Breadcrumb - consistent with other pages */}
+      <div className="flex items-center gap-2 text-sm text-gray-500 mb-8">
+        <Link href="/" className="hover:text-blue-600 transition-colors">
+          Home
+        </Link>
+        <ChevronRight className="size-4" />
+        <span className="text-gray-900 dark:text-white font-medium">
+          Profile
+        </span>
       </div>
 
-      {/* Right Column - Progress, Mistakes, Bookmarks */}
-      <div className="lg:col-span-2 space-y-8">
-        {/* Learning Progress */}
-        <GlassPanel className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold">Learning Progress</h2>
-            <Link
-              href="/subjects"
-              className="text-[#135bec] text-sm font-medium hover:underline"
-            >
-              View All
-            </Link>
-          </div>
-
-          {progressDisplay.length > 0 ? (
-            <div className="space-y-5">
-              {progressDisplay.map((item, i) => (
-                <div key={i}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium">{item.subject}</span>
-                    <span className="text-sm text-[#4c669a]">
-                      {item.completed}/{item.total}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
-                    <div
-                      className={`h-2.5 rounded-full transition-all ${
-                        item.percentage === 100
-                          ? "bg-green-500"
-                          : item.percentage > 50
-                          ? "bg-[#135bec]"
-                          : "bg-orange-400"
-                      }`}
-                      style={{ width: `${item.percentage}%` }}
-                    />
+      <div className="grid lg:grid-cols-12 gap-8">
+        {/* Left Column - Profile Card */}
+        <div className="lg:col-span-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm">
+            <div className="flex flex-col items-center text-center">
+              <div className="relative mb-6">
+                <div className="size-32 rounded-full p-1 bg-white dark:bg-slate-800 ring-2 ring-gray-100 dark:ring-gray-700">
+                  <div
+                    className="size-full rounded-full bg-gray-100 dark:bg-gray-800 bg-cover bg-center"
+                    style={
+                      user.avatar_url
+                        ? { backgroundImage: `url(${user.avatar_url})` }
+                        : undefined
+                    }
+                  >
+                    {!user.avatar_url && (
+                      <span className="flex items-center justify-center h-full text-4xl font-bold text-gray-300">
+                        {user.username?.[0]?.toUpperCase() || "U"}
+                      </span>
+                    )}
                   </div>
                 </div>
-              ))}
+                {/* Status Indicator */}
+                <div className="absolute bottom-2 right-2 p-1.5 bg-white dark:bg-slate-900 rounded-full">
+                  <div className="size-4 bg-green-500 rounded-full ring-2 ring-white dark:ring-slate-900" />
+                </div>
+              </div>
+
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                {user.username || "User"}
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
+                Level {user.level || 1} • Member since{" "}
+                {new Date(user.created_at).getFullYear()}
+              </p>
+
+              <div className="w-full grid grid-cols-3 gap-3 mb-8">
+                <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/50">
+                  <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
+                    {user.streak_days || 0}
+                  </div>
+                  <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                    Day Streak
+                  </div>
+                </div>
+                <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/10">
+                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">
+                    {answerStats.total}
+                  </div>
+                  <div className="text-xs text-blue-600/70 dark:text-blue-400/70 font-medium uppercase tracking-wider">
+                    Questions
+                  </div>
+                </div>
+                <div className="p-4 rounded-2xl bg-green-50 dark:bg-green-900/10">
+                  <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">
+                    {answerStats.accuracy}%
+                  </div>
+                  <div className="text-xs text-green-600/70 dark:text-green-400/70 font-medium uppercase tracking-wider">
+                    Accuracy
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full rounded-xl border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-800 text-slate-900 dark:text-white"
+              >
+                <Edit2 className="mr-2 size-4" />
+                Edit Profile
+              </Button>
             </div>
-          ) : (
-            <div className="text-center py-8 text-[#4c669a]">
-              <p>No progress yet. Start practicing!</p>
-              <Link href="/subjects">
-                <Button className="mt-4" size="sm">
-                  Start Learning
-                </Button>
+          </div>
+        </div>
+
+        {/* Right Column - Stats & Content */}
+        <div className="lg:col-span-8 space-y-8">
+          {/* Learning Progress */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
+                  <TrendingUp className="size-5" />
+                </div>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                  Learning Progress
+                </h2>
+              </div>
+              <Link
+                href="/subjects"
+                className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+              >
+                View All
               </Link>
             </div>
-          )}
-        </GlassPanel>
 
-        {/* Mistake Book */}
-        <GlassPanel className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold">Mistake Book</h2>
-              <span className="text-sm text-[#4c669a] bg-gray-100 px-2 py-0.5 rounded-full">
-                {mistakes.length} recent
-              </span>
+            <div className="space-y-6">
+              {progressDisplay.length > 0 ? (
+                progressDisplay.map((item, i) => (
+                  <Link
+                    href={`/practice/${item.slug}/setup`}
+                    key={i}
+                    className="block group"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
+                        {item.subject}
+                      </span>
+                      <span className="text-xs font-medium text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">
+                        {item.percentage}%
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`h-full rounded-full transition-all duration-500 ${
+                          item.percentage === 100
+                            ? "bg-green-500"
+                            : "bg-blue-600"
+                        }`}
+                        style={{ width: `${item.percentage}%` }}
+                      />
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <div className="text-center py-6 text-gray-500 text-sm">
+                  No progress recorded yet.
+                </div>
+              )}
             </div>
-            <Link
-              href="/profile/mistakes"
-              className="text-[#135bec] text-sm font-medium hover:underline"
-            >
-              View All
-            </Link>
           </div>
 
-          {mistakes.length > 0 ? (
-            <div className="space-y-4">
-              {mistakes.map((mistake) => (
-                <div
-                  key={mistake.id}
-                  className="flex items-center justify-between p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 hover:border-[#135bec]/30 transition-colors"
+          <div className="grid sm:grid-cols-2 gap-8">
+            {/* Mistake Book */}
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm flex flex-col">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg text-red-600 dark:text-red-400">
+                    <AlertCircle className="size-5" />
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                    Mistakes
+                  </h2>
+                </div>
+                <Link
+                  href="/profile/mistakes"
+                  className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="size-10 rounded-lg bg-red-100 text-red-500 flex items-center justify-center shrink-0">
-                      <AlertCircle className="size-5" />
-                    </div>
-                    <div>
-                      <p className="font-medium line-clamp-1">
-                        {mistake.questions.title}
-                      </p>
-                      <div className="flex items-center gap-3 text-xs text-[#4c669a] mt-1">
-                        <span className="flex items-center gap-1">
-                          <RotateCw className="size-3.5" />
-                          {mistake.error_count} errors
+                  Manage
+                </Link>
+              </div>
+
+              <div className="flex-1 space-y-4">
+                {mistakes.length > 0 ? (
+                  mistakes.slice(0, 3).map((item) => (
+                    <div
+                      key={item.id}
+                      className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors group cursor-pointer border border-transparent hover:border-red-100 dark:hover:border-red-900/30"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-xs font-bold text-red-600 bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-md">
+                          {item.error_count} Errors
                         </span>
-                        <span className="flex items-center gap-1">
-                          <Clock className="size-3.5" />
-                          {formatTimeAgo(mistake.last_error_at)}
+                        <span className="text-[10px] text-gray-400">
+                          {formatTimeAgo(item.last_error_at)}
                         </span>
                       </div>
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 leading-relaxed">
+                        {item.questions.title}
+                      </h3>
                     </div>
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center flex-1 py-8 text-center">
+                    <div className="size-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-3">
+                      <Check className="size-6" />
+                    </div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      Clean Sheet!
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      No mistakes to review.
+                    </p>
                   </div>
-                  <Link href="/profile/mistakes">
-                    <Button variant="secondary" size="sm">
-                      Review
-                    </Button>
-                  </Link>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8 text-[#4c669a]">
-              <CheckCircle2 className="size-10 mb-2 text-green-500 mx-auto" />
-              <p>Great job! No mistakes found.</p>
-            </div>
-          )}
-        </GlassPanel>
-
-        {/* Bookmarks - New Section */}
-        <GlassPanel className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold">Bookmarks</h2>
-              <span className="text-sm text-[#4c669a] bg-gray-100 px-2 py-0.5 rounded-full">
-                {bookmarks.length} recent
-              </span>
-            </div>
-            <Link
-              href="/profile/bookmarks"
-              className="text-[#135bec] text-sm font-medium hover:underline"
-            >
-              View All
-            </Link>
-          </div>
-
-          {bookmarks.length > 0 ? (
-            <div className="space-y-4">
-              {bookmarks.map((bookmark) => (
-                <div
-                  key={bookmark.id}
-                  className="flex items-center justify-between p-4 bg-white/50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 hover:border-[#135bec]/30 transition-colors"
+                )}
+              </div>
+              {mistakes.length > 3 && (
+                <Link
+                  href="/profile/mistakes"
+                  className="mt-6 block text-center text-sm font-semibold text-blue-600 hover:text-blue-700"
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="size-10 rounded-lg bg-yellow-100 text-yellow-600 flex items-center justify-center shrink-0">
-                      <Clock className="size-5" />
+                  View {mistakes.length - 3} more
+                </Link>
+              )}
+            </div>
+
+            {/* Bookmarks */}
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm flex flex-col">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-600 dark:text-amber-400">
+                    <BookMarked className="size-5" />
+                  </div>
+                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                    Bookmarks
+                  </h2>
+                </div>
+                <Link
+                  href="/profile/bookmarks"
+                  className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  Manage
+                </Link>
+              </div>
+
+              <div className="flex-1 space-y-4">
+                {bookmarks.length > 0 ? (
+                  bookmarks.slice(0, 3).map((item) => (
+                    <div
+                      key={item.id}
+                      className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors group cursor-pointer border border-transparent hover:border-amber-100 dark:hover:border-amber-900/30"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        {/* Difficulty Badge */}
+                        <span
+                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                            item.questions.difficulty === "hard"
+                              ? "bg-red-100 text-red-700"
+                              : item.questions.difficulty === "medium"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-green-100 text-green-700"
+                          }`}
+                        >
+                          {item.questions.difficulty}
+                        </span>
+                        <span className="text-[10px] text-gray-400">
+                          {formatTimeAgo(item.created_at)}
+                        </span>
+                      </div>
+                      <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 leading-relaxed">
+                        {item.questions.title}
+                      </h3>
                     </div>
-                    <div>
-                      <p className="font-medium line-clamp-1">
-                        {bookmark.questions.title}
+                  ))
+                ) : (
+                  <div className="flex flex-col items-center justify-center flex-1 py-8 text-center space-y-3">
+                    <BookMarked className="size-10 text-gray-200 dark:text-gray-700" />
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        No bookmarks
                       </p>
-                      <p className="text-xs text-[#4c669a] mt-1">
-                        Added {formatTimeAgo(bookmark.created_at)}
+                      <p className="text-xs text-gray-500">
+                        Save questions to review later.
                       </p>
                     </div>
                   </div>
-                  <Link href="/profile/bookmarks">
-                    <Button variant="secondary" size="sm">
-                      View
-                    </Button>
-                  </Link>
-                </div>
-              ))}
+                )}
+              </div>
+              {bookmarks.length > 3 && (
+                <Link
+                  href="/profile/bookmarks"
+                  className="mt-6 block text-center text-sm font-semibold text-blue-600 hover:text-blue-700"
+                >
+                  View {bookmarks.length - 3} more
+                </Link>
+              )}
             </div>
-          ) : (
-            <div className="text-center py-8 text-[#4c669a]">
-              <p>No bookmarks yet.</p>
-            </div>
-          )}
-        </GlassPanel>
+          </div>
+        </div>
       </div>
     </div>
   );

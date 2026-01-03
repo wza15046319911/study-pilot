@@ -41,7 +41,7 @@ export default async function RootLayout({
     <html lang={locale} suppressHydrationWarning>
       <head>{/* Material Symbols removed */}</head>
       <body
-        className={`${lexend.variable} ${notoSansSC.variable} ${firaCode.variable} font-sans antialiased bg-white dark:bg-[#0f172a] text-[#0d121b] dark:text-white min-h-screen transition-colors duration-300`}
+        className={`${lexend.variable} ${notoSansSC.variable} ${firaCode.variable} font-sans antialiased bg-white dark:bg-[#0f172a] text-slate-900 dark:text-white min-h-screen transition-colors duration-300`}
       >
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>{children}</ThemeProvider>

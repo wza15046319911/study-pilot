@@ -71,3 +71,73 @@ export async function createExam(input: CreateExamInput) {
 
   return { success: true, examId: examData.id };
 }
+
+interface UpdateExamInput extends CreateExamInput {
+  examId: number;
+}
+
+export async function updateExam(input: UpdateExamInput) {
+  const userSupabase = await createClient();
+  const {
+    data: { user },
+  } = await userSupabase.auth.getUser();
+
+  if (!user || user.email !== process.env.ADMIN_EMAIL) {
+    throw new Error("Unauthorized");
+  }
+
+  if (
+    !input.examId ||
+    !input.subjectId ||
+    !input.title.trim() ||
+    input.questionIds.length === 0
+  ) {
+    throw new Error("Invalid input");
+  }
+
+  const supabase = createAdminClient();
+
+  // Update exam details
+  const { error: examError } = await (supabase.from("exams") as any)
+    .update({
+      subject_id: input.subjectId,
+      title: input.title.trim(),
+      slug: input.slug,
+      exam_type: input.examType,
+      duration_minutes: input.durationMinutes,
+      rules: input.rules,
+      is_published: input.publish,
+    })
+    .eq("id", input.examId);
+
+  if (examError) {
+    throw new Error(examError.message || "Failed to update exam");
+  }
+
+  // Delete existing questions
+  const { error: deleteError } = await supabase
+    .from("exam_questions")
+    .delete()
+    .eq("exam_id", input.examId);
+
+  if (deleteError) {
+    throw new Error("Failed to clear existing questions");
+  }
+
+  // Insert new questions
+  const examQuestions = input.questionIds.map((questionId, index) => ({
+    exam_id: input.examId,
+    question_id: questionId,
+    order_index: index,
+  }));
+
+  const { error: questionsError } = await supabase
+    .from("exam_questions")
+    .insert(examQuestions as any);
+
+  if (questionsError) {
+    throw new Error(questionsError.message);
+  }
+
+  return { success: true };
+}

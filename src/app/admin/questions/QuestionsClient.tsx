@@ -7,7 +7,15 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import EditQuestionModal from "./EditQuestionModal";
-import { updateQuestion, deleteQuestion } from "./actions";
+import QuestionPreviewModal from "./QuestionPreviewModal";
+import {
+  updateQuestion,
+  deleteQuestion,
+  batchUpdateQuestions,
+  batchAddTags,
+  duplicateQuestion,
+  batchDeleteQuestions,
+} from "./actions";
 import {
   Search,
   Filter,
@@ -20,11 +28,22 @@ import {
   Tag,
   Database,
   Loader2,
+  CheckSquare,
+  Square,
+  Settings2,
+  Plus,
+  Copy,
 } from "lucide-react";
 
 interface Subject {
   id: number;
   name: string;
+}
+
+interface Topic {
+  id: number;
+  name: string;
+  subject_id: number;
 }
 
 interface Question {
@@ -42,13 +61,15 @@ interface Question {
   tags: string[] | null;
   created_at: string;
   subjects?: { name: string };
+  topics?: { name: string };
 }
 
 interface QuestionsClientProps {
   subjects: Subject[];
 }
 
-const ITEMS_PER_PAGE = 20;
+// Removed constant
+// const ITEMS_PER_PAGE = 20;
 
 const questionTypes = [
   { value: "", label: "All Types" },
@@ -68,8 +89,21 @@ const difficultyOptions = [
 ];
 
 export default function QuestionsClient({ subjects }: QuestionsClientProps) {
+  // We need topics for the batch edit dropdown
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const supabase = createClient();
+
+  useEffect(() => {
+    async function fetchTopics() {
+      const { data } = await supabase.from("topics").select("*");
+      if (data) setTopics(data);
+    }
+    fetchTopics();
+  }, [supabase]);
+
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
+  const [itemsPerPage, setItemsPerPage] = useState(20); // Dynamic items per page
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -88,7 +122,16 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const supabase = createClient();
+  // Preview modal
+  const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
+
+  // Batch Operations
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
+  const [batchDifficulty, setBatchDifficulty] = useState("");
+  const [batchTopic, setBatchTopic] = useState("");
+  const [batchTag, setBatchTag] = useState("");
+
+  // const supabase = createClient(); // Moved up
 
   // Debounce search
   useEffect(() => {
@@ -99,13 +142,53 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if typing in an input
+      if (
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement
+      ) {
+        return;
+      }
+
+      // Ctrl/Cmd + K: Focus search
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        const searchInput = document.querySelector(
+          'input[placeholder*="Search"]'
+        ) as HTMLInputElement;
+        if (searchInput) searchInput.focus();
+      }
+
+      // Escape: Clear selection
+      if (e.key === "Escape" && selectedIds.size > 0) {
+        e.preventDefault();
+        setSelectedIds(new Set());
+      }
+
+      // Delete/Backspace: Bulk delete (with selection)
+      if (
+        (e.key === "Delete" || e.key === "Backspace") &&
+        selectedIds.size > 0
+      ) {
+        e.preventDefault();
+        handleBatchDelete();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedIds]);
+
   // Fetch questions
   const fetchQuestions = useCallback(async () => {
     setLoading(true);
 
     let query = supabase
       .from("questions")
-      .select("*, subjects(name)", { count: "exact" });
+      .select("*, subjects(name), topics(name)", { count: "exact" });
 
     if (subjectFilter) {
       query = query.eq("subject_id", parseInt(subjectFilter));
@@ -122,8 +205,8 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
       );
     }
 
-    const from = (currentPage - 1) * ITEMS_PER_PAGE;
-    const to = from + ITEMS_PER_PAGE - 1;
+    const from = (currentPage - 1) * itemsPerPage;
+    const to = from + itemsPerPage - 1;
 
     const { data, count, error } = await query
       .order(sortColumn, { ascending: sortDirection === "asc" })
@@ -143,6 +226,7 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
     sortColumn,
     sortDirection,
     supabase,
+    itemsPerPage, // Add dependency
   ]);
 
   useEffect(() => {
@@ -159,12 +243,13 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
     }
   };
 
-  // Reset page when filters change
+  // Reset page and selection when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [subjectFilter, typeFilter, difficultyFilter]);
+    setSelectedIds(new Set());
+  }, [subjectFilter, typeFilter, difficultyFilter, itemsPerPage]);
 
-  const totalPages = Math.ceil(totalCount / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const handleEdit = (question: Question) => {
     setEditingQuestion(question);
@@ -183,9 +268,19 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
 
     if (result.success) {
       console.log("Update successful:", result.data);
+
+      // Update local state without re-fetching
+      if (result.data) {
+        setQuestions((prevQuestions) =>
+          prevQuestions.map((q) =>
+            q.id === editingQuestion.id ? { ...q, ...result.data } : q
+          )
+        );
+      }
+
       setIsModalOpen(false);
       setEditingQuestion(null);
-      fetchQuestions();
+      // Removed fetchQuestions() to prevent page refresh/loading state
     } else {
       console.error("Update error:", result.error);
       alert(`Failed to save: ${result.error}`);
@@ -200,6 +295,112 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
       fetchQuestions();
     } else {
       alert(`Failed to delete: ${result.error}`);
+    }
+  };
+
+  // Batch Actions
+  const toggleSelection = (id: number) => {
+    const newSet = new Set(selectedIds);
+    if (newSet.has(id)) {
+      newSet.delete(id);
+    } else {
+      newSet.add(id);
+    }
+    setSelectedIds(newSet);
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === questions.length) {
+      setSelectedIds(new Set());
+    } else {
+      const all = new Set(questions.map((q) => q.id));
+      setSelectedIds(all);
+    }
+  };
+
+  const handleBatchDifficulty = async (diff: string) => {
+    if (!diff || selectedIds.size === 0) return;
+    if (
+      !confirm(
+        `Update difficulty for ${selectedIds.size} questions to ${diff}?`
+      )
+    )
+      return;
+
+    const result = await batchUpdateQuestions(Array.from(selectedIds), {
+      difficulty: diff as any,
+    });
+    if (result.success) {
+      // Optimistic update
+      setQuestions((prev) =>
+        prev.map((q) =>
+          selectedIds.has(q.id) ? { ...q, difficulty: diff } : q
+        )
+      );
+      setBatchDifficulty("");
+      setSelectedIds(new Set());
+    } else {
+      alert("Batch update failed");
+    }
+  };
+
+  const handleBatchTopic = async (topicIdStr: string) => {
+    if (!topicIdStr || selectedIds.size === 0) return;
+    const topicId = parseInt(topicIdStr);
+    if (!confirm(`Update topic for ${selectedIds.size} questions?`)) return;
+
+    const result = await batchUpdateQuestions(Array.from(selectedIds), {
+      topic_id: topicId,
+    });
+    if (result.success) {
+      fetchQuestions(); // Hard to optimistic update exact topic name without lookup, re-fetching is safer
+      setBatchTopic("");
+      setSelectedIds(new Set());
+    } else {
+      alert("Batch update failed");
+    }
+  };
+
+  const handleBatchAddTag = async () => {
+    const tag = batchTag.trim().toLowerCase();
+    if (!tag || selectedIds.size === 0) return;
+
+    // Optimistic UI not easy for array append, let's wait
+    const result = await batchAddTags(Array.from(selectedIds), [tag]);
+    if (result.success) {
+      fetchQuestions();
+      setBatchTag("");
+      setSelectedIds(new Set());
+    } else {
+      alert("Batch tag add failed");
+    }
+  };
+
+  const handleDuplicate = async (id: number) => {
+    const result = await duplicateQuestion(id);
+    if (result.success) {
+      fetchQuestions();
+    } else {
+      alert("Failed to duplicate question");
+    }
+  };
+
+  const handleBatchDelete = async () => {
+    if (selectedIds.size === 0) return;
+    if (
+      !confirm(
+        `Delete ${selectedIds.size} selected question(s)? This cannot be undone.`
+      )
+    )
+      return;
+
+    const result = await batchDeleteQuestions(Array.from(selectedIds));
+    if (result.success) {
+      setQuestions((prev) => prev.filter((q) => !selectedIds.has(q.id)));
+      setSelectedIds(new Set());
+      setTotalCount((prev) => prev - (result.count || 0));
+    } else {
+      alert("Batch delete failed");
     }
   };
 
@@ -238,6 +439,74 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
             </p>
           </div>
         </div>
+
+        {/* Batch Toolbar */}
+        {selectedIds.size > 0 && (
+          <div className="flex items-center gap-2 p-2 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-blue-100 dark:border-blue-900 animate-in slide-in-from-top-2 z-20">
+            <div className="flex items-center gap-2 px-2 text-sm font-medium text-blue-600">
+              <CheckSquare className="size-4" />
+              {selectedIds.size} Selected
+            </div>
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2" />
+
+            <Select
+              value={batchDifficulty}
+              onChange={(e: any) => handleBatchDifficulty(e.target.value)}
+              options={[
+                { value: "", label: "Set Difficulty..." },
+                { value: "easy", label: "Easy" },
+                { value: "medium", label: "Medium" },
+                { value: "hard", label: "Hard" },
+              ]}
+              className="w-40 h-9 text-sm"
+            />
+
+            <Select
+              value={batchTopic}
+              onChange={(e: any) => handleBatchTopic(e.target.value)}
+              options={[
+                { value: "", label: "Set Topic..." },
+                // Filter topics by current subject filter if active
+                ...topics
+                  .filter(
+                    (t) =>
+                      !subjectFilter || t.subject_id === parseInt(subjectFilter)
+                  )
+                  .map((t) => ({ value: t.id, label: t.name })),
+              ]}
+              className="w-40 h-9 text-sm"
+            />
+
+            <div className="flex items-center gap-1">
+              <Input
+                value={batchTag}
+                onChange={(e) => setBatchTag(e.target.value)}
+                placeholder="Add Tag"
+                className="w-32 h-9 text-sm"
+                onKeyDown={(e) => e.key === "Enter" && handleBatchAddTag()}
+              />
+              <Button
+                size="sm"
+                onClick={handleBatchAddTag}
+                className="h-9 w-9 p-0"
+              >
+                <Plus className="size-4" />
+              </Button>
+            </div>
+
+            <div className="h-6 w-px bg-gray-200 dark:bg-gray-700" />
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleBatchDelete}
+              className="h-9 text-red-500 border-red-200 hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/30"
+            >
+              <Trash2 className="size-4 mr-1" />
+              Delete ({selectedIds.size})
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Filters */}
@@ -301,6 +570,19 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
             <table className="w-full">
               <thead className="bg-gray-50 dark:bg-slate-800/50">
                 <tr>
+                  <th className="px-4 py-3 text-left w-10">
+                    <button
+                      onClick={toggleSelectAll}
+                      className="opacity-50 hover:opacity-100"
+                    >
+                      {questions.length > 0 &&
+                      selectedIds.size === questions.length ? (
+                        <CheckSquare className="size-4 text-blue-600" />
+                      ) : (
+                        <Square className="size-4" />
+                      )}
+                    </button>
+                  </th>
                   <th
                     className="px-4 py-3 text-left text-xs font-semibold text-[#4c669a] dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors"
                     onClick={() => handleSort("id")}
@@ -331,6 +613,9 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-[#4c669a] dark:text-gray-400 uppercase tracking-wider">
                     Subject
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#4c669a] dark:text-gray-400 uppercase tracking-wider">
+                    Topic
                   </th>
                   <th
                     className="px-4 py-3 text-left text-xs font-semibold text-[#4c669a] dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors"
@@ -374,16 +659,34 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
                     key={q.id}
                     className="hover:bg-gray-50 dark:hover:bg-slate-800/30 transition-colors"
                   >
+                    <td className="px-4 py-4">
+                      <button
+                        onClick={() => toggleSelection(q.id)}
+                        className="text-gray-400 hover:text-blue-600"
+                      >
+                        {selectedIds.has(q.id) ? (
+                          <CheckSquare className="size-4 text-blue-600" />
+                        ) : (
+                          <Square className="size-4" />
+                        )}
+                      </button>
+                    </td>
                     <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400 font-mono">
                       #{q.id}
                     </td>
                     <td className="px-4 py-4">
-                      <p className="text-sm font-medium text-[#0d121b] dark:text-white line-clamp-2 max-w-md">
+                      <p
+                        className="text-sm font-medium text-[#0d121b] dark:text-white line-clamp-2 max-w-md cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                        onClick={() => setPreviewQuestion(q)}
+                      >
                         {q.title}
                       </p>
                     </td>
                     <td className="px-4 py-4 text-sm text-[#4c669a] dark:text-gray-400">
                       {q.subjects?.name || "-"}
+                    </td>
+                    <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-500">
+                      {q.topics?.name || "-"}
                     </td>
                     <td className="px-4 py-4">
                       <span className="text-xs px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
@@ -430,6 +733,13 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
                           <Edit2 className="size-4" />
                         </button>
                         <button
+                          onClick={() => handleDuplicate(q.id)}
+                          className="p-2 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 transition-colors"
+                          title="Duplicate"
+                        >
+                          <Copy className="size-4" />
+                        </button>
+                        <button
                           onClick={() => handleDelete(q.id)}
                           className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 transition-colors"
                           title="Delete"
@@ -446,38 +756,54 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
         )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-4 border-t border-gray-100 dark:border-gray-800">
-            <p className="text-sm text-[#4c669a] dark:text-gray-400">
-              Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
-              {Math.min(currentPage * ITEMS_PER_PAGE, totalCount)} of{" "}
-              {totalCount}
-            </p>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-              >
-                <ChevronLeft className="size-4" />
-              </Button>
-              <span className="text-sm text-[#0d121b] dark:text-white px-3">
-                {currentPage} / {totalPages}
-              </span>
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={currentPage === totalPages}
-              >
-                <ChevronRight className="size-4" />
-              </Button>
-            </div>
+        <div className="flex items-center justify-between px-4 py-4 border-t border-gray-100 dark:border-gray-800">
+          <p className="text-sm text-[#4c669a] dark:text-gray-400">
+            Showing {totalCount > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}{" "}
+            to {Math.min(currentPage * itemsPerPage, totalCount)} of{" "}
+            {totalCount}
+          </p>
+          <div className="flex items-center gap-2">
+            {totalPages > 1 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  disabled={currentPage === 1 || loading}
+                >
+                  <ChevronLeft className="size-4" />
+                </Button>
+                <span className="text-sm text-[#4c669a] dark:text-gray-400">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() =>
+                    setCurrentPage((p) => Math.min(totalPages, p + 1))
+                  }
+                  disabled={currentPage === totalPages || loading}
+                >
+                  <ChevronRight className="size-4" />
+                </Button>
+                <div className="w-px h-6 bg-gray-200 dark:bg-gray-700 mx-2" />
+              </>
+            )}
+
+            <Select
+              value={itemsPerPage.toString()}
+              onChange={(e) => setItemsPerPage(Number(e.target.value))}
+              options={[
+                { value: 20, label: "20 / page" },
+                { value: 50, label: "50 / page" },
+                { value: 100, label: "100 / page" },
+                { value: 200, label: "200 / page" },
+                { value: 500, label: "500 / page" },
+              ]}
+              className="w-32 h-9 text-sm"
+            />
           </div>
-        )}
+        </div>
       </GlassPanel>
 
       {/* Edit Modal */}
@@ -489,6 +815,13 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
           setEditingQuestion(null);
         }}
         onSave={handleSave}
+      />
+
+      {/* Preview Modal */}
+      <QuestionPreviewModal
+        isOpen={!!previewQuestion}
+        question={previewQuestion}
+        onClose={() => setPreviewQuestion(null)}
       />
     </div>
   );

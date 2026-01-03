@@ -4,8 +4,6 @@ import {
   Upload,
   FileText,
   Settings,
-  Users,
-  BarChart3,
   BookOpen,
 } from "lucide-react";
 
@@ -26,14 +24,14 @@ export default function AdminDashboard() {
       color: "bg-purple-100 dark:bg-purple-900/30",
     },
     {
-      title: "Question Manager",
+      title: "Manage Questions",
       description: "Edit, tag, and delete existing questions.",
       href: "/admin/questions",
       icon: <FileText className="size-8 text-purple-500" />,
       color: "bg-purple-100 dark:bg-purple-900/30",
     },
     {
-      title: "Exam Manager",
+      title: "Manage Exams",
       description: "Create and manage practice exams.",
       href: "/admin/exams", // Assuming this exists or will exist
       icon: <Settings className="size-8 text-amber-500" />,

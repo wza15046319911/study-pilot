@@ -8,7 +8,10 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { LatexContent } from "@/components/ui/LatexContent";
-import { X, Tag, Plus } from "lucide-react";
+import { CodeBlock } from "@/components/ui/CodeBlock";
+import { X, Tag, Plus, Code2, Type, FileUp, Loader2 } from "lucide-react";
+import Editor from "@monaco-editor/react";
+// pdfjs-dist will be imported dynamically to avoid SSR issues with DOMMatrix
 
 interface Subject {
   id: number;
@@ -26,6 +29,7 @@ interface ParsedQuestion {
   options: { label: string; content: string }[];
   codeSnippet: string | null;
   answer: string;
+  explanation: string;
   rawText: string;
 }
 
@@ -76,7 +80,11 @@ function parseQuestionText(
         /^(def |class |import |from |if |for |while |return |print\(|@)/.test(
           trimmedLine
         ) ||
-        /^[a-z_]+\s*=/.test(trimmedLine);
+        /^[a-z_]+\s*=/.test(trimmedLine) ||
+        // Check for arithmetic/logical operators common in code but rare in text
+        /(?:[\d\w\)]+\s*(?:\*\*|\/\/|%|<<|>>|&|\||\^)\s*[\d\w\(]+)/.test(
+          trimmedLine
+        );
 
       if (looksLikeCode || inCode) {
         inCode = true;
@@ -127,7 +135,21 @@ function parseQuestionText(
     title = title.substring(0, 50) + "...";
   }
 
-  return { title, content, options, codeSnippet, answer: "", rawText: text };
+  // Default answer for code_output
+  let answer = "";
+  if (type === "code_output") {
+    answer = "N/A";
+  }
+
+  return {
+    title,
+    content,
+    options,
+    codeSnippet,
+    answer,
+    explanation: "",
+    rawText: text,
+  };
 }
 
 // Split text into multiple question blocks, preserving preamble as context
@@ -198,8 +220,70 @@ export default function UploadQuestionPage() {
   const [parsedQuestions, setParsedQuestions] = useState<ParsedQuestion[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
+  const [codeViewModes, setCodeViewModes] = useState<
+    Record<number, "code" | "text">
+  >({});
+  const [answerViewModes, setAnswerViewModes] = useState<
+    Record<number, "code" | "text">
+  >({});
+  const [pdfLoading, setPdfLoading] = useState(false);
+  const [pdfFileName, setPdfFileName] = useState<string | null>(null);
+  const [draftStatus, setDraftStatus] = useState<"saved" | "saving" | null>(
+    null
+  );
 
   const supabase = createClient();
+  const DRAFT_KEY = "upload-questions-draft";
+
+  // Restore draft on mount
+  useEffect(() => {
+    const savedDraft = localStorage.getItem(DRAFT_KEY);
+    if (savedDraft) {
+      try {
+        const draft = JSON.parse(savedDraft);
+        if (draft.questionText) setQuestionText(draft.questionText);
+        if (draft.selectedSubject) setSelectedSubject(draft.selectedSubject);
+        if (draft.selectedTopic) setSelectedTopic(draft.selectedTopic);
+        if (draft.questionType) setQuestionType(draft.questionType);
+        if (draft.difficulty) setDifficulty(draft.difficulty);
+        if (draft.tags) setTags(draft.tags);
+        setDraftStatus("saved");
+        setTimeout(() => setDraftStatus(null), 2000);
+      } catch (e) {
+        console.error("Failed to restore draft", e);
+      }
+    }
+  }, []);
+
+  // Auto-save draft (debounced)
+  useEffect(() => {
+    if (!questionText && !selectedSubject && tags.length === 0) return;
+
+    setDraftStatus("saving");
+    const timer = setTimeout(() => {
+      const draft = {
+        questionText,
+        selectedSubject,
+        selectedTopic,
+        questionType,
+        difficulty,
+        tags,
+        savedAt: new Date().toISOString(),
+      };
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      setDraftStatus("saved");
+      setTimeout(() => setDraftStatus(null), 2000);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [
+    questionText,
+    selectedSubject,
+    selectedTopic,
+    questionType,
+    difficulty,
+    tags,
+  ]);
 
   useEffect(() => {
     async function fetchSubjects() {
@@ -246,6 +330,22 @@ export default function UploadQuestionPage() {
     });
   }
 
+  function updateCodeSnippet(index: number, snippet: string) {
+    setParsedQuestions((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], codeSnippet: snippet };
+      return updated;
+    });
+  }
+
+  function updateExplanation(index: number, explanation: string) {
+    setParsedQuestions((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], explanation: explanation };
+      return updated;
+    });
+  }
+
   const addTag = () => {
     const trimmed = newTag.trim().toLowerCase();
     if (trimmed && !tags.includes(trimmed)) {
@@ -256,6 +356,65 @@ export default function UploadQuestionPage() {
 
   const removeTag = (tag: string) => {
     setTags(tags.filter((t) => t !== tag));
+  };
+
+  // PDF Upload Handler
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || file.type !== "application/pdf") {
+      setMessage({ type: "error", text: "Please select a valid PDF file." });
+      return;
+    }
+
+    setPdfLoading(true);
+    setPdfFileName(file.name);
+    setMessage(null);
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+
+      // Dynamic import to avoid SSR issues
+      const pdfjsLib = await import("pdfjs-dist/legacy/build/pdf.mjs");
+      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/legacy/build/pdf.worker.min.mjs`;
+
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+      let fullText = "";
+
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(" ");
+        fullText += pageText + "\n\n";
+      }
+
+      // Clean up the extracted text
+      const cleanedText = fullText
+        .replace(/\s+/g, " ") // Normalize whitespace
+        .replace(/([.?!])\s+/g, "$1\n") // Add line breaks after sentences
+        .replace(/(\d+[.)]) /g, "\n$1 ") // Add line breaks before numbered items
+        .replace(/\([A-Ea-e]\) /gi, "\n$& ") // Add line breaks before options
+        .trim();
+
+      setQuestionText(cleanedText);
+      setMessage({
+        type: "success",
+        text: `Extracted text from ${pdf.numPages} page(s). Review and edit as needed.`,
+      });
+    } catch (error) {
+      console.error("PDF extraction error:", error);
+      setMessage({
+        type: "error",
+        text: "Failed to extract text from PDF. The file may be corrupted or image-based.",
+      });
+      setPdfFileName(null);
+    } finally {
+      setPdfLoading(false);
+      // Reset file input
+      e.target.value = "";
+    }
   };
 
   async function handleSubmit(e: React.FormEvent) {
@@ -269,7 +428,7 @@ export default function UploadQuestionPage() {
     const isChoiceType =
       questionType === "single_choice" || questionType === "multiple_choice";
     const validQuestions = parsedQuestions.filter(
-      (q) => (isChoiceType ? q.options.length > 0 : true) && q.answer
+      (q) => (isChoiceType ? q.options.length > 0 : true) && q.content
     );
 
     if (validQuestions.length === 0) {
@@ -292,7 +451,7 @@ export default function UploadQuestionPage() {
       difficulty: difficulty as "easy" | "medium" | "hard",
       options: isChoiceType ? q.options : null,
       answer: q.answer,
-      explanation: null,
+      explanation: q.explanation || null,
       code_snippet: q.codeSnippet,
       tags: tags.length > 0 ? tags : null,
     }));
@@ -312,6 +471,7 @@ export default function UploadQuestionPage() {
       });
       setQuestionText("");
       setParsedQuestions([]);
+      localStorage.removeItem(DRAFT_KEY); // Clear draft on success
     }
   }
 
@@ -329,9 +489,22 @@ export default function UploadQuestionPage() {
   return (
     <div>
       <div className="max-w-[1600px] mx-auto">
-        <h1 className="text-3xl font-bold text-[#0d121b] dark:text-white mb-2">
-          Upload Questions
-        </h1>
+        <div className="flex items-center gap-4 mb-2">
+          <h1 className="text-3xl font-bold text-[#0d121b] dark:text-white">
+            Upload Questions
+          </h1>
+          {draftStatus && (
+            <span
+              className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
+                draftStatus === "saving"
+                  ? "bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400"
+                  : "bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400"
+              }`}
+            >
+              {draftStatus === "saving" ? "Auto-saving..." : "Draft restored"}
+            </span>
+          )}
+        </div>
         <p className="text-[#4c669a] mb-8">
           Paste one or multiple questions. Text before the first question is{" "}
           <strong>Shared Context</strong>.
@@ -458,9 +631,57 @@ export default function UploadQuestionPage() {
             {/* Left: Question Input (Takes 4 cols) */}
             <div className="xl:col-span-4">
               <GlassPanel className="p-6 h-full">
-                <h2 className="text-lg font-semibold text-[#0d121b] dark:text-white mb-4">
-                  Paste Content
-                </h2>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-lg font-semibold text-[#0d121b] dark:text-white">
+                    Paste Content
+                  </h2>
+
+                  {/* PDF Upload Button */}
+                  <label className="relative cursor-pointer">
+                    <input
+                      type="file"
+                      accept=".pdf"
+                      onChange={handlePdfUpload}
+                      className="sr-only"
+                      disabled={pdfLoading}
+                    />
+                    <div
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed transition-all ${
+                        pdfLoading
+                          ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20"
+                          : "border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      }`}
+                    >
+                      {pdfLoading ? (
+                        <Loader2 className="size-4 animate-spin text-blue-500" />
+                      ) : (
+                        <FileUp className="size-4 text-gray-500" />
+                      )}
+                      <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                        {pdfLoading
+                          ? "Extracting..."
+                          : pdfFileName || "Upload PDF"}
+                      </span>
+                    </div>
+                  </label>
+                </div>
+
+                {pdfFileName && !pdfLoading && (
+                  <div className="mb-3 flex items-center gap-2 text-xs text-green-600 dark:text-green-400">
+                    <span>📄 {pdfFileName}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setPdfFileName(null);
+                        setQuestionText("");
+                      }}
+                      className="text-gray-400 hover:text-red-500"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </div>
+                )}
+
                 <Textarea
                   value={questionText}
                   onChange={(e) => setQuestionText(e.target.value)}
@@ -478,10 +699,12 @@ export default function UploadQuestionPage() {
 
             {/* Right: Preview (Takes 8 cols) */}
             <div className="xl:col-span-8 space-y-4 max-h-[calc(100vh-300px)] overflow-y-auto pr-2">
-              <div className="sticky top-0 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 py-2 z-10 flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-[#0d121b] dark:text-white">
-                  Preview ({validCount}/{totalCount} ready)
-                </h2>
+              <div className="sticky top-0 bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 py-2 z-10 shadow-sm mb-2">
+                <div className="flex justify-between items-center px-1">
+                  <span className="text-sm font-medium text-[#4c669a]">
+                    Preview ({validCount}/{totalCount} ready)
+                  </span>
+                </div>
               </div>
 
               {parsedQuestions.length > 0 ? (
@@ -494,12 +717,56 @@ export default function UploadQuestionPage() {
                         : "border-orange-500"
                     } overflow-hidden`}
                   >
-                    <div className="flex items-center justify-between mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
-                      <span className="text-sm font-bold text-[#4c669a]">
+                    <div className="flex items-start justify-between mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                      <span className="text-sm font-bold text-[#4c669a] pt-1">
                         Question {idx + 1}
                       </span>
-                      <div className="flex items-center gap-2 flex-grow justify-end">
-                        <span className="text-xs text-[#4c669a]">Answer:</span>
+                      <div className="flex flex-col items-end gap-2 flex-grow justify-end min-w-[300px]">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-[#4c669a]">
+                            Answer:
+                          </span>
+                          {/* Toggle for non-choice types */}
+                          {!isChoiceType && questionType !== "true_false" && (
+                            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 scale-90">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setAnswerViewModes((prev) => ({
+                                    ...prev,
+                                    [idx]: "code",
+                                  }))
+                                }
+                                className={`p-1 rounded-md transition-all ${
+                                  (answerViewModes[idx] || "text") === "code"
+                                    ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
+                                    : "text-gray-400 hover:text-gray-600"
+                                }`}
+                                title="Code View"
+                              >
+                                <Code2 className="size-3" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setAnswerViewModes((prev) => ({
+                                    ...prev,
+                                    [idx]: "text",
+                                  }))
+                                }
+                                className={`p-1 rounded-md transition-all ${
+                                  (answerViewModes[idx] || "text") === "text"
+                                    ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
+                                    : "text-gray-400 hover:text-gray-600"
+                                }`}
+                                title="Text View"
+                              >
+                                <Type className="size-3" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+
                         {isChoiceType ? (
                           <input
                             type="text"
@@ -523,12 +790,33 @@ export default function UploadQuestionPage() {
                                     ? opt === "True"
                                       ? "bg-green-100 text-green-700"
                                       : "bg-red-100 text-red-700"
-                                    : "text-gray-500 hover:bg-gray-100"
+                                    : "text-gray-500 hover:bg-gray-50 dark:hover:bg-slate-700"
                                 }`}
                               >
                                 {opt}
                               </button>
                             ))}
+                          </div>
+                        ) : (answerViewModes[idx] || "text") === "code" ? (
+                          <div className="h-[120px] w-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden relative">
+                            <Editor
+                              height="100%"
+                              defaultLanguage="python"
+                              theme="vs-dark"
+                              value={q.answer || ""}
+                              onChange={(value) =>
+                                updateAnswer(idx, value || "")
+                              }
+                              options={{
+                                minimap: { enabled: false },
+                                fontSize: 12,
+                                lineNumbers: "off",
+                                scrollBeyondLastLine: false,
+                                automaticLayout: true,
+                                padding: { top: 8, bottom: 8 },
+                                readOnly: false,
+                              }}
+                            />
                           </div>
                         ) : (
                           <input
@@ -536,29 +824,95 @@ export default function UploadQuestionPage() {
                             value={q.answer}
                             onChange={(e) => updateAnswer(idx, e.target.value)}
                             placeholder="Expected Answer"
-                            className="w-48 h-8 px-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-gray-600 rounded text-xs"
+                            className="w-full h-8 px-2 bg-white dark:bg-slate-800 border border-gray-300 dark:border-gray-600 rounded text-xs"
                           />
                         )}
                       </div>
                     </div>
 
                     {/* Side-by-Side Layout for Code + Content */}
-                    <div
-                      className={`grid gap-6 ${
-                        q.codeSnippet ? "lg:grid-cols-2" : "grid-cols-1"
-                      }`}
-                    >
-                      {/* Left Column: Code/Context */}
-                      {q.codeSnippet && (
-                        <div className="bg-slate-900 rounded-lg p-4 overflow-x-auto max-h-[400px]">
-                          <div className="text-xs text-slate-400 mb-2 font-mono uppercase tracking-wider">
+                    <div className="grid gap-6 lg:grid-cols-2">
+                      {/* Left Column: Code/Context - NOW EDITABLE */}
+                      <div className="max-h-[400px] flex flex-col gap-2">
+                        <div className="flex items-center justify-between">
+                          <div className="text-xs text-slate-400 font-mono uppercase tracking-wider">
                             Context / Code
                           </div>
-                          <pre className="text-green-400 font-mono text-xs whitespace-pre">
-                            {q.codeSnippet}
-                          </pre>
+                          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1 scale-75 origin-right">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setCodeViewModes((prev) => ({
+                                  ...prev,
+                                  [idx]: "code",
+                                }))
+                              }
+                              className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all ${
+                                (codeViewModes[idx] || "code") === "code"
+                                  ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
+                                  : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                              }`}
+                            >
+                              <Code2 className="size-3.5" />
+                              Code
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setCodeViewModes((prev) => ({
+                                  ...prev,
+                                  [idx]: "text",
+                                }))
+                              }
+                              className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all ${
+                                codeViewModes[idx] === "text"
+                                  ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
+                                  : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                              }`}
+                            >
+                              <Type className="size-3.5" />
+                              Text
+                            </button>
+                          </div>
                         </div>
-                      )}
+
+                        {(codeViewModes[idx] || "code") === "code" ? (
+                          <div className="h-[200px] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden relative group">
+                            <Editor
+                              height="100%"
+                              defaultLanguage="python"
+                              theme="vs-dark"
+                              value={q.codeSnippet || ""}
+                              onChange={(value) =>
+                                updateCodeSnippet(idx, value || "")
+                              }
+                              options={{
+                                minimap: { enabled: false },
+                                fontSize: 13,
+                                lineNumbers: "on",
+                                scrollBeyondLastLine: false,
+                                automaticLayout: true,
+                                padding: { top: 10, bottom: 10 },
+                                readOnly: false,
+                              }}
+                            />
+                            {!q.codeSnippet && (
+                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-gray-400 text-xs">
+                                No code snippet
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <Textarea
+                            value={q.codeSnippet || ""}
+                            onChange={(e) =>
+                              updateCodeSnippet(idx, e.target.value)
+                            }
+                            placeholder="Edit code snippet..."
+                            className="min-h-[200px] font-mono text-sm"
+                          />
+                        )}
+                      </div>
 
                       {/* Right Column: Question + Options */}
                       <div className="flex flex-col justify-center">
@@ -606,6 +960,18 @@ export default function UploadQuestionPage() {
                           </div>
                         )}
                       </div>
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                      <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                        Explanation / Solution
+                      </label>
+                      <Textarea
+                        value={q.explanation || ""}
+                        onChange={(e) => updateExplanation(idx, e.target.value)}
+                        placeholder="Explain the answer..."
+                        className="min-h-[80px] text-sm bg-gray-50 dark:bg-slate-900/50 border-gray-200 dark:border-gray-700 focus:bg-white dark:focus:bg-slate-800"
+                      />
                     </div>
                   </GlassPanel>
                 ))

@@ -2,26 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { GlassPanel } from "@/components/ui/GlassPanel";
-import { Input } from "@/components/ui/Input";
+import { motion } from "framer-motion";
 import type { Subject } from "@/types/database";
-import { Search, GraduationCap, ArrowRight, SearchX } from "lucide-react";
-import { encodeId } from "@/lib/ids";
+import { ArrowRight, Search, Sparkles } from "lucide-react";
 
-// Color mapping based on category
-const categoryColors: Record<string, string> = {
-  STEM: "bg-blue-50 text-blue-600 group-hover:bg-blue-600",
-  Humanities: "bg-green-50 text-green-600 group-hover:bg-green-600",
-};
-
-// Fallback colors for variety
-const iconColors = [
-  "bg-blue-50 text-blue-600 group-hover:bg-blue-600",
-  "bg-green-50 text-green-600 group-hover:bg-green-600",
-  "bg-purple-50 text-purple-600 group-hover:bg-purple-600",
-  "bg-orange-50 text-orange-600 group-hover:bg-orange-600",
-  "bg-cyan-50 text-cyan-600 group-hover:bg-cyan-600",
-  "bg-red-50 text-red-600 group-hover:bg-red-600",
+// Gradient presets for cards
+const gradients = [
+  "from-indigo-600 via-purple-600 to-pink-500",
+  "from-cyan-500 via-blue-600 to-indigo-600",
+  "from-emerald-500 via-teal-600 to-cyan-600",
+  "from-orange-500 via-red-500 to-pink-600",
+  "from-violet-600 via-purple-600 to-fuchsia-500",
+  "from-sky-500 via-blue-500 to-indigo-500",
 ];
 
 interface SubjectsContentProps {
@@ -29,103 +21,175 @@ interface SubjectsContentProps {
 }
 
 export function SubjectsContent({ subjects }: SubjectsContentProps) {
-  const [filter, setFilter] = useState<"All" | "STEM" | "Humanities">("All");
   const [search, setSearch] = useState("");
 
-  const filteredSubjects = subjects.filter((s) => {
-    const matchesCategory = filter === "All" || s.category === filter;
-    const matchesSearch =
+  const filteredSubjects = subjects.filter(
+    (s) =>
       s.name.toLowerCase().includes(search.toLowerCase()) ||
-      (s.description?.toLowerCase().includes(search.toLowerCase()) ?? false);
-    return matchesCategory && matchesSearch;
-  });
+      (s.description?.toLowerCase().includes(search.toLowerCase()) ?? false)
+  );
+
+  // First subject becomes "featured"
+  const featured = filteredSubjects[0];
+  const rest = filteredSubjects.slice(1);
 
   return (
-    <>
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        <div className="flex gap-2">
-          {(["All", "STEM", "Humanities"] as const).map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setFilter(cat)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                filter === cat
-                  ? "bg-[#135bec] text-white shadow-lg shadow-blue-500/25"
-                  : "bg-white/50 hover:bg-white text-[#4c669a] border border-gray-200"
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
+    <div className="space-y-8">
+      {/* Search Bar */}
+      <div className="relative max-w-md mx-auto">
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <Search className="size-5 text-gray-400" />
         </div>
-        <div className="flex-1 max-w-xs">
-          <Input
-            placeholder="Search subjects..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            icon={<Search className="size-5" />}
-          />
-        </div>
+        <input
+          type="text"
+          placeholder="Search subjects..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full pl-12 pr-4 py-3 rounded-full bg-white/80 dark:bg-slate-800/80 backdrop-blur-xl border border-gray-200 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent shadow-lg text-sm"
+        />
       </div>
 
-      {/* Subjects Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredSubjects.map((subject, index) => (
-          <Link key={subject.id} href={`/practice/${subject.slug}/setup`}>
-            <GlassPanel
-              variant="card"
-              className="p-6 flex flex-col gap-4 group cursor-pointer h-full"
+      {/* Featured Card */}
+      {featured && (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Link href={`/practice/${featured.slug}/setup`}>
+            <div
+              className={`relative group overflow-hidden rounded-3xl bg-gradient-to-br ${gradients[0]} p-8 md:p-12 text-white shadow-2xl cursor-pointer transition-transform duration-300 hover:scale-[1.02]`}
             >
-              <div className="flex items-start justify-between">
-                <div
-                  className={`size-14 rounded-xl flex items-center justify-center transition-colors duration-300 group-hover:text-white ${
-                    categoryColors[subject.category || ""] ||
-                    iconColors[index % iconColors.length]
-                  }`}
-                >
-                  <GraduationCap className="size-8" />
-                </div>
-                <div className="flex gap-2">
-                  {subject.is_hot && (
-                    <span className="px-2 py-1 bg-red-100 text-red-600 text-xs font-medium rounded">
-                      Hot
+              {/* Decorative blobs */}
+              <div className="absolute -top-20 -right-20 size-64 bg-white/10 rounded-full blur-3xl" />
+              <div className="absolute -bottom-20 -left-20 size-48 bg-black/10 rounded-full blur-3xl" />
+
+              <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sparkles className="size-5 text-yellow-300" />
+                    <span className="text-sm font-medium text-white/80">
+                      Featured Course
                     </span>
-                  )}
-                  {subject.is_new && (
-                    <span className="px-2 py-1 bg-green-100 text-green-600 text-xs font-medium rounded">
-                      New
+                  </div>
+                  <h2 className="text-3xl md:text-4xl font-black mb-4">
+                    {featured.name}
+                  </h2>
+                  <p className="text-white/80 text-lg mb-6 max-w-md">
+                    {featured.description ||
+                      "Master this subject with our comprehensive question bank."}
+                  </p>
+                  <div className="flex items-center gap-6">
+                    <span className="text-2xl font-bold">
+                      {featured.question_count} Questions
                     </span>
-                  )}
+                    <span className="flex items-center gap-2 text-white/90 font-medium group-hover:gap-3 transition-all">
+                      Start Now <ArrowRight className="size-5" />
+                    </span>
+                  </div>
+                </div>
+                <div className="hidden md:flex justify-center items-center">
+                  <div className="text-[120px] drop-shadow-2xl">
+                    {featured.icon || "📚"}
+                  </div>
                 </div>
               </div>
-              <div>
-                <h3 className="text-xl font-bold mb-1">{subject.name}</h3>
-                <p className="text-[#4c669a] text-sm">{subject.description}</p>
+
+              {/* Tags */}
+              <div className="absolute top-6 right-6 flex gap-2">
+                {featured.is_hot && (
+                  <span className="px-3 py-1 bg-red-500/90 text-white text-xs font-bold rounded-full shadow">
+                    🔥 HOT
+                  </span>
+                )}
+                {featured.is_new && (
+                  <span className="px-3 py-1 bg-green-500/90 text-white text-xs font-bold rounded-full shadow">
+                    ✨ NEW
+                  </span>
+                )}
               </div>
-              <div className="mt-auto pt-4 flex items-center justify-between border-t border-gray-100">
-                <span className="text-sm text-[#4c669a]">
-                  <span className="font-bold text-[#0d121b]">
-                    {subject.question_count}
-                  </span>{" "}
-                  questions
-                </span>
-                <span className="text-[#135bec] text-sm font-medium flex items-center gap-1">
-                  Start Practice
-                  <ArrowRight className="size-4" />
-                </span>
-              </div>
-            </GlassPanel>
+            </div>
           </Link>
+        </motion.div>
+      )}
+
+      {/* Grid of remaining subjects */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {rest.map((subject, index) => (
+          <motion.div
+            key={subject.id}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.1 * (index + 1) }}
+          >
+            <Link
+              href={`/practice/${subject.slug}/setup`}
+              className="block h-full"
+            >
+              <div
+                className={`relative group h-full overflow-hidden rounded-2xl bg-gradient-to-br ${
+                  gradients[(index + 1) % gradients.length]
+                } p-6 text-white shadow-xl cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-1`}
+                style={{ perspective: "1000px" }}
+              >
+                {/* Subtle glow */}
+                <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+                <div className="relative z-10 flex flex-col h-full">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="text-5xl drop-shadow-lg">
+                      {subject.icon || "📖"}
+                    </div>
+                    <div className="flex gap-1">
+                      {subject.is_hot && (
+                        <span className="px-2 py-0.5 bg-white/20 backdrop-blur text-white text-[10px] font-bold rounded-full">
+                          HOT
+                        </span>
+                      )}
+                      {subject.is_new && (
+                        <span className="px-2 py-0.5 bg-white/20 backdrop-blur text-white text-[10px] font-bold rounded-full">
+                          NEW
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <h3 className="text-xl font-bold mb-2">{subject.name}</h3>
+                  <p className="text-white/70 text-sm mb-4 line-clamp-2 flex-grow">
+                    {subject.description || "Practice and master this subject."}
+                  </p>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-white/20">
+                    <span className="text-sm font-medium">
+                      {subject.question_count} Questions
+                    </span>
+                    <span className="flex items-center gap-1 text-sm font-medium opacity-80 group-hover:opacity-100 group-hover:gap-2 transition-all">
+                      Practice <ArrowRight className="size-4" />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </motion.div>
         ))}
       </div>
 
+      {/* Empty State */}
       {filteredSubjects.length === 0 && (
-        <div className="text-center py-12 text-[#4c669a]">
-          <SearchX className="size-12 mb-4 mx-auto opacity-50" />
-          <p>No subjects found matching your criteria</p>
-        </div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-16"
+        >
+          <div className="text-6xl mb-4">🔍</div>
+          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">
+            No subjects found
+          </h3>
+          <p className="text-slate-500 dark:text-slate-400">
+            Try adjusting your search terms
+          </p>
+        </motion.div>
       )}
-    </>
+    </div>
   );
 }

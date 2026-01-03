@@ -73,6 +73,27 @@ export default async function ProfilePage() {
 
   const bookmarks = bookmarksData as unknown as MistakeWithQuestion[] | null; // Using same type for simplicity as structure is similar enough for now or I can define proper type
 
+  // Fetch aggregate stats from user_answers
+  const { count: totalQuestionsAnswered } = await supabase
+    .from("user_answers")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  const { count: correctAnswers } = await supabase
+    .from("user_answers")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("is_correct", true);
+
+  const answerStats = {
+    total: totalQuestionsAnswered || 0,
+    correct: correctAnswers || 0,
+    accuracy:
+      totalQuestionsAnswered && totalQuestionsAnswered > 0
+        ? Math.round(((correctAnswers || 0) / totalQuestionsAnswered) * 100)
+        : 0,
+  };
+
   // Fallback profile if not found (should be handled by trigger, but just in case)
   // Also merge auth metadata avatar if profile doesn't have one
   const rawProfile = profile || {
@@ -116,6 +137,7 @@ export default async function ProfilePage() {
           progress={progress || []}
           mistakes={mistakes || []}
           bookmarks={bookmarks || []}
+          answerStats={answerStats}
         />
       </main>
     </div>

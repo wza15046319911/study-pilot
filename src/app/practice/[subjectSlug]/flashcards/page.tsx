@@ -43,14 +43,19 @@ export default async function FlashcardsPage(props: PageProps) {
     redirect("/subjects");
   }
 
-  // Fetch questions for flashcards (Limit to 50 random ones for now)
+  // Fetch questions for flashcards (Limit to 50)
+  // We prioritize questions due for review or new ones
   const { data: questionsData } = await supabase
     .from("questions")
-    .select("*")
+    .select("*, flashcard_reviews(*)")
     .eq("subject_id", subject.id)
     .limit(50); // Simple limit for MVP
 
-  const questions = (questionsData || []) as Question[];
+  const questions = (questionsData || []).map((q: any) => ({
+    ...q,
+    // Add review data if it exists (single user due to RLS)
+    review: q.flashcard_reviews?.[0] || null,
+  })) as (Question & { review: any })[];
 
   // Fetch user profile
   const { data: profileData } = await supabase

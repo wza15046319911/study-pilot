@@ -56,10 +56,16 @@ export function ResultsModal({
 
   const getScoreColor = () => {
     if (percentage >= 80)
-      return { color: "text-green-500", bg: "bg-green-100" };
+      return {
+        color: "text-green-500",
+        bg: "bg-green-100 dark:bg-green-900/30",
+      };
     if (percentage >= 60)
-      return { color: "text-yellow-500", bg: "bg-yellow-100" };
-    return { color: "text-red-500", bg: "bg-red-100" };
+      return {
+        color: "text-yellow-500",
+        bg: "bg-yellow-100 dark:bg-yellow-900/30",
+      };
+    return { color: "text-red-500", bg: "bg-red-100 dark:bg-red-900/30" };
   };
 
   const colors = getScoreColor();

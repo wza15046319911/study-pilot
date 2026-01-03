@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { GlassPanel } from "@/components/ui/GlassPanel";
+import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/client";
 import { ExportMistakesModal } from "@/components/modals/ExportMistakesModal";
@@ -11,10 +11,13 @@ import {
   AlertTriangle,
   Trash2,
   Play,
-  BookOpen,
   CheckCircle2,
   XCircle,
   Download,
+  ChevronRight,
+  RotateCw,
+  Search,
+  Check,
 } from "lucide-react";
 
 interface MistakeData {
@@ -52,6 +55,7 @@ export default function MistakesClient({
   const router = useRouter();
   const [mistakes, setMistakes] = useState(initialMistakes);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const supabase = createClient();
 
   const handleRemoveMistake = async (mistakeId: number) => {
@@ -61,8 +65,6 @@ export default function MistakesClient({
 
   const handlePracticeAll = () => {
     if (mistakes.length === 0) return;
-
-    // Get unique subject IDs
     const subjectIds = [
       ...new Set(mistakes.map((m) => m.questions.subject_id)),
     ];
@@ -72,8 +74,6 @@ export default function MistakesClient({
       .map((m) => encodeId(m.question_id))
       .join(",");
 
-    // Use the first subject's slug for the URL
-    // We assume all selected mistakes belong to the same subject as per filtering logic below
     const firstMistake = mistakes.find(
       (m) => m.questions.subject_id === firstSubjectId
     );
@@ -85,138 +85,183 @@ export default function MistakesClient({
     }
   };
 
-  const groupedBySubject = mistakes.reduce((acc, mistake) => {
+  const filteredMistakes = mistakes.filter(
+    (m) =>
+      m.questions.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      m.questions.content.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const groupedBySubject = filteredMistakes.reduce((acc, mistake) => {
     const subjectName = mistake.questions.subjects.name;
-    if (!acc[subjectName]) {
-      acc[subjectName] = [];
-    }
+    if (!acc[subjectName]) acc[subjectName] = [];
     acc[subjectName].push(mistake);
     return acc;
   }, {} as Record<string, MistakeData[]>);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 p-6">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-red-100 text-red-600">
-              <AlertTriangle className="size-8" />
-            </div>
-            <div>
-              <h1 className="text-3xl font-bold text-[#0d121b] dark:text-white">
-                Mistakes Book
-              </h1>
-              <p className="text-[#4c669a]">
-                {mistakes.length} question{mistakes.length !== 1 && "s"} to
-                review
-              </p>
-            </div>
-          </div>
+    <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm text-gray-500 mb-8">
+        <Link href="/" className="hover:text-blue-600 transition-colors">
+          Home
+        </Link>
+        <ChevronRight className="size-4" />
+        <Link href="/profile" className="hover:text-blue-600 transition-colors">
+          Profile
+        </Link>
+        <ChevronRight className="size-4" />
+        <span className="text-gray-900 dark:text-white font-medium">
+          Mistakes
+        </span>
+      </div>
 
-          {mistakes.length > 0 && (
-            <div className="flex items-center gap-3">
-              <Button
-                variant="secondary"
-                onClick={() => setShowExportModal(true)}
-              >
-                <Download className="size-4 mr-2" />
-                Export
-              </Button>
-              <Button onClick={handlePracticeAll} size="lg">
-                <Play className="size-4 mr-2" />
-                Practice Mistakes
-              </Button>
-            </div>
-          )}
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+        <div>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 mb-4">
+            <AlertTriangle className="size-3.5 text-red-600 dark:text-red-500" />
+            <span className="text-xs font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide">
+              Review Needed
+            </span>
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">
+            Mistake Book
+          </h1>
+          <p className="text-gray-500 text-lg">
+            Detailed breakdown of questions you've missed.
+          </p>
         </div>
 
-        {/* Content */}
-        {mistakes.length === 0 ? (
-          <GlassPanel className="p-12 text-center">
-            <BookOpen className="size-16 mx-auto text-gray-300 mb-4" />
-            <h2 className="text-xl font-semibold text-gray-500 mb-2">
-              No mistakes found
-            </h2>
-            <p className="text-gray-400 mb-6">
-              Great job! Keep practicing to maintain your streak.
-            </p>
+        {mistakes.length > 0 && (
+          <div className="flex gap-3">
             <Button
-              variant="secondary"
-              onClick={() => router.push("/subjects")}
+              variant="outline"
+              onClick={() => setShowExportModal(true)}
+              className="rounded-xl border-gray-200 dark:border-gray-700"
             >
-              Start Practicing
+              <Download className="size-4 mr-2" />
+              Export
             </Button>
-          </GlassPanel>
-        ) : (
-          <div className="space-y-8">
-            {Object.entries(groupedBySubject).map(([subjectName, items]) => (
-              <div key={subjectName}>
-                <h2 className="text-lg font-semibold text-[#0d121b] dark:text-white mb-4 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-[#135bec]" />
-                  {subjectName}
-                  <span className="text-sm font-normal text-gray-400">
-                    ({items.length})
-                  </span>
-                </h2>
-
-                <div className="space-y-3">
-                  {items.map((mistake) => (
-                    <GlassPanel
-                      key={mistake.id}
-                      className="p-6 hover:shadow-lg transition-shadow"
-                    >
-                      <div className="flex justify-between items-start mb-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-2">
-                            <span className="bg-red-100 text-red-700 text-xs px-2 py-0.5 rounded font-mono">
-                              {mistake.error_count} Errors
-                            </span>
-                            <span className="text-xs text-gray-400">
-                              {mistake.questions.type}
-                            </span>
-                          </div>
-                          <h3 className="font-medium text-[#0d121b] dark:text-white mb-1">
-                            {mistake.questions.title}
-                          </h3>
-                        </div>
-                        <button
-                          onClick={() => handleRemoveMistake(mistake.id)}
-                          className="p-2 -mt-2 -mr-2 text-gray-400 hover:text-red-500 transition-colors"
-                          title="Remove from mistakes"
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mt-4 bg-gray-50 dark:bg-slate-900/50 p-4 rounded-lg">
-                        <div className="space-y-1">
-                          <span className="text-xs font-semibold text-red-500 uppercase flex items-center gap-1">
-                            <XCircle className="size-3" />
-                            Your Answer
-                          </span>
-                          <p className="font-mono text-[#0d121b] dark:text-gray-300 break-all">
-                            {mistake.last_wrong_answer || "(Unknown)"}
-                          </p>
-                        </div>
-                        <div className="space-y-1">
-                          <span className="text-xs font-semibold text-green-500 uppercase flex items-center gap-1">
-                            <CheckCircle2 className="size-3" />
-                            Correct Answer
-                          </span>
-                          <p className="font-mono text-[#0d121b] dark:text-gray-300 break-all">
-                            {mistake.questions.answer}
-                          </p>
-                        </div>
-                      </div>
-                    </GlassPanel>
-                  ))}
-                </div>
-              </div>
-            ))}
+            <Button
+              onClick={handlePracticeAll}
+              size="lg"
+              className="rounded-xl shadow-lg shadow-blue-500/20 text-white bg-blue-600 hover:bg-blue-700"
+            >
+              <Play className="size-4 mr-2" />
+              Practice Mistakes
+            </Button>
           </div>
         )}
       </div>
+
+      {/* Search & Filter */}
+      {mistakes.length > 0 && (
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-200 dark:border-gray-800 mb-8 flex items-center gap-4">
+          <Search className="size-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search mistakes..."
+            className="bg-transparent flex-1 border-none focus:ring-0 text-gray-900 dark:text-white placeholder-gray-400 outline-none"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+          <div className="text-sm text-gray-400 font-medium">
+            {filteredMistakes.length} found
+          </div>
+        </div>
+      )}
+
+      {/* Content */}
+      {mistakes.length === 0 ? (
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-16 text-center">
+          <div className="size-20 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Check className="size-10 text-green-500" />
+          </div>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+            Clean Sheet!
+          </h2>
+          <p className="text-gray-500 max-w-md mx-auto mb-8">
+            You don't have any pending mistakes to review. Keep up the great
+            work!
+          </p>
+          <Button variant="outline" onClick={() => router.push("/subjects")}>
+            Start New Practice
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-12">
+          {Object.entries(groupedBySubject).map(([subjectName, items]) => (
+            <div key={subjectName}>
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-3">
+                <span className="w-1.5 h-6 bg-red-500 rounded-full" />
+                {subjectName}
+                <span className="text-sm font-medium text-gray-400 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded-full">
+                  {items.length}
+                </span>
+              </h3>
+
+              <div className="grid gap-6">
+                {items.map((mistake) => (
+                  <div
+                    key={mistake.id}
+                    className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-red-200 dark:hover:border-red-900/40 transition-all flex flex-col md:flex-row gap-6 relative group"
+                  >
+                    <button
+                      onClick={() => handleRemoveMistake(mistake.id)}
+                      className="absolute top-4 right-4 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                      title="Remove from mistakes"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+
+                    <div className="flex-1 space-y-4">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-bold rounded uppercase tracking-wider flex items-center gap-1.5">
+                          <RotateCw className="size-3" />
+                          {mistake.error_count} Attempts
+                        </span>
+                        <span className="text-xs text-gray-400 font-medium">
+                          {mistake.questions.type.replace("_", " ")}
+                        </span>
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-lg text-gray-900 dark:text-white mb-2">
+                          {mistake.questions.title}
+                        </h4>
+                        <div className="text-sm text-gray-500 leading-relaxed mb-4">
+                          {mistake.questions.content}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex-1 md:max-w-md bg-gray-50 dark:bg-gray-800/50 rounded-xl p-5 space-y-4 border border-gray-100 dark:border-gray-800">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 text-xs font-bold text-red-500 uppercase tracking-wider">
+                          <XCircle className="size-3.5" />
+                          My Answer
+                        </div>
+                        <p className="font-mono text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-900 p-2 rounded border border-red-100 dark:border-red-900/20">
+                          {mistake.last_wrong_answer || "(No Answer)"}
+                        </p>
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-2 text-xs font-bold text-green-500 uppercase tracking-wider">
+                          <CheckCircle2 className="size-3.5" />
+                          Correct Answer
+                        </div>
+                        <p className="font-mono text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-900 p-2 rounded border border-green-100 dark:border-green-900/20">
+                          {mistake.questions.answer}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       <ExportMistakesModal
         isOpen={showExportModal}
         onClose={() => setShowExportModal(false)}

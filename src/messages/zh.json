@@ -23,14 +23,52 @@
     "bookmarks": "收藏夹",
     "profile": "个人中心",
     "login": "登录",
-    "logout": "退出"
+    "logout": "退出",
+    "pricing": "价格",
+    "mistakes": "错题本"
   },
   "home": {
     "title": "StudyPilot — 助力期中和期末考试的智能刷题领航员",
     "subtitle": "学生开发，经真实课程验证。",
     "startPractice": "免费开始刷题",
     "watchDemo": "观看演示",
-    "joinUsers": "加入 {count}+ 用户"
+    "joinUsers": "加入 {count}+ 用户",
+    "browseSubjects": {
+      "title": "浏览科目",
+      "subtitle": "开始使用我们全面的题库进行练习",
+      "viewAll": "查看全部 →"
+    },
+    "features": {
+      "coreFeatures": "核心功能",
+      "title": "为什么选择 StudyPilot",
+      "subtitle": "结合当下流行的毛玻璃设计与强大的刷题功能，为您带来极致的学习体验",
+      "bank": {
+        "title": "海量题库",
+        "description": "涵盖各行业真题与模拟题，定期更新，确保您刷到的每一道题都具有实战价值。"
+      },
+      "mistakes": {
+        "title": "错题管理",
+        "description": "自动收录错题，支持针对性强化训练，拒绝无效重复，帮您查漏补缺巩固知识点。"
+      },
+      "flow": {
+        "title": "心流刷题",
+        "description": "进入沉浸模式，无干扰刷题。无限随机出题，建立刷题惯性，让您保持专注状态。"
+      },
+      "flashcards": {
+        "title": "闪卡速记",
+        "description": "使用全新的闪卡模式快速复习核心概念和定义。翻转卡片，高效测试记忆留存率。"
+      }
+    },
+    "hero": {
+      "completed": "已完成",
+      "tagList": "#列表",
+      "tagFunction": "#函数"
+    },
+    "stats": {
+      "users": "注册用户",
+      "subjects": "覆盖学科",
+      "questions": "收录题目"
+    }
   },
   "subjects": {
     "title": "选择科目",
