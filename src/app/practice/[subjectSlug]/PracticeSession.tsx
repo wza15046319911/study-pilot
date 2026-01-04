@@ -37,6 +37,7 @@ interface PracticeSessionProps {
   subjectId: number;
   mode?: "practice" | "standalone";
   enableTimer?: boolean;
+  isGuest?: boolean;
 }
 
 export function PracticeSession({
@@ -45,6 +46,7 @@ export function PracticeSession({
   subjectId,
   mode = "practice",
   enableTimer = true,
+  isGuest = false,
 }: PracticeSessionProps) {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -63,6 +65,7 @@ export function PracticeSession({
   const [addedMistake, setAddedMistake] = useState(false);
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   const currentQuestion = questions[currentIndex];
   const isChecked = checkedAnswers[currentQuestion.id];
@@ -177,6 +180,12 @@ export function PracticeSession({
 
     setCheckedAnswers((prev) => ({ ...prev, [currentQuestion.id]: true }));
 
+    // Intercept check for guest users
+    if (isGuest) {
+      setShowLoginModal(true);
+      return;
+    }
+
     const isCorrect =
       currentQuestion.type === "handwrite"
         ? true // Always marked "correct" for logic flow, but user sees self-check
@@ -214,6 +223,12 @@ export function PracticeSession({
     // If not checked, check first
     if (!isChecked) {
       await handleCheck();
+      return;
+    }
+
+    // Intercept next for guest users
+    if (isGuest) {
+      setShowLoginModal(true);
       return;
     }
 

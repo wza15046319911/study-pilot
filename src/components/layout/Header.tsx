@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, Crown } from "lucide-react";
 import { useTheme } from "next-themes";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslations } from "next-intl";
@@ -14,6 +14,7 @@ interface HeaderProps {
   user?: {
     username: string;
     avatar_url?: string;
+    is_vip?: boolean;
   } | null;
 }
 
@@ -57,6 +58,12 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                 {t("pricing")}
               </Link>
               <Link
+                href="/question-banks"
+                className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
+              >
+                Banks
+              </Link>
+              <Link
                 href="/profile/bookmarks"
                 className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
               >
@@ -67,6 +74,12 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                 className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
               >
                 {t("mistakes")}
+              </Link>
+              <Link
+                href="/profile/referrals"
+                className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
+              >
+                Referrals
               </Link>
               <Link
                 href="/profile"
@@ -108,18 +121,42 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
               <>
                 <Link href="/profile" className="flex items-center gap-3 group">
                   <div className="text-right hidden sm:block">
-                    <p className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                      {user.username}
-                    </p>
+                    <div className="flex items-center justify-end gap-1">
+                      <p className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                        {user.username}
+                      </p>
+                      {user.is_vip && (
+                        <Crown
+                          className="size-3 text-amber-500 fill-amber-500"
+                          strokeWidth={2.5}
+                        />
+                      )}
+                    </div>
+                    {user.is_vip && (
+                      <p className="text-[10px] font-bold text-amber-500 uppercase tracking-wider leading-none">
+                        VIP Member
+                      </p>
+                    )}
                   </div>
-                  <div
-                    className="bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 border-white dark:border-gray-700 shadow-sm cursor-pointer bg-gradient-to-br from-blue-400 to-purple-500 group-hover:ring-2 group-hover:ring-[#135bec] dark:group-hover:ring-blue-500 transition-all"
-                    style={
-                      user.avatar_url
-                        ? { backgroundImage: `url("${user.avatar_url}")` }
-                        : undefined
-                    }
-                  />
+                  <div className="relative">
+                    <div
+                      className={`bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 shadow-sm cursor-pointer transition-all ${
+                        user.is_vip
+                          ? "border-amber-400 dark:border-amber-500 ring-2 ring-amber-100 dark:ring-amber-900/30"
+                          : "border-white dark:border-gray-700 bg-gradient-to-br from-blue-400 to-purple-500 group-hover:ring-2 group-hover:ring-[#135bec] dark:group-hover:ring-blue-500"
+                      }`}
+                      style={
+                        user.avatar_url
+                          ? { backgroundImage: `url("${user.avatar_url}")` }
+                          : undefined
+                      }
+                    />
+                    {user.is_vip && (
+                      <div className="absolute -top-1.5 -right-1.5 bg-amber-500 text-white p-0.5 rounded-full ring-2 ring-white dark:ring-slate-900">
+                        <Crown className="size-2.5 fill-white" />
+                      </div>
+                    )}
+                  </div>
                 </Link>
               </>
             ) : (

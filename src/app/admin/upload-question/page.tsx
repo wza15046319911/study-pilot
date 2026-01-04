@@ -81,10 +81,8 @@ function parseQuestionText(
           trimmedLine
         ) ||
         /^[a-z_]+\s*=/.test(trimmedLine) ||
-        // Check for arithmetic/logical operators common in code but rare in text
-        /(?:[\d\w\)]+\s*(?:\*\*|\/\/|%|<<|>>|&|\||\^)\s*[\d\w\(]+)/.test(
-          trimmedLine
-        );
+        // Check for double-char operators common in code (**, //, <<, >>)
+        /(?:[\d\w\)]+\s*(?:\*\*|\/\/|<<|>>)\s*[\d\w\(]+)/.test(trimmedLine);
 
       if (looksLikeCode || inCode) {
         inCode = true;
@@ -434,7 +432,7 @@ export default function UploadQuestionPage() {
     if (validQuestions.length === 0) {
       setMessage({
         type: "error",
-        text: "No valid questions to upload. Check missing answers or options.",
+        text: "No valid questions to upload. Check missing content or options.",
       });
       return;
     }
@@ -478,7 +476,7 @@ export default function UploadQuestionPage() {
   const isChoiceType =
     questionType === "single_choice" || questionType === "multiple_choice";
   const validCount = parsedQuestions.filter(
-    (q) => (isChoiceType ? q.options.length > 0 : true) && q.answer
+    (q) => (isChoiceType ? q.options.length > 0 : true) && q.content
   ).length;
   const totalCount = parsedQuestions.length;
   const hasGlobalContext =
@@ -712,7 +710,7 @@ export default function UploadQuestionPage() {
                   <GlassPanel
                     key={idx}
                     className={`p-4 border-l-4 ${
-                      (isChoiceType ? q.options.length > 0 : true) && q.answer
+                      (isChoiceType ? q.options.length > 0 : true) && q.content
                         ? "border-green-500"
                         : "border-orange-500"
                     } overflow-hidden`}
@@ -918,7 +916,9 @@ export default function UploadQuestionPage() {
                       <div className="flex flex-col justify-center">
                         <div className="text-sm text-[#0d121b] dark:text-white mb-4 font-medium leading-relaxed">
                           {q.content ? (
-                            <LatexContent>{q.content}</LatexContent>
+                            <LatexContent className="whitespace-pre-wrap">
+                              {q.content}
+                            </LatexContent>
                           ) : (
                             <span className="text-red-400 italic">
                               No content detected
@@ -948,7 +948,9 @@ export default function UploadQuestionPage() {
                                     {opt.label}.
                                   </span>
                                   <span className="text-[#0d121b] dark:text-gray-200">
-                                    <LatexContent>{opt.content}</LatexContent>
+                                    <LatexContent className="whitespace-pre-wrap">
+                                      {opt.content}
+                                    </LatexContent>
                                   </span>
                                 </div>
                               ))

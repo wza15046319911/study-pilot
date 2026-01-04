@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Lexend, Noto_Sans_SC, Fira_Code } from "next/font/google";
 import "./globals.css";
+import "katex/dist/katex.min.css";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";

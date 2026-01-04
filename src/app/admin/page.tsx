@@ -1,11 +1,6 @@
 import Link from "next/link";
 import { GlassPanel } from "@/components/ui/GlassPanel";
-import {
-  Upload,
-  FileText,
-  Settings,
-  BookOpen,
-} from "lucide-react";
+import { Upload, FileText, Settings, BookOpen, Library } from "lucide-react";
 
 export default function AdminDashboard() {
   const adminLinks = [
@@ -36,6 +31,13 @@ export default function AdminDashboard() {
       href: "/admin/exams", // Assuming this exists or will exist
       icon: <Settings className="size-8 text-amber-500" />,
       color: "bg-amber-100 dark:bg-amber-900/30",
+    },
+    {
+      title: "Question Banks",
+      description: "Create and manage custom question banks.",
+      href: "/admin/question-banks",
+      icon: <Library className="size-8 text-cyan-500" />,
+      color: "bg-cyan-100 dark:bg-cyan-900/30",
     },
   ];
 

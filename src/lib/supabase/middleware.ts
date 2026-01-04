@@ -44,9 +44,16 @@ export async function updateSession(request: NextRequest) {
   );
 
   // Refresh session if expired - required for Server Components
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+    user = authUser;
+  } catch (error) {
+    // Handle invalid refresh tokens gracefully - treat as logged out
+    console.error("Middleware auth error:", error);
+  }
 
   // Protected routes
   const protectedPaths = ["/subjects", "/practice", "/profile"];

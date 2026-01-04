@@ -6,6 +6,7 @@ import { PracticeSession } from "@/app/practice/[subjectSlug]/PracticeSession";
 import { Profile, Question } from "@/types/database";
 import { Frown } from "lucide-react";
 import { decodeId } from "@/lib/ids";
+import { NotFoundPage } from "@/components/ui/NotFoundPage";
 
 interface PageProps {
   params: Promise<{
@@ -26,11 +27,6 @@ export default async function QuestionPage(props: PageProps) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-
-  if (!user) {
-    // Optionally redirect to login with return url
-    redirect(`/login?next=/question/${rawId}`);
-  }
 
   if (!id) {
     return (
@@ -54,47 +50,47 @@ export default async function QuestionPage(props: PageProps) {
     return (
       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc]">
         <AmbientBackground />
-        <Header user={{ username: "User" }} />
+        <Header user={{ username: "Guest" }} />
         <div className="flex-grow flex items-center justify-center">
-          <div className="text-center p-8 bg-white/50 rounded-2xl backdrop-blur-sm">
-            <Frown className="text-4xl text-gray-400 mb-2 mx-auto size-10" />
-            <p className="text-gray-600">
-              Question not found or you don't have permission to view it.
-            </p>
-            <a
-              href="/subjects"
-              className="text-[#135bec] hover:underline mt-4 block"
-            >
-              Back to Subjects
-            </a>
-          </div>
+          <NotFoundPage
+            title="Question Not Found"
+            description="We couldn't find the question you're looking for. It might have been deleted or you may have followed a broken link."
+            backLink="/subjects"
+            backText="Back to Subjects"
+          />
         </div>
       </div>
     );
   }
 
-  // Fetch user profile for header
-  const { data: profileData } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  const profile = profileData as Profile | null;
+  // Fetch user profile for header if user exists
+  let profile: Profile | null = null;
+  if (user) {
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+    profile = profileData as Profile | null;
+  }
 
   const userData = {
-    username: profile?.username || user.email?.split("@")[0] || "User",
+    username: profile?.username || user?.email?.split("@")[0] || "Guest",
     avatar_url: profile?.avatar_url ?? undefined,
+    is_vip: profile?.is_vip || false,
   };
 
-  const sessionUser = profile || {
-    id: user.id,
+  // Create session user (real or guest)
+  const sessionUser: Profile = profile || {
+    id: user?.id || "guest-id",
     username: userData.username,
     level: 1,
     streak_days: 0,
     avatar_url: null,
     created_at: new Date().toISOString(),
     last_practice_date: null,
+    is_vip: false,
+    vip_expires_at: null,
   };
 
   return (
@@ -110,6 +106,7 @@ export default async function QuestionPage(props: PageProps) {
         user={sessionUser}
         subjectId={question.subject_id}
         mode="standalone"
+        isGuest={!user}
       />
     </div>
   );

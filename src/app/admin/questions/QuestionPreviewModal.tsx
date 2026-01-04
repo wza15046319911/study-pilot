@@ -143,7 +143,9 @@ export default function QuestionPreviewModal({
 
                 {/* Question Content */}
                 <div className="text-base md:text-lg text-gray-800 dark:text-gray-200 leading-relaxed">
-                  <LatexContent>{question.content}</LatexContent>
+                  <LatexContent className="whitespace-pre-wrap">
+                    {question.content}
+                  </LatexContent>
                 </div>
 
                 {/* Options */}
@@ -168,7 +170,9 @@ export default function QuestionPreviewModal({
                           {opt.label}
                         </span>
                         <div className="pt-1">
-                          <LatexContent>{opt.content}</LatexContent>
+                          <LatexContent className="whitespace-pre-wrap">
+                            {opt.content}
+                          </LatexContent>
                         </div>
                         {opt.label === question.answer && (
                           <div className="ml-auto text-xs font-bold text-blue-600 dark:text-blue-400 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 rounded">
@@ -200,7 +204,9 @@ export default function QuestionPreviewModal({
                       Explanation
                     </h3>
                     <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                      <LatexContent>{question.explanation}</LatexContent>
+                      <LatexContent className="whitespace-pre-wrap">
+                        {question.explanation}
+                      </LatexContent>
                     </div>
                   </div>
                 )}

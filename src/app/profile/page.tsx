@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { ProfileContent } from "./ProfileContent";
+import { getReferralStats } from "@/lib/actions/referral";
 import {
   Profile,
   UserProgress,
@@ -94,17 +95,22 @@ export default async function ProfilePage() {
         : 0,
   };
 
+  // Fetch referral stats
+  const referralStats = await getReferralStats();
+
   // Fallback profile if not found (should be handled by trigger, but just in case)
   // Also merge auth metadata avatar if profile doesn't have one
   const rawProfile = profile || {
     id: user.id,
     username: user.email?.split("@")[0] || "User",
     email: user.email,
-    level: 1, // Keep for type compatibility for now
-    streak_days: 0, // Keep for type compatibility for now
+    level: 1,
+    streak_days: 0,
     avatar_url: null,
     created_at: new Date().toISOString(),
     last_practice_date: null,
+    is_vip: false,
+    vip_expires_at: null,
   };
 
   const userData = {
@@ -124,6 +130,7 @@ export default async function ProfilePage() {
       user.user_metadata?.avatar_url ||
       user.user_metadata?.picture ||
       undefined,
+    is_vip: userData.is_vip,
   };
 
   return (
@@ -138,6 +145,13 @@ export default async function ProfilePage() {
           mistakes={mistakes || []}
           bookmarks={bookmarks || []}
           answerStats={answerStats}
+          referralStats={
+            referralStats || {
+              totalReferrals: 0,
+              unusedReferrals: 0,
+              unlockedBanks: 0,
+            }
+          }
         />
       </main>
     </div>

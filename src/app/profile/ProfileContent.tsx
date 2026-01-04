@@ -19,6 +19,7 @@ import {
   BookMarked,
   ChevronRight,
   TrendingUp,
+  Users,
 } from "lucide-react";
 
 // Combined types for props
@@ -47,6 +48,11 @@ interface ProfileContentProps {
     correct: number;
     accuracy: number;
   };
+  referralStats: {
+    totalReferrals: number;
+    unusedReferrals: number;
+    unlockedBanks: number;
+  };
 }
 
 export function ProfileContent({
@@ -55,6 +61,7 @@ export function ProfileContent({
   mistakes,
   bookmarks,
   answerStats,
+  referralStats,
 }: ProfileContentProps) {
   // Calculate stats
   // unused for now: const totalCompleted = progress.reduce((acc, curr) => acc + (curr.completed_count || 0), 0);
@@ -170,6 +177,44 @@ export function ProfileContent({
                 <Edit2 className="mr-2 size-4" />
                 Edit Profile
               </Button>
+
+              {/* Referrals Section */}
+              <div className="w-full mt-8 pt-8 border-t border-gray-100 dark:border-gray-800">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-gray-900 dark:text-white">
+                    Referrals
+                  </h3>
+                  <Link
+                    href="/profile/referrals"
+                    className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
+                  >
+                    View Details
+                  </Link>
+                </div>
+                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-4 text-left">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 bg-white dark:bg-slate-800 rounded-lg text-blue-600 dark:text-blue-400 shadow-sm">
+                      <Users className="size-5" />
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none">
+                        {referralStats.totalReferrals}
+                      </div>
+                      <div className="text-[10px] text-blue-600/80 dark:text-blue-400/80 font-bold uppercase tracking-wider mt-1">
+                        Friends Invited
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                    You have{" "}
+                    <span className="font-bold text-gray-900 dark:text-white">
+                      {referralStats.unusedReferrals}
+                    </span>{" "}
+                    unlocks available. Invite more friends to unlock premium
+                    Question Banks!
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

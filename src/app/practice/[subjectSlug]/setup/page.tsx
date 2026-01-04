@@ -67,6 +67,7 @@ export default async function SetupPage(props: PageProps) {
   const userData = {
     username: profile?.username || user.email?.split("@")[0] || "User",
     avatar_url: profile?.avatar_url ?? undefined,
+    is_vip: profile?.is_vip || false,
   };
 
   return (

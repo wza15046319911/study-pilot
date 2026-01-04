@@ -6,6 +6,7 @@ import { PracticeSession } from "./PracticeSession";
 import { Profile } from "@/types/database";
 import { Frown } from "lucide-react";
 import { decodeId } from "@/lib/ids";
+import { NotFoundPage } from "@/components/ui/NotFoundPage";
 
 interface PageProps {
   params: Promise<{
@@ -60,7 +61,20 @@ export default async function PracticePage(props: PageProps) {
   const subject = subjectData as { id: number; slug: string } | null;
 
   if (!subject) {
-    redirect("/subjects");
+    return (
+      <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc]">
+        <AmbientBackground />
+        <Header user={{ username: "User" }} />
+        <div className="flex-grow flex items-center justify-center">
+          <NotFoundPage
+            title="Subject Not Found"
+            description="We couldn't find the subject you're looking for. It might have been deleted or moved."
+            backLink="/subjects"
+            backText="Back to Subjects"
+          />
+        </div>
+      </div>
+    );
   }
 
   // Fetch questions based on filters
@@ -111,18 +125,12 @@ export default async function PracticePage(props: PageProps) {
         <AmbientBackground />
         <Header user={{ username: "User" }} />
         <div className="flex-grow flex items-center justify-center">
-          <div className="text-center p-8 bg-white/50 rounded-2xl backdrop-blur-sm">
-            <Frown className="text-4xl text-gray-400 mb-2 mx-auto size-10" />
-            <p className="text-gray-600">
-              No questions found for this configuration.
-            </p>
-            <a
-              href={`/practice/${subjectSlug}/setup`}
-              className="text-[#135bec] hover:underline mt-4 block"
-            >
-              Go back
-            </a>
-          </div>
+          <NotFoundPage
+            title="No Questions Found"
+            description="We couldn't find any questions matching your filters."
+            backLink={`/practice/${subjectSlug}/setup`}
+            backText="Adjust Filters"
+          />
         </div>
       </div>
     );
@@ -166,6 +174,7 @@ export default async function PracticePage(props: PageProps) {
       user.user_metadata?.avatar_url ||
       user.user_metadata?.picture ||
       undefined,
+    is_vip: profile?.is_vip || false,
   };
 
   const sessionUser = profile || {
@@ -176,6 +185,8 @@ export default async function PracticePage(props: PageProps) {
     avatar_url: null,
     created_at: new Date().toISOString(),
     last_practice_date: null,
+    is_vip: false,
+    vip_expires_at: null,
   };
 
   return (

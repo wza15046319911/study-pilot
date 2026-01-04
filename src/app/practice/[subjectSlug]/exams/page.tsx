@@ -78,6 +78,7 @@ export default async function ExamListPage(props: PageProps) {
   const userData = {
     username: profile?.username || "User",
     avatar_url: profile?.avatar_url ?? undefined,
+    is_vip: profile?.is_vip || false,
   };
 
   return (

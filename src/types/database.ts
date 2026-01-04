@@ -17,6 +17,8 @@ export interface Database {
           level: number;
           streak_days: number;
           last_practice_date: string | null;
+          is_vip: boolean;
+          vip_expires_at: string | null;
           created_at: string;
         };
         Insert: {
@@ -26,6 +28,8 @@ export interface Database {
           level?: number;
           streak_days?: number;
           last_practice_date?: string | null;
+          is_vip?: boolean;
+          vip_expires_at?: string | null;
           created_at?: string;
         };
         Update: {
@@ -35,6 +39,8 @@ export interface Database {
           level?: number;
           streak_days?: number;
           last_practice_date?: string | null;
+          is_vip?: boolean;
+          vip_expires_at?: string | null;
           created_at?: string;
         };
       };
@@ -494,6 +500,145 @@ export interface Database {
           created_at?: string;
         };
       };
+      question_banks: {
+        Row: {
+          id: number;
+          uuid: string;
+          title: string;
+          slug: string | null;
+          description: string | null;
+          subject_id: number;
+          is_premium: boolean;
+          is_published: boolean;
+          unlock_type: "free" | "premium" | "referral";
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          uuid?: string;
+          title: string;
+          slug?: string | null;
+          description?: string | null;
+          subject_id: number;
+          is_premium?: boolean;
+          is_published?: boolean;
+          unlock_type?: "free" | "premium" | "referral";
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: number;
+          uuid?: string;
+          title?: string;
+          slug?: string | null;
+          description?: string | null;
+          subject_id?: number;
+          is_premium?: boolean;
+          is_published?: boolean;
+          unlock_type?: "free" | "premium" | "referral";
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      question_bank_items: {
+        Row: {
+          id: number;
+          bank_id: number;
+          question_id: number;
+          order_index: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          bank_id: number;
+          question_id: number;
+          order_index: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          bank_id?: number;
+          question_id?: number;
+          order_index?: number;
+          created_at?: string;
+        };
+      };
+      referral_codes: {
+        Row: {
+          id: number;
+          code: string;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          code: string;
+          user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          code?: string;
+          user_id?: string;
+          created_at?: string;
+        };
+      };
+      referrals: {
+        Row: {
+          id: number;
+          referrer_id: string;
+          referee_id: string;
+          referral_code: string;
+          used_for_unlock: boolean;
+          unlocked_bank_id: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          referrer_id: string;
+          referee_id: string;
+          referral_code: string;
+          used_for_unlock?: boolean;
+          unlocked_bank_id?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          referrer_id?: string;
+          referee_id?: string;
+          referral_code?: string;
+          used_for_unlock?: boolean;
+          unlocked_bank_id?: number | null;
+          created_at?: string;
+        };
+      };
+      user_bank_unlocks: {
+        Row: {
+          id: number;
+          user_id: string;
+          bank_id: number;
+          unlock_type: "referral" | "purchase" | "admin";
+          referral_id: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          user_id: string;
+          bank_id: number;
+          unlock_type: "referral" | "purchase" | "admin";
+          referral_id?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          user_id?: string;
+          bank_id?: number;
+          unlock_type?: "referral" | "purchase" | "admin";
+          referral_id?: number | null;
+          created_at?: string;
+        };
+      };
     };
   };
 }
@@ -517,6 +662,15 @@ export type SharedMistakes =
   Database["public"]["Tables"]["shared_mistakes"]["Row"];
 export type FlashcardReview =
   Database["public"]["Tables"]["flashcard_reviews"]["Row"];
+export type QuestionBank =
+  Database["public"]["Tables"]["question_banks"]["Row"];
+export type QuestionBankItem =
+  Database["public"]["Tables"]["question_bank_items"]["Row"];
+export type ReferralCode =
+  Database["public"]["Tables"]["referral_codes"]["Row"];
+export type Referral = Database["public"]["Tables"]["referrals"]["Row"];
+export type UserBankUnlock =
+  Database["public"]["Tables"]["user_bank_unlocks"]["Row"];
 
 export interface QuestionOption {
   label: string;

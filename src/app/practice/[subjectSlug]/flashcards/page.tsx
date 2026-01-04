@@ -68,6 +68,7 @@ export default async function FlashcardsPage(props: PageProps) {
   const userData = {
     username: profile?.username || "User",
     avatar_url: profile?.avatar_url ?? undefined,
+    is_vip: profile?.is_vip || false,
   };
 
   const sessionUser = profile || {
@@ -78,6 +79,8 @@ export default async function FlashcardsPage(props: PageProps) {
     avatar_url: null,
     created_at: new Date().toISOString(),
     last_practice_date: null,
+    is_vip: false,
+    vip_expires_at: null,
   };
 
   return (

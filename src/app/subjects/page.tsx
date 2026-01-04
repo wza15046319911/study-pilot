@@ -61,6 +61,7 @@ export default async function SubjectsPage() {
       user.user_metadata?.avatar_url ||
       user.user_metadata?.picture ||
       undefined,
+    is_vip: profile?.is_vip || false,
   };
 
   const isAdmin =

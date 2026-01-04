@@ -28,7 +28,7 @@ export default async function AdminLayout({
   // Fetch user profile for Header
   const { data: profileData } = await (await supabase)
     .from("profiles")
-    .select("id, username, avatar_url, created_at, last_practice_date")
+    .select("*")
     .eq("id", user.id)
     .single();
 
@@ -45,6 +45,7 @@ export default async function AdminLayout({
       user.user_metadata?.avatar_url ||
       user.user_metadata?.picture ||
       undefined,
+    is_vip: profile?.is_vip || false,
   };
 
   return (

@@ -2,15 +2,21 @@ import { WholePageScroll } from "@/components/home/WholePageScroll";
 import { createClient } from "@/lib/supabase/server";
 import { Profile, Subject } from "@/types/database";
 import { getTranslations } from "next-intl/server";
-import { SmoothScrollProvider } from "@/components/providers/SmoothScrollProvider";
 
 export default async function Home() {
   const supabase = await createClient();
 
   // Check for session
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let user = null;
+  try {
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+    user = authUser;
+  } catch (error) {
+    // Suppress auth errors (e.g. invalid refresh token) and treat as logged out
+    console.error("Auth error:", error);
+  }
 
   let userData = null;
   let isAdmin = false;
@@ -36,6 +42,7 @@ export default async function Home() {
         user.user_metadata?.avatar_url ||
         user.user_metadata?.picture ||
         undefined,
+      is_vip: profile?.is_vip || false,
     };
 
     isAdmin =
@@ -109,13 +116,11 @@ export default async function Home() {
   };
 
   return (
-    <SmoothScrollProvider>
-      <WholePageScroll
-        user={userData}
-        isAdmin={isAdmin}
-        subjects={subjects}
-        content={content}
-      />
-    </SmoothScrollProvider>
+    <WholePageScroll
+      user={userData}
+      isAdmin={isAdmin}
+      subjects={subjects}
+      content={content}
+    />
   );
 }

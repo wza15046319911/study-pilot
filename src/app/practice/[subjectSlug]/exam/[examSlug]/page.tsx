@@ -89,6 +89,8 @@ export default async function ExamPage(props: PageProps) {
     avatar_url: null,
     created_at: new Date().toISOString(),
     last_practice_date: null,
+    is_vip: false,
+    vip_expires_at: null,
   };
 
   return (

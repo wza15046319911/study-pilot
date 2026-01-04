@@ -64,6 +64,7 @@ export default async function ImmersivePracticePage(props: PageProps) {
   const userData = {
     username: profile?.username || user.email?.split("@")[0] || "User",
     avatar_url: profile?.avatar_url ?? undefined,
+    is_vip: profile?.is_vip || false,
   };
 
   const sessionUser = profile || {
@@ -74,6 +75,8 @@ export default async function ImmersivePracticePage(props: PageProps) {
     avatar_url: null,
     created_at: new Date().toISOString(),
     last_practice_date: null,
+    is_vip: false,
+    vip_expires_at: null,
   };
 
   return (

@@ -1,25 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { createClient } from "@/lib/supabase/client";
-import { GraduationCap, Mail, Lock } from "lucide-react";
+import { GraduationCap, Mail, Lock, Check } from "lucide-react";
+import { LoginVisuals } from "./LoginVisuals";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [step, setStep] = useState<"email" | "code">("email");
+  const [password, setPassword] = useState("");
+  
+  // Get referral code from URL
+  const referralCode = searchParams.get("referral_code");
+  const modeParam = searchParams.get("mode");
+
+  // "password" = password login
+  // "signup" = password signup
+  const [authMode, setAuthMode] = useState<"password" | "signup">(
+    modeParam === "signup" ? "signup" : "password"
+  );
+
+  useEffect(() => {
+    if (modeParam === "signup") {
+      setAuthMode("signup");
+    }
+  }, [modeParam]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
 
-  const handleSendCode = async () => {
-    if (!email) {
-      setError("Please enter your email address");
+  const handlePasswordLogin = async () => {
+    if (!email || !password) {
+      setError("Please enter both email and password");
       return;
     }
     setLoading(true);
@@ -27,46 +47,47 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signInWithOtp({
+      const { error } = await supabase.auth.signInWithPassword({
         email,
-        options: {
-          shouldCreateUser: true,
-        },
-      });
-
-      if (error) throw error;
-      setStep("code");
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to send verification code"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyCode = async () => {
-    if (!code) {
-      setError("Please enter the verification code");
-      return;
-    }
-    setLoading(true);
-    setError("");
-
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token: code,
-        type: "email",
+        password,
       });
 
       if (error) throw error;
       router.push("/subjects");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Invalid verification code"
-      );
+      setError(err instanceof Error ? err.message : "Login failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignUp = async () => {
+    if (!email || !password) {
+      setError("Please enter both email and password");
+      return;
+    }
+    setLoading(true);
+    setError("");
+    setMessage("");
+
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            referral_code: referralCode, // Pass referral code to metadata
+          },
+        },
+      });
+
+      if (error) throw error;
+      setMessage("Account created! Please check your email/login.");
+      // Auto login often works unless email confirm is strictly enforced
+      router.push("/subjects");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Sign up failed");
     } finally {
       setLoading(false);
     }
@@ -79,7 +100,9 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${window.location.origin}/auth/callback?referral_code=${
+            referralCode || ""
+          }`,
         },
       });
       if (error) throw error;
@@ -90,131 +113,124 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen relative overflow-x-hidden flex items-center justify-center p-4">
-      {/* Background */}
-      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#eff6ff] via-[#f8faff] to-white dark:from-[#0f172a] dark:to-[#1e293b]" />
-        <div className="absolute top-[-10%] left-[-5%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] right-[-5%] w-[500px] h-[500px] bg-blue-400/20 rounded-full blur-[100px]" />
-        <div className="absolute top-[40%] right-[20%] w-[300px] h-[300px] bg-blue-300/20 rounded-full blur-[80px]" />
-      </div>
-
-      <GlassPanel className="w-full max-w-[440px] shadow-lg p-8 sm:p-10 relative z-10 flex flex-col gap-8">
-        {/* Logo */}
-        <div className="flex flex-col items-center text-center gap-4">
-          <Link
-            href="/"
-            className="size-14 rounded-xl bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/30"
-          >
-            <GraduationCap className="size-8" />
-          </Link>
-          <div className="space-y-1.5">
-            <h1 className="text-[28px] font-bold leading-tight">
-              Welcome Back
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400 text-sm font-normal">
-              {step === "email"
-                ? "Enter your email to receive a verification code"
-                : "Enter the verification code sent to your email"}
-            </p>
-          </div>
+    <div className="flex w-full flex-col items-center justify-center p-8 lg:w-1/2">
+      <div className="w-full max-w-[380px] space-y-8">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+            {authMode === "signup" ? "Create an account" : "Welcome back!"}
+          </h1>
+          <p className="text-gray-500 dark:text-gray-400">
+            Please enter your details
+          </p>
+          {referralCode && authMode === "signup" && (
+            <div className="bg-green-50 text-green-600 px-3 py-1 rounded text-sm font-medium inline-block">
+              Referral code applied
+            </div>
+          )}
         </div>
 
-        {/* Form */}
-        <form
-          className="flex flex-col gap-5"
-          onSubmit={(e) => e.preventDefault()}
-        >
-          <div className="space-y-2">
-            <label
-              className="text-sm font-medium pl-1 text-slate-700 dark:text-slate-300"
-              htmlFor="email"
-            >
-              Email Address
-            </label>
-            <Input
-              id="email"
-              type="email"
-              placeholder="example@quizmaster.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={step === "code"}
-              icon={<Mail className="size-5" />}
-            />
-          </div>
-
-          {step === "code" && (
+        <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+          <div className="space-y-4">
             <div className="space-y-2">
               <label
-                className="text-sm font-medium pl-1 text-slate-700 dark:text-slate-300"
-                htmlFor="code"
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                htmlFor="email"
               >
-                Verification Code
+                Email
               </label>
-              <div className="flex gap-3">
-                <Input
-                  id="code"
-                  type="text"
-                  placeholder="6-digit code"
-                  maxLength={6}
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  icon={<Lock className="size-5" />}
-                  className="flex-1"
-                />
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={handleSendCode}
-                  disabled={loading}
-                  className="whitespace-nowrap"
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@example.com"
+                className="rounded-lg border-gray-200"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label
+                className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                htmlFor="password"
+              >
+                Password
+              </label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="••••••••"
+                className="rounded-lg border-gray-200"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </div>
+          </div>
+
+          {authMode === "password" && (
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <div
+                  onClick={() => setRememberMe(!rememberMe)}
+                  className={`size-4 rounded border cursor-pointer flex items-center justify-center transition-colors ${
+                    rememberMe
+                      ? "bg-blue-600 border-blue-600"
+                      : "border-gray-300"
+                  }`}
                 >
-                  Resend
-                </Button>
+                  {rememberMe && <Check className="size-3 text-white" />}
+                </div>
+                <span
+                  className="text-gray-500 cursor-pointer select-none"
+                  onClick={() => setRememberMe(!rememberMe)}
+                >
+                  Remember for 30 days
+                </span>
               </div>
+              <button
+                type="button"
+                className="font-semibold text-gray-900 dark:text-white hover:underline"
+              >
+                Forgot password?
+              </button>
             </div>
           )}
 
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+          {error && (
+            <p className="text-red-500 text-sm text-center">{error}</p>
+          )}
+          {message && (
+            <p className="text-green-600 text-sm text-center">{message}</p>
+          )}
 
-          <div className="pt-2">
-            {step === "email" ? (
-              <Button
-                type="button"
-                className="w-full"
-                onClick={handleSendCode}
-                disabled={loading}
-              >
-                {loading ? "Sending..." : "Send Code"}
-              </Button>
-            ) : (
-              <Button
-                type="button"
-                className="w-full"
-                onClick={handleVerifyCode}
-                disabled={loading}
-              >
-                {loading ? "Verifying..." : "Sign In"}
-              </Button>
-            )}
-          </div>
-        </form>
+          <Button
+            className="w-full h-11 bg-gray-900 hover:bg-black text-white rounded-lg font-medium"
+            onClick={
+              authMode === "password" ? handlePasswordLogin : handleSignUp
+            }
+            disabled={loading}
+          >
+            {loading
+              ? "Processing..."
+              : authMode === "password"
+              ? "Log in"
+              : "Sign Up"}
+          </Button>
 
-        {/* Divider */}
-        <div className="flex flex-col gap-5">
-          <div className="relative flex items-center">
-            <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
-            <span className="px-4 text-sm text-slate-500 dark:text-slate-400">
-              or
-            </span>
-            <div className="flex-1 border-t border-gray-200 dark:border-gray-700" />
+          <div className="relative py-2">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-200 dark:border-gray-800"></div>
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white dark:bg-slate-900 px-2 text-gray-400">
+                OR
+              </span>
+            </div>
           </div>
 
-          {/* Google Login */}
           <Button
             type="button"
-            variant="secondary"
-            className="w-full gap-3"
+            variant="outline"
+            className="w-full h-11 border-gray-200 rounded-lg gap-2 text-gray-700 dark:text-white font-medium bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700"
             onClick={handleGoogleLogin}
             disabled={loading}
           >
@@ -236,21 +252,49 @@ export default function LoginPage() {
                 fill="#EA4335"
               />
             </svg>
-            Continue with Google
+            Sign in with Google
           </Button>
-        </div>
 
-        {/* Back to home */}
-        <p className="text-center text-sm text-slate-500 dark:text-slate-400">
-          Don&apos;t have an account?
-          <Link
-            href="/"
-            className="text-blue-600 font-medium ml-1 hover:underline"
-          >
-            Sign up free
-          </Link>
-        </p>
-      </GlassPanel>
+          <p className="text-center text-sm text-gray-500">
+            {authMode === "password" ? (
+              <>
+                Don&apos;t have an account?{" "}
+                <span
+                  onClick={() => setAuthMode("signup")}
+                  className="font-bold text-gray-900 dark:text-white cursor-pointer hover:underline"
+                >
+                  Sign up
+                </span>
+              </>
+            ) : (
+              <>
+                Already have an account?{" "}
+                <span
+                  onClick={() => setAuthMode("password")}
+                  className="font-bold text-gray-900 dark:text-white cursor-pointer hover:underline"
+                >
+                  Log in
+                </span>
+              </>
+            )}
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <div className="flex min-h-screen w-full bg-white dark:bg-slate-900">
+      <Suspense fallback={<div className="flex w-full flex-col items-center justify-center p-8 lg:w-1/2">Loading...</div>}>
+        <LoginForm />
+      </Suspense>
+
+      {/* Right: Visuals */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gray-50 dark:bg-slate-800">
+        <LoginVisuals />
+      </div>
     </div>
   );
 }
