@@ -42,11 +42,10 @@ export async function getExplanation(
       // Background update (fire and forget mostly, but we await to ensure it runs in lambda context)
       // Use admin client to bypass RLS if needed, or ensuring we have write access
       const supabase = createAdminClient();
-      
+
       // Only update if explanation is currently null (don't overwrite manual explanations)
-      await supabase
-        .from("questions")
-        .update({ explanation: explanation } as any) // Cast to any to avoid strict type checks on partial update depending on generated types
+      await (supabase.from("questions") as any)
+        .update({ explanation: explanation })
         .eq("id", questionId)
         .is("explanation", null);
     }

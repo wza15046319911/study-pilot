@@ -1,19 +1,23 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { Header } from "@/components/layout/Header";
+import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import ImmersiveSession from "@/app/practice/[subjectSlug]/immersive/ImmersiveSession";
-import { Profile, Question } from "@/types/database";
+import { Profile, Question, Subject } from "@/types/database";
+import { NotFoundPage } from "@/components/ui/NotFoundPage";
 
 interface PageProps {
   params: Promise<{
-    slug: string;
+    subjectSlug: string;
+    questionBankSlug: string;
   }>;
 }
 
-export default async function QuestionBankImmersivePage(props: PageProps) {
+export default async function LibraryQuestionBankImmersivePage(
+  props: PageProps
+) {
   const params = await props.params;
-  const { slug } = params;
+  const { subjectSlug, questionBankSlug } = params;
   const supabase = await createClient();
 
   const {
@@ -21,19 +25,48 @@ export default async function QuestionBankImmersivePage(props: PageProps) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/login?next=/question-banks/${slug}/immersive`);
+    redirect(
+      `/login?next=/library/${subjectSlug}/question-banks/${questionBankSlug}/immersive`
+    );
   }
 
+  // Fetch subject
+  const { data: subjectData } = await supabase
+    .from("subjects")
+    .select("*")
+    .eq("slug", subjectSlug)
+    .single();
+
+  const subject = subjectData as Subject | null;
+
+  if (!subject) {
+    redirect("/library");
+  }
+
+  // Fetch bank
   const { data: bank } = await (supabase.from("question_banks") as any)
-    .select("*, subject:subjects(*)")
-    .eq("slug", slug)
+    .select("*")
+    .eq("slug", questionBankSlug)
+    .eq("subject_id", subject.id)
     .maybeSingle();
 
   if (!bank) {
-    redirect("/question-banks");
+    return (
+      <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-white dark:bg-slate-950">
+        <AmbientBackground />
+        <div className="flex-grow flex items-center justify-center">
+          <NotFoundPage
+            title="Question Bank Not Found"
+            description="The question bank you're looking for doesn't exist."
+            backLink={`/library/${subjectSlug}`}
+            backText="Back to Subject"
+          />
+        </div>
+      </div>
+    );
   }
 
-  // Fetch first question from bank
+  // Fetch first question from bank (ImmersiveSession fetches more dynamically)
   const { data: items } = await supabase
     .from("question_bank_items")
     .select("question:questions(*)")
@@ -43,7 +76,7 @@ export default async function QuestionBankImmersivePage(props: PageProps) {
 
   const firstQuestion = ((items?.[0] as any)?.question as Question) || null;
 
-  // Fetch user profile
+  // Fetch user profile for session
   const { data: profileData } = await supabase
     .from("profiles")
     .select("*")
@@ -51,8 +84,9 @@ export default async function QuestionBankImmersivePage(props: PageProps) {
     .single();
 
   const profile = profileData as Profile | null;
+
   const userData = {
-    username: profile?.username || "User",
+    username: profile?.username || user.email?.split("@")[0] || "User",
     avatar_url: profile?.avatar_url ?? undefined,
     is_vip: profile?.is_vip || false,
   };
@@ -75,8 +109,8 @@ export default async function QuestionBankImmersivePage(props: PageProps) {
       <Header user={userData} />
       <ImmersiveSession
         initialQuestion={firstQuestion}
-        subjectId={bank.subject_id}
-        subjectName={`${bank.title}`}
+        subjectId={subject.id}
+        subjectName={`${bank.title} - ${subject.name}`}
         user={sessionUser}
       />
     </div>

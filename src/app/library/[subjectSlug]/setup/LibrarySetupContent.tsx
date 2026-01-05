@@ -10,22 +10,17 @@ import {
   ChevronRight,
   Sparkles,
   ListChecks,
-  FileText,
   Layers,
   Timer,
-  Zap,
+  Home,
 } from "lucide-react";
 
 interface TopicWithCount extends Topic {
   question_count?: number;
 }
 
-interface PracticeSetupContentProps {
+interface LibrarySetupContentProps {
   subject: Subject;
-  user: {
-    username: string | null;
-    avatar_url?: string | null;
-  };
   topics?: TopicWithCount[];
 }
 
@@ -53,17 +48,6 @@ const modes = [
     ringColor: "ring-purple-500",
     btnColor: "bg-purple-600 hover:bg-purple-700 text-white",
   },
-  {
-    id: "exam",
-    name: "Mock Exam",
-    description: "Timed simulation under exam conditions.",
-    icon: FileText,
-    color: "text-orange-600",
-    bgColor: "bg-orange-50 dark:bg-orange-900/20",
-    borderColor: "border-orange-200 dark:border-orange-800",
-    ringColor: "ring-orange-500",
-    btnColor: "bg-orange-600 hover:bg-orange-700 text-white",
-  },
 ];
 
 const difficulties = [
@@ -89,14 +73,12 @@ const difficulties = [
   },
 ];
 
-export function PracticeSetupContent({
+export function LibrarySetupContent({
   subject,
   topics = [],
-}: PracticeSetupContentProps) {
+}: LibrarySetupContentProps) {
   const router = useRouter();
-  const [mode, setMode] = useState<"standard" | "immersive" | "exam">(
-    "standard"
-  );
+  const [mode, setMode] = useState<"standard" | "immersive">("standard");
   const [difficulty, setDifficulty] = useState("all");
   const [selectedTopics, setSelectedTopics] = useState<string[]>(["all"]);
   const [enableTimer, setEnableTimer] = useState(true);
@@ -108,7 +90,6 @@ export function PracticeSetupContent({
     }
 
     setSelectedTopics((prev) => {
-      // If currently "all", wipe it and start with new selection
       let newSelection = prev.includes("all") ? [] : [...prev];
 
       if (newSelection.includes(slug)) {
@@ -117,51 +98,54 @@ export function PracticeSetupContent({
         newSelection.push(slug);
       }
 
-      // If empty, revert to "all"
       return newSelection.length === 0 ? ["all"] : newSelection;
     });
   };
 
   const handleStart = () => {
     if (mode === "immersive") {
-      router.push(`/practice/${subject.slug}/immersive`);
-      return;
-    }
-    if (mode === "exam") {
-      router.push(`/practice/${subject.slug}/exams`);
+      router.push(`/library/${subject.slug}/immersive`);
       return;
     }
 
     const params = new URLSearchParams();
     if (difficulty !== "all") params.set("difficulty", difficulty);
 
-    // Join topics with comma if not "all"
     if (!selectedTopics.includes("all")) {
       params.set("topic", selectedTopics.join(","));
     }
 
     params.set("count", "all");
     params.set("timer", enableTimer.toString());
-    router.push(`/practice/${subject.slug}?${params.toString()}`);
+    router.push(`/library/${subject.slug}/practice?${params.toString()}`);
   };
 
   const selectedMode = modes.find((m) => m.id === mode)!;
 
   return (
-    <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-gray-400 mb-12">
+      <nav className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-8">
         <Link
-          href="/subjects"
-          className="hover:text-gray-900 dark:hover:text-white transition-colors"
+          href="/library"
+          className="hover:text-slate-700 dark:hover:text-slate-200 transition-colors flex items-center gap-1"
         >
-          Subjects
+          <Home className="size-4" />
+          Library
         </Link>
         <ChevronRight className="size-4" />
-        <span className="text-gray-900 dark:text-white font-medium">
+        <Link
+          href={`/library/${subject.slug}`}
+          className="hover:text-slate-700 dark:hover:text-slate-200 transition-colors flex items-center gap-1"
+        >
+          {subject.icon && <span>{subject.icon}</span>}
           {subject.name}
+        </Link>
+        <ChevronRight className="size-4" />
+        <span className="text-slate-900 dark:text-white font-medium">
+          Setup
         </span>
-      </div>
+      </nav>
 
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
@@ -202,14 +186,14 @@ export function PracticeSetupContent({
 
         <div className="hidden md:block text-right">
           <div className="text-3xl font-bold text-gray-900 dark:text-white">
-            {subject.question_count || 0}
+            {(subject as any).question_count || 0}
           </div>
           <div className="text-sm text-gray-500">Total Questions</div>
         </div>
       </div>
 
       {/* Mode Cards */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
+      <div className="grid sm:grid-cols-3 gap-4 mb-10">
         {modes.map((m, index) => {
           const Icon = m.icon;
           const isSelected = mode === m.id;

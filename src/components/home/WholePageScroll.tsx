@@ -14,6 +14,7 @@ import {
   Zap,
   ChevronLeft,
   ChevronRight,
+  GraduationCap,
 } from "lucide-react";
 
 // ... (Subject and Props interfaces same as before)
@@ -108,64 +109,78 @@ const features = [
     color: "#22C55E",
     bgColor: "#F0FDF4",
   },
+  {
+    icon: <GraduationCap size={24} />,
+    title: "Mock Exam",
+    description:
+      "Simulate real exam conditions with timed practice sessions. Experience the pressure before the real day.",
+    color: "#7C3AED",
+    bgColor: "#F5F3FF",
+  },
 ];
 
 const testimonials = [
   {
     quote:
-      "The extension is perfect for saving jobs while I browse—huge time saver.",
-    name: "Elena K",
-    role: "Marketing Specialist",
+      "The AI Tutor's explanations are incredibly clear. It's like having a private tutor available 24/7.",
+    name: "Sarah Lin",
+    role: "Computer Science Student",
     avatar: "/placeholder-avatar-1.png",
   },
   {
     quote:
-      "JobJourney helped me land interviews within a month using the AI resume.",
-    name: "Liu Meiqi",
-    role: "Software Engineer",
+      "I passed my professional certification thanks to the extensive question bank and the immersive mock exams.",
+    name: "James Wong",
+    role: "Financial Analyst",
     avatar: "/placeholder-avatar-2.png",
   },
   {
-    quote: "My portfolio leveled up and recruiters now reach out to me.",
-    name: "Yoko Lee",
-    role: "UX Designer",
+    quote:
+      "The spaced repetition system actually works. I've retained far more information than using traditional methods.",
+    name: "Elena Rodriguez",
+    role: "Medical Student",
     avatar: "/placeholder-avatar-3.png",
   },
   {
-    quote: "Generated a slick portfolio in a minute—codedark matched my style.",
-    name: "Jason Moore",
-    role: "Frontend Developer",
+    quote:
+      "The interface is so clean and distraction-free. StudyPilot has transformed my late-night study sessions.",
+    name: "David Kim",
+    role: "Law Student",
     avatar: "/placeholder-avatar-4.png",
   },
   {
     quote:
-      "Switched from spreadsheets to clean tracking—everything is organized now.",
-    name: "Priya Singh",
-    role: "Product Manager",
+      "Tracking my progress with the analytics dashboard motivated me to study everyday. Seeing my accuracy grow is so satisfying.",
+    name: "Maya Singh",
+    role: "Engineering Student",
     avatar: "/placeholder-avatar-5.png",
   },
   {
-    quote: "Found great matches fast—browsed 1,000+ openings in minutes.",
-    name: "Alex Rodriguez",
-    role: "Data Analyst",
+    quote:
+      "The 'Smart Review' feature saved me hours. It identified exactly where my knowledge gaps were.",
+    name: "Thomas Chen",
+    role: "Graduate Researcher",
     avatar: "/placeholder-avatar-6.png",
   },
   {
-    quote: "Cover letter assistant made personalization easy and fast.",
-    name: "Ava Brooks",
-    role: "Operations Manager",
+    quote:
+      "Best investment for my exam prep. The question quality matches the actual exam standards perfectly.",
+    name: "Michael Zhang",
+    role: "Medical Resident",
     avatar: "/placeholder-avatar-7.png",
   },
   {
-    quote: "I finally have a clean overview of all applications and statuses.",
-    name: "Omar Ali",
-    role: "E-commerce Manager",
+    quote:
+      "I love the mobile experience. Being able to squeeze in a quick 10-minute quiz during my commute is a game changer.",
+    name: "Sophie Gupta",
+    role: "Business School Student",
     avatar: "/placeholder-avatar-8.png",
   },
   {
-    quote: "The job market insights helped me focus my applications.",
-    name: "Noah Patel",
-    role: "Business Analyst",
+    quote:
+      "StudyPilot isn't just a question bank; it's a complete ecosystem. Truly the future of personalized learning.",
+    name: "Prof. Alan Richards",
+    role: "Educator & Researcher",
     avatar: "/placeholder-avatar-9.png",
   },
 ];
@@ -283,23 +298,87 @@ export function WholePageScroll({
                     </div>
 
                     {/* Feature Visual Placeholder */}
-                    <div className="bg-muted rounded-2xl border border-border p-8 min-h-[350px] flex flex-col relative overflow-hidden">
-                      <div className="absolute top-4 left-4 flex gap-2">
-                        <div className="size-3 rounded-full bg-red-400/20" />
-                        <div className="size-3 rounded-full bg-yellow-400/20" />
-                        <div className="size-3 rounded-full bg-green-400/20" />
-                      </div>
-                      <div className="mt-8 flex-1 bg-card rounded-xl shadow-sm border border-border/50 p-6 flex items-center justify-center">
-                        <div
-                          className="size-24 rounded-2xl flex items-center justify-center transform hover:scale-110 transition-transform duration-500"
-                          style={{
-                            backgroundColor: features[currentFeature].bgColor,
-                            color: features[currentFeature].color,
-                          }}
-                        >
-                          {features[currentFeature].icon}
+                    <div className="bg-muted rounded-2xl border border-border min-h-[350px] flex flex-col relative overflow-hidden group">
+                      {features[currentFeature].title === "Mock Exam" ? (
+                        <div className="absolute inset-0 flex items-center justify-center bg-[#F5F3FF] p-8">
+                          {/* Background Interface Image */}
+                          <motion.div
+                            className="absolute w-[85%] top-12 rounded-xl overflow-hidden shadow-xl border border-slate-200/60 dark:border-slate-700/60"
+                            initial={{ y: 20, opacity: 0, rotateX: 10 }}
+                            animate={{ y: 0, opacity: 1, rotateX: 0 }}
+                            transition={{ delay: 0.1, duration: 0.5 }}
+                            style={{ perspective: 1000 }}
+                          >
+                            <Image
+                              src="/mock-exam-interface.png"
+                              alt="Mock Exam Interface"
+                              width={800}
+                              height={600}
+                              className="w-full h-auto object-cover opacity-90"
+                            />
+                            {/* Overlay gradient to fade bottom */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#F5F3FF] via-transparent to-transparent" />
+                          </motion.div>
+
+                          {/* Foreground Entry Card */}
+                          <motion.div
+                            className="relative w-[65%] shadow-[0_20px_60px_-15px_rgba(124,58,237,0.4)] rounded-xl overflow-hidden z-10"
+                            initial={{ scale: 0.8, opacity: 0, y: 30 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            transition={{
+                              delay: 0.3,
+                              type: "spring",
+                              stiffness: 260,
+                              damping: 20,
+                            }}
+                          >
+                            <Image
+                              src="/mock-exam-card.png"
+                              alt="Start Mock Exam"
+                              width={500}
+                              height={400}
+                              className="w-full h-auto object-cover"
+                            />
+                          </motion.div>
                         </div>
-                      </div>
+                      ) : (
+                        <div className="p-8 flex flex-col h-full relative">
+                          <div className="absolute top-4 left-4 flex gap-2">
+                            <div className="size-3 rounded-full bg-red-400/20" />
+                            <div className="size-3 rounded-full bg-yellow-400/20" />
+                            <div className="size-3 rounded-full bg-green-400/20" />
+                          </div>
+                          <div className="mt-8 flex-1 bg-card rounded-xl shadow-sm border border-border/50 p-6 flex items-center justify-center relative overflow-hidden">
+                            <motion.div
+                              key={currentFeature}
+                              initial={{ scale: 0.8, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 200,
+                                damping: 15,
+                                delay: 0.1,
+                              }}
+                              className="size-24 rounded-2xl flex items-center justify-center transform hover:scale-110 transition-transform duration-500 relative z-10"
+                              style={{
+                                backgroundColor:
+                                  features[currentFeature].bgColor,
+                                color: features[currentFeature].color,
+                              }}
+                            >
+                              {features[currentFeature].icon}
+                            </motion.div>
+
+                            {/* Decorative background circle */}
+                            <div
+                              className="absolute inset-0 opacity-20"
+                              style={{
+                                background: `radial-gradient(circle at center, ${features[currentFeature].color}, transparent 70%)`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </motion.div>
                 </AnimatePresence>
@@ -395,7 +474,7 @@ export function WholePageScroll({
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
-                  href={user ? "/question-banks" : "/login"}
+                  href={user ? "/library" : "/login"}
                   className="inline-flex h-14 px-8 items-center justify-center rounded-full bg-primary text-white font-bold text-lg hover:bg-blue-600 transition-all"
                 >
                   {user ? "Start to Practice" : "Create Free Account"}
@@ -431,18 +510,18 @@ export function WholePageScroll({
                 <h4 className="font-bold mb-4">Product</h4>
                 <ul className="space-y-3 text-sm text-gray-500">
                   <li>
-                    <Link href="#" className="hover:text-primary">
-                      Features
+                    <Link href="/library" className="hover:text-primary">
+                      Library
                     </Link>
                   </li>
                   <li>
-                    <Link href="#" className="hover:text-primary">
+                    <Link href="/pricing" className="hover:text-primary">
                       Pricing
                     </Link>
                   </li>
                   <li>
-                    <Link href="#" className="hover:text-primary">
-                      Resources
+                    <Link href="/faq" className="hover:text-primary">
+                      FAQ
                     </Link>
                   </li>
                 </ul>
@@ -451,17 +530,12 @@ export function WholePageScroll({
                 <h4 className="font-bold mb-4">Company</h4>
                 <ul className="space-y-3 text-sm text-muted-foreground">
                   <li>
-                    <Link href="#" className="hover:text-primary">
+                    <Link href="/about" className="hover:text-primary">
                       About
                     </Link>
                   </li>
                   <li>
-                    <Link href="#" className="hover:text-primary">
-                      Careers
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="#" className="hover:text-primary">
+                    <Link href="/contact" className="hover:text-primary">
                       Contact
                     </Link>
                   </li>

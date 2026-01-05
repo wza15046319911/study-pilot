@@ -23,6 +23,7 @@ import {
   Flame,
   FileText,
   Target,
+  Layers,
 } from "lucide-react";
 
 // Combined types for props
@@ -65,6 +66,7 @@ interface ProfileContentProps {
     unlock_type: "free" | "premium" | "referral";
     access_status: "Free" | "Unlocked" | "Premium";
   }>;
+  isAdmin?: boolean;
 }
 
 export function ProfileContent({
@@ -75,6 +77,7 @@ export function ProfileContent({
   answerStats,
   referralStats,
   accessibleBanks,
+  isAdmin = false,
 }: ProfileContentProps) {
   // Calculate stats
   // unused for now: const totalCompleted = progress.reduce((acc, curr) => acc + (curr.completed_count || 0), 0);
@@ -160,7 +163,7 @@ export function ProfileContent({
                 <div className="flex items-center justify-around text-center">
                   <div className="flex flex-col items-center">
                     <div className="flex items-center gap-1.5 mb-1 text-orange-500">
-                        <Flame className="size-4 fill-orange-500" />
+                      <Flame className="size-4 fill-orange-500" />
                     </div>
                     <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none mb-1">
                       {user.streak_days || 0}
@@ -174,7 +177,7 @@ export function ProfileContent({
 
                   <div className="flex flex-col items-center">
                     <div className="flex items-center gap-1.5 mb-1 text-blue-500">
-                        <FileText className="size-4" />
+                      <FileText className="size-4" />
                     </div>
                     <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none mb-1">
                       {answerStats.total}
@@ -187,8 +190,8 @@ export function ProfileContent({
                   <div className="w-px h-8 bg-gray-100 dark:bg-gray-800" />
 
                   <div className="flex flex-col items-center">
-                     <div className="flex items-center gap-1.5 mb-1 text-green-500">
-                        <Target className="size-4" />
+                    <div className="flex items-center gap-1.5 mb-1 text-green-500">
+                      <Target className="size-4" />
                     </div>
                     <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none mb-1">
                       {answerStats.accuracy}%
@@ -207,6 +210,20 @@ export function ProfileContent({
                 <Edit2 className="mr-2 size-4" />
                 Edit Profile
               </Button>
+
+              {isAdmin && (
+                <div className="w-full mt-4">
+                  <Link href="/admin">
+                    <Button
+                      variant="primary"
+                      className="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-900/20 dark:bg-slate-800 dark:hover:bg-slate-700 dark:border dark:border-slate-700"
+                    >
+                      <Layers className="mr-2 size-4" />
+                      Admin Dashboard
+                    </Button>
+                  </Link>
+                </div>
+              )}
 
               {/* Referrals Section */}
               <div className="w-full mt-8 pt-8 border-t border-gray-100 dark:border-gray-800">
@@ -442,56 +459,64 @@ export function ProfileContent({
               )}
             </div>
           </div>
-          
+
           {/* My Question Banks */}
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm">
-             <div className="flex items-center justify-between mb-8">
-               <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                 My Question Banks
-               </h2>
-               <Link href="/question-banks" className="text-sm font-medium text-blue-600 hover:text-blue-700">
-                 Explore More
-               </Link>
-             </div>
-             
-             {accessibleBanks.length > 0 ? (
-               <div className="grid sm:grid-cols-2 gap-4">
-                 {accessibleBanks.map((bank) => (
-                   <Link 
-                     href={`/question-banks/${bank.slug}`} 
-                     key={bank.id}
-                     className="block p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 border border-transparent hover:border-blue-200 dark:hover:border-blue-900/50 hover:shadow-md transition-all group"
-                   >
-                     <div className="flex justify-between items-start gap-4">
-                       <div>
-                         <h3 className="font-bold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 transition-colors line-clamp-1">
-                           {bank.title}
-                         </h3>
-                         <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
-                           <span>{bank.subjects?.name || "Subject"}</span>
-                         </div>
-                       </div>
-                       
-                       <span className={`
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                My Question Banks
+              </h2>
+              <Link
+                href="/question-banks"
+                className="text-sm font-medium text-blue-600 hover:text-blue-700"
+              >
+                Explore More
+              </Link>
+            </div>
+
+            {accessibleBanks.length > 0 ? (
+              <div className="grid sm:grid-cols-2 gap-4">
+                {accessibleBanks.map((bank) => (
+                  <Link
+                    href={`/question-banks/${bank.slug}`}
+                    key={bank.id}
+                    className="block p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 border border-transparent hover:border-blue-200 dark:hover:border-blue-900/50 hover:shadow-md transition-all group"
+                  >
+                    <div className="flex justify-between items-start gap-4">
+                      <div>
+                        <h3 className="font-bold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 transition-colors line-clamp-1">
+                          {bank.title}
+                        </h3>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+                          <span>{bank.subjects?.name || "Subject"}</span>
+                        </div>
+                      </div>
+
+                      <span
+                        className={`
                          text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider
-                         ${bank.access_status === 'Free' 
-                           ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                           : bank.access_status === 'Premium'
-                           ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-                           : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                         ${
+                           bank.access_status === "Free"
+                             ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                             : bank.access_status === "Premium"
+                             ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                             : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
                          }
-                       `}>
-                         {bank.access_status === 'Premium' && user.is_vip ? 'VIP Access' : bank.access_status}
-                       </span>
-                     </div>
-                   </Link>
-                 ))}
-               </div>
-             ) : (
-               <div className="text-center py-8 text-gray-500">
-                 You haven't unlocked any question banks yet.
-               </div>
-             )}
+                       `}
+                      >
+                        {bank.access_status === "Premium" && user.is_vip
+                          ? "VIP Access"
+                          : bank.access_status}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                You haven't unlocked any question banks yet.
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -3,46 +3,56 @@ import { redirect } from "next/navigation";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { Header } from "@/components/layout/Header";
 import FlashcardSession from "@/app/practice/[subjectSlug]/flashcards/FlashcardSession";
-import { Profile, Question } from "@/types/database";
+import { Profile, Question, Subject } from "@/types/database";
 
 interface PageProps {
   params: Promise<{
-    slug: string;
+    subjectSlug: string;
   }>;
 }
 
-export default async function QuestionBankFlashcardsPage(props: PageProps) {
+export default async function LibraryFlashcardsPage(props: PageProps) {
   const params = await props.params;
-  const { slug } = params;
+  const { subjectSlug } = params;
+
   const supabase = await createClient();
 
+  // Get current user
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/login?next=/question-banks/${slug}/flashcards`);
+    redirect("/login");
   }
 
-  const { data: bank } = await (supabase.from("question_banks") as any)
-    .select("*, subject:subjects(*)")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  if (!bank) {
-    redirect("/question-banks");
+  if (!subjectSlug) {
+    redirect("/library");
   }
 
-  // Fetch Questions with flashcard_reviews
-  const { data: items } = await supabase
-    .from("question_bank_items")
-    .select("question:questions(*, flashcard_reviews(*))")
-    .eq("bank_id", bank.id)
-    .order("order_index");
+  // Fetch subject to ensure it exists
+  const { data: subjectData } = await supabase
+    .from("subjects")
+    .select("*")
+    .eq("slug", subjectSlug)
+    .single();
 
-  const questions = (items || []).map((item: any) => ({
-    ...item.question,
-    review: item.question?.flashcard_reviews?.[0] || null,
+  const subject = subjectData as Subject | null;
+
+  if (!subject) {
+    redirect("/library");
+  }
+
+  // Fetch questions for flashcards (Limit to 50)
+  const { data: questionsData } = await supabase
+    .from("questions")
+    .select("*, flashcard_reviews(*)")
+    .eq("subject_id", subject.id)
+    .limit(50);
+
+  const questions = (questionsData || []).map((q: any) => ({
+    ...q,
+    review: q.flashcard_reviews?.[0] || null,
   })) as (Question & { review: any })[];
 
   // Fetch user profile
@@ -78,8 +88,8 @@ export default async function QuestionBankFlashcardsPage(props: PageProps) {
       <FlashcardSession
         questions={questions}
         user={sessionUser}
-        subjectId={bank.subject_id}
-        subjectName={`${bank.title}`}
+        subjectId={subject.id}
+        subjectName={subject.name}
       />
     </div>
   );

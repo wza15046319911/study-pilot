@@ -3,17 +3,21 @@ import { redirect } from "next/navigation";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { Header } from "@/components/layout/Header";
 import FlashcardSession from "@/app/practice/[subjectSlug]/flashcards/FlashcardSession";
-import { Profile, Question } from "@/types/database";
+import { NotFoundPage } from "@/components/ui/NotFoundPage";
+import { Profile } from "@/types/database";
 
 interface PageProps {
   params: Promise<{
-    slug: string;
+    subjectSlug: string;
+    questionBankSlug: string;
   }>;
 }
 
-export default async function QuestionBankFlashcardsPage(props: PageProps) {
+export default async function LibraryQuestionBankFlashcardsPage(
+  props: PageProps
+) {
   const params = await props.params;
-  const { slug } = params;
+  const { subjectSlug, questionBankSlug } = params;
   const supabase = await createClient();
 
   const {
@@ -21,16 +25,50 @@ export default async function QuestionBankFlashcardsPage(props: PageProps) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/login?next=/question-banks/${slug}/flashcards`);
+    redirect(
+      `/login?next=/library/${subjectSlug}/question-banks/${questionBankSlug}/flashcards`
+    );
   }
 
+  // Fetch subject
+  const { data: subjectData } = await supabase
+    .from("subjects")
+    .select("*")
+    .eq("slug", subjectSlug)
+    .single();
+
+  const subject = subjectData as {
+    id: number;
+    slug: string;
+    name: string;
+    icon?: string;
+  } | null;
+
+  if (!subject) {
+    redirect("/library");
+  }
+
+  // Fetch bank
   const { data: bank } = await (supabase.from("question_banks") as any)
-    .select("*, subject:subjects(*)")
-    .eq("slug", slug)
+    .select("*")
+    .eq("slug", questionBankSlug)
+    .eq("subject_id", subject.id)
     .maybeSingle();
 
   if (!bank) {
-    redirect("/question-banks");
+    return (
+      <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc] dark:bg-[#0d121b]">
+        <AmbientBackground />
+        <div className="flex-grow flex items-center justify-center">
+          <NotFoundPage
+            title="Question Bank Not Found"
+            description="The question bank you're looking for doesn't exist."
+            backLink={`/library/${subjectSlug}`}
+            backText="Back to Subject"
+          />
+        </div>
+      </div>
+    );
   }
 
   // Fetch Questions with flashcard_reviews
@@ -43,7 +81,7 @@ export default async function QuestionBankFlashcardsPage(props: PageProps) {
   const questions = (items || []).map((item: any) => ({
     ...item.question,
     review: item.question?.flashcard_reviews?.[0] || null,
-  })) as (Question & { review: any })[];
+  }));
 
   // Fetch user profile
   const { data: profileData } = await supabase
@@ -78,8 +116,8 @@ export default async function QuestionBankFlashcardsPage(props: PageProps) {
       <FlashcardSession
         questions={questions}
         user={sessionUser}
-        subjectId={bank.subject_id}
-        subjectName={`${bank.title}`}
+        subjectId={subject.id}
+        subjectName={`${bank.title} - ${subject.name}`}
       />
     </div>
   );

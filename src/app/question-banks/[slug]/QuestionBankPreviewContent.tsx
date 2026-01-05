@@ -2,9 +2,19 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { 
-  Lock, Crown, Gift, Star, PieChart, BarChart, Play, 
-  Check, ChevronRight, ListChecks, Sparkles, Layers 
+import {
+  Lock,
+  Crown,
+  Gift,
+  Star,
+  PieChart,
+  BarChart,
+  Play,
+  Check,
+  ChevronRight,
+  ListChecks,
+  Sparkles,
+  Layers,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Header } from "@/components/layout/Header";
@@ -18,6 +28,11 @@ interface QuestionBankPreviewContentProps {
   totalQuestions: number;
   isUnlocked: boolean;
   unlockReason: string;
+  libraryContext?: {
+    subjectSlug: string;
+    subjectName: string;
+    subjectIcon?: string;
+  };
 }
 
 const modes = [
@@ -41,16 +56,6 @@ const modes = [
     borderColor: "border-purple-200 dark:border-purple-800",
     ringColor: "ring-purple-500",
   },
-  {
-    id: "flashcards",
-    name: "Flashcards",
-    description: "Quick memory checks and spaced repetition.",
-    icon: Layers,
-    color: "text-emerald-600",
-    bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
-    borderColor: "border-emerald-200 dark:border-emerald-800",
-    ringColor: "ring-emerald-500",
-  },
 ];
 
 export function QuestionBankPreviewContent({
@@ -61,14 +66,19 @@ export function QuestionBankPreviewContent({
   totalQuestions,
   isUnlocked,
   unlockReason,
+  libraryContext,
 }: QuestionBankPreviewContentProps) {
   const [selectedMode, setSelectedMode] = useState("practice");
 
   const getStartLink = () => {
+    const basePath = libraryContext
+      ? `/library/${libraryContext.subjectSlug}/question-banks/${bank.slug}`
+      : `/question-banks/${bank.slug}`;
+
     if (selectedMode === "practice") {
-      return `/question-banks/${bank.slug}/practice`;
+      return `${basePath}/practice`;
     }
-    return `/question-banks/${bank.slug}/${selectedMode}`;
+    return `${basePath}/${selectedMode}`;
   };
 
   return (
@@ -99,9 +109,9 @@ export function QuestionBankPreviewContent({
           {/* Left Column: Book Cover */}
           <div className="lg:col-span-4 flex flex-col items-center">
             {/* Book Cover Visualization */}
-             <div className="relative w-full max-w-[320px] aspect-[3/4] rounded-r-2xl rounded-l-sm transform shadow-2xl mb-8 group perspective-[1500px]">
-               {/* Same implementation as QuestionBankItem variant='default' but static/expanded */}
-               <div className="absolute inset-0 bg-[#e0c097] rounded-r-2xl rounded-l-sm shadow-[inset_5px_0_15px_rgba(0,0,0,0.1)] overflow-hidden border-l-8 border-[#5d4037]">
+            <div className="relative w-full max-w-[320px] aspect-[3/4] rounded-r-2xl rounded-l-sm transform shadow-2xl mb-8 group perspective-[1500px]">
+              {/* Same implementation as QuestionBankItem variant='default' but static/expanded */}
+              <div className="absolute inset-0 bg-[#e0c097] rounded-r-2xl rounded-l-sm shadow-[inset_5px_0_15px_rgba(0,0,0,0.1)] overflow-hidden border-l-8 border-[#5d4037]">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')] opacity-20 mix-blend-multiply" />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/5 via-transparent to-black/20 mix-blend-overlay pointer-events-none" />
                 <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-r from-transparent to-white/30" />
@@ -152,7 +162,7 @@ export function QuestionBankPreviewContent({
                   </div>
                 </div>
               </div>
-             </div>
+            </div>
           </div>
 
           {/* Right Column: Details & Stats */}
@@ -179,23 +189,38 @@ export function QuestionBankPreviewContent({
                   </h3>
                 </div>
                 <div className="space-y-5">
-                   {/* Difficulty Bars (Simplified Copy) */}
-                    {['easy', 'medium', 'hard'].map((lvl) => (
-                      <div key={lvl} className="space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span className="capitalize text-slate-600 dark:text-slate-400">{lvl}</span>
-                          <span className="font-medium text-slate-900 dark:text-white">
-                            {Math.round((difficultyCounts[lvl] / totalQuestions) * 100) || 0}%
-                          </span>
-                        </div>
-                        <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                           <div 
-                              className={`h-full ${lvl === 'easy' ? 'bg-emerald-400' : lvl === 'medium' ? 'bg-amber-400' : 'bg-red-400'}`} 
-                              style={{ width: `${(difficultyCounts[lvl] / totalQuestions) * 100}%` }} 
-                           />
-                        </div>
+                  {/* Difficulty Bars (Simplified Copy) */}
+                  {["easy", "medium", "hard"].map((lvl) => (
+                    <div key={lvl} className="space-y-1">
+                      <div className="flex justify-between text-sm">
+                        <span className="capitalize text-slate-600 dark:text-slate-400">
+                          {lvl}
+                        </span>
+                        <span className="font-medium text-slate-900 dark:text-white">
+                          {Math.round(
+                            (difficultyCounts[lvl] / totalQuestions) * 100
+                          ) || 0}
+                          %
+                        </span>
                       </div>
-                    ))}
+                      <div className="h-2 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full ${
+                            lvl === "easy"
+                              ? "bg-emerald-400"
+                              : lvl === "medium"
+                              ? "bg-amber-400"
+                              : "bg-red-400"
+                          }`}
+                          style={{
+                            width: `${
+                              (difficultyCounts[lvl] / totalQuestions) * 100
+                            }%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -236,47 +261,62 @@ export function QuestionBankPreviewContent({
             <div className="mt-auto">
               {isUnlocked ? (
                 <div>
-                   <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">
-                      Select Practice Mode
-                   </h3>
-                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                      {modes.map((m) => {
-                         const Icon = m.icon;
-                         const isSelected = selectedMode === m.id;
-                         return (
-                            <button
-                               key={m.id}
-                               onClick={() => setSelectedMode(m.id)}
-                               className={`group relative p-4 text-left rounded-xl transition-all duration-300 border-2 ${
-                                  isSelected
-                                    ? `bg-white dark:bg-slate-800 ${m.borderColor} ${m.ringColor} ring-1 shadow-lg`
-                                    : "bg-white/50 dark:bg-slate-900/50 border-transparent hover:border-gray-200 dark:hover:border-gray-700"
-                               }`}
+                  <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">
+                    Select Practice Mode
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                    {modes.map((m) => {
+                      const Icon = m.icon;
+                      const isSelected = selectedMode === m.id;
+                      return (
+                        <button
+                          key={m.id}
+                          onClick={() => setSelectedMode(m.id)}
+                          className={`group relative p-4 text-left rounded-xl transition-all duration-300 border-2 ${
+                            isSelected
+                              ? `bg-white dark:bg-slate-800 ${m.borderColor} ${m.ringColor} ring-1 shadow-lg`
+                              : "bg-white/50 dark:bg-slate-900/50 border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                          }`}
+                        >
+                          <div className="flex items-center gap-3 mb-2">
+                            <div
+                              className={`p-2 rounded-lg ${
+                                isSelected
+                                  ? m.bgColor
+                                  : "bg-gray-100 dark:bg-slate-800"
+                              }`}
                             >
-                               <div className="flex items-center gap-3 mb-2">
-                                  <div className={`p-2 rounded-lg ${isSelected ? m.bgColor : 'bg-gray-100 dark:bg-slate-800'}`}>
-                                     <Icon className={`size-4 ${isSelected ? m.color : 'text-gray-500'}`} />
-                                  </div>
-                                  <span className={`font-bold text-sm ${isSelected ? 'text-gray-900 dark:text-white' : 'text-gray-600'}`}>{m.name}</span>
-                               </div>
-                               <p className="text-xs text-gray-500 leading-tight">
-                                  {m.description}
-                               </p>
-                            </button>
-                         )
-                      })}
-                   </div>
+                              <Icon
+                                className={`size-4 ${
+                                  isSelected ? m.color : "text-gray-500"
+                                }`}
+                              />
+                            </div>
+                            <span
+                              className={`font-bold text-sm ${
+                                isSelected
+                                  ? "text-gray-900 dark:text-white"
+                                  : "text-gray-600"
+                              }`}
+                            >
+                              {m.name}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 leading-tight">
+                            {m.description}
+                          </p>
+                        </button>
+                      );
+                    })}
+                  </div>
 
-                  <Link
-                    href={getStartLink()}
-                    className="w-full sm:w-auto"
-                  >
+                  <Link href={getStartLink()} className="w-full sm:w-auto">
                     <Button
                       size="lg"
                       className="w-full sm:w-auto min-w-[200px] text-lg rounded-xl shadow-xl shadow-blue-500/20"
                     >
                       <Play className="size-5 mr-2 fill-current" />
-                      Start {modes.find(m => m.id === selectedMode)?.name}
+                      Start {modes.find((m) => m.id === selectedMode)?.name}
                     </Button>
                   </Link>
                 </div>

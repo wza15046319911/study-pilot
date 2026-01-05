@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Header } from "@/components/layout/Header";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { redirect } from "next/navigation";
-import { LibraryContent } from "./LibraryContent";
+import { SubjectGrid } from "./SubjectGrid";
 
 export const metadata = {
   title: "Library | StudyPilot",
@@ -27,12 +27,10 @@ export default async function LibraryPage() {
     .eq("id", user.id)
     .single();
 
-  const isVip = profile?.is_vip || false;
-  
   const userData = {
     username: profile?.username || user.email?.split("@")[0] || "User",
     avatar_url: profile?.avatar_url ?? undefined,
-    is_vip: isVip,
+    is_vip: profile?.is_vip || false,
   };
 
   // 3. Fetch Subjects
@@ -41,69 +39,53 @@ export default async function LibraryPage() {
     .select("*")
     .order("id");
 
-  // 4. Fetch Question Banks
+  // 4. Fetch Question Bank Counts per Subject
   const { data: banks } = await (supabase.from("question_banks") as any)
-    .select(
-      `
-      *,
-      items:question_bank_items(count)
-    `
-    )
-    .eq("is_published", true)
-    .order("created_at", { ascending: false });
+    .select("subject_id")
+    .eq("is_published", true);
 
-  // 5. Fetch Exams
+  const bankCounts = (banks || []).reduce(
+    (acc: Record<number, number>, bank: any) => {
+      acc[bank.subject_id] = (acc[bank.subject_id] || 0) + 1;
+      return acc;
+    },
+    {}
+  );
+
+  // 5. Fetch Exam Counts per Subject
   const { data: exams } = await supabase
     .from("exams")
-    .select("*")
-    .eq("is_published", true)
-    .order("created_at", { ascending: false });
+    .select("subject_id")
+    .eq("is_published", true);
 
-  // 6. Fetch Unlocks
-  const { data: unlocks } = await supabase
-    .from("user_bank_unlocks")
-    .select("bank_id") // Assuming for banks only for now, exams might be different or part of same system
-    .eq("user_id", user.id);
-
-  const unlockedBankIds = new Set((unlocks || []).map((u: any) => u.bank_id));
-
-  // 7. Grouping Logic
-  const groupedBanks = (banks || []).reduce((acc: any, bank: any) => {
-    const sId = bank.subject_id;
-    if (!acc[sId]) acc[sId] = [];
-    acc[sId].push(bank);
-    return acc;
-  }, {});
-
-  const groupedExams = (exams || []).reduce((acc: any, exam: any) => {
-    const sId = exam.subject_id;
-    if (!acc[sId]) acc[sId] = [];
-    acc[sId].push(exam);
-    return acc;
-  }, {});
-
+  const examCounts = (exams || []).reduce(
+    (acc: Record<number, number>, exam: any) => {
+      acc[exam.subject_id] = (acc[exam.subject_id] || 0) + 1;
+      return acc;
+    },
+    {}
+  );
 
   return (
     <div className="relative min-h-screen flex flex-col bg-[#f0f4fc] dark:bg-slate-950 overflow-x-hidden">
       <AmbientBackground />
       <Header user={userData} />
 
-      <main className="flex-grow w-full max-w-8xl mx-auto px-4 md:px-8 py-12 relative z-10">
+      <main className="flex-grow w-full max-w-6xl mx-auto px-4 md:px-8 py-12 relative z-10">
         <div className="max-w-3xl mx-auto text-center mb-16">
           <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-6 tracking-tight">
             Library
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-            Everything you need, organized by subject.
+            Choose a subject to explore practice materials, mock exams, and
+            question banks.
           </p>
         </div>
 
-        <LibraryContent 
+        <SubjectGrid
           subjects={subjects || []}
-          groupedBanks={groupedBanks}
-          groupedExams={groupedExams}
-          isVip={isVip}
-          unlockedBankIds={unlockedBankIds}
+          bankCounts={bankCounts}
+          examCounts={examCounts}
         />
       </main>
     </div>

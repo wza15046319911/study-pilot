@@ -112,7 +112,9 @@ export default async function ProfilePage() {
     .eq("user_id", user.id);
 
   const unlockedBankIds = new Set(
-    (unlockedBanksData || []).map((u: any) => u.unlocked_bank_id).filter(Boolean) as number[]
+    (unlockedBanksData || [])
+      .map((u: any) => u.unlocked_bank_id)
+      .filter(Boolean) as number[]
   );
 
   // Determine accessible banks
@@ -130,14 +132,13 @@ export default async function ProfilePage() {
     })
     .map((bank: any) => ({
       ...bank,
-      access_status:
-        !bank.is_premium
-          ? ("Free" as const)
-          : unlockedBankIds.has(bank.id)
-          ? ("Unlocked" as const)
-          : isVip
-          ? ("VIP" as const)
-          : ("Free" as const), // Fallback, shouldn't reach here
+      access_status: !bank.is_premium
+        ? ("Free" as const)
+        : unlockedBankIds.has(bank.id)
+        ? ("Unlocked" as const)
+        : isVip
+        ? ("VIP" as const)
+        : ("Free" as const), // Fallback, shouldn't reach here
     }));
 
   // Fallback profile if not found (should be handled by trigger, but just in case)
@@ -195,6 +196,9 @@ export default async function ProfilePage() {
             }
           }
           accessibleBanks={accessibleBanks}
+          isAdmin={
+            !!process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL
+          }
         />
       </main>
     </div>

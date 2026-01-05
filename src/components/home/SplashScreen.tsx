@@ -36,7 +36,7 @@ export function SplashScreen({ user }: SplashScreenProps) {
       if (intervalRef.current) clearInterval(intervalRef.current);
       // Redirect logic based on auth
       if (user) {
-        router.push("/question-banks");
+        router.push("/library");
       } else {
         router.push("/login"); // Consider adding return URL if needed
       }
@@ -138,16 +138,16 @@ export function SplashScreen({ user }: SplashScreenProps) {
           onMouseLeave={handleEnd}
           onTouchStart={handleStart}
           onTouchEnd={handleEnd}
-          whileHover={{ scale: 1.05 + progress / 500 }}
-          whileTap={{ scale: 0.95 }}
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{
             opacity: 1,
-            scale: 1 + progress / 400, // Scale grows from 1.0 to 1.25
+            // Scale smoothly from 1.0 to 1.1 as progress increases from 0 to 100
+            scale: 1 + (progress / 100) * 0.1,
           }}
           transition={{
-            delay: 0.5,
-            scale: { type: "spring", stiffness: 300, damping: 30 },
+            opacity: { delay: 0.5, duration: 0.3 },
+            scale: { type: "spring", stiffness: 100, damping: 15 },
+            boxShadow: { duration: 0.1 },
           }}
         >
           {/* Progress Ring */}
@@ -181,7 +181,7 @@ export function SplashScreen({ user }: SplashScreenProps) {
       </div>
 
       {/* Scroll indicator */}
-      {/* <motion.div
+      <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 1.5, duration: 0.5 }}
@@ -189,7 +189,7 @@ export function SplashScreen({ user }: SplashScreenProps) {
       >
         <span className="text-xs uppercase tracking-widest">Scroll</span>
         <div className="w-[1px] h-8 bg-border"></div>
-      </motion.div> */}
+      </motion.div>
     </div>
   );
 }

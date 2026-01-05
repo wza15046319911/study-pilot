@@ -2,7 +2,16 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Moon, Sun, Crown, User, Bookmark, Gift, AlertCircle, LogOut } from "lucide-react";
+import {
+  Moon,
+  Sun,
+  Crown,
+  User,
+  Bookmark,
+  Gift,
+  AlertCircle,
+  LogOut,
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslations } from "next-intl";
@@ -45,12 +54,12 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
           </Link>
           {showNav && (
             <div className="hidden md:flex items-center gap-8">
-              <a
-                href="mailto:hello@studypilot.ai"
+              <Link
+                href="/library"
                 className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
               >
-                Contact Us
-              </a>
+                Library
+              </Link>
               <Link
                 href="/pricing"
                 className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
@@ -58,19 +67,17 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                 {t("pricing")}
               </Link>
               <Link
-                href="/library"
+                href="/contact"
                 className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
               >
-                Library
+                Contact Us
               </Link>
-              {isAdmin && (
-                <Link
-                  href="/admin"
-                  className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
-                >
-                  Admin
-                </Link>
-              )}
+              <Link
+                href="/blogs"
+                className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
+              >
+                Blogs
+              </Link>
             </div>
           )}
 
@@ -139,11 +146,16 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                   {/* Dropdown Menu */}
                   <div className="absolute right-0 top-full pt-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50">
                     <div className="w-56 bg-white dark:bg-slate-900 rounded-xl shadow-xl border border-gray-100 dark:border-gray-800 overflow-hidden ring-1 ring-black/5 dark:ring-white/10">
-                      
                       {/* Mobile User Info (Show only on small screens) */}
                       <div className="sm:hidden p-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-slate-800/50">
-                         <p className="font-bold text-slate-900 dark:text-white truncate">{user.username}</p>
-                         {user.is_vip && <p className="text-xs text-amber-500 font-bold uppercase">VIP Member</p>}
+                        <p className="font-bold text-slate-900 dark:text-white truncate">
+                          {user.username}
+                        </p>
+                        {user.is_vip && (
+                          <p className="text-xs text-amber-500 font-bold uppercase">
+                            VIP Member
+                          </p>
+                        )}
                       </div>
 
                       <div className="p-1.5">
@@ -176,14 +188,14 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                           Referrals
                         </Link>
                       </div>
-                      
+
                       <div className="p-1.5 border-t border-gray-100 dark:border-gray-800">
                         <Link
                           href="/login" // Typically logout redirects to login or has a handler. Using login for now as a safe fallback or placeholder.
                           className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors group/logout"
                         >
                           <LogOut className="size-4 group-hover/logout:translate-x-1 transition-transform" />
-                          {t("logout") || "Log out"} 
+                          {t("logout") || "Log out"}
                         </Link>
                       </div>
                     </div>

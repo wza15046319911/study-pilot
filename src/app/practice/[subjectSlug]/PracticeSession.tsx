@@ -81,8 +81,6 @@ export function PracticeSession({
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
 
-
-
   const toggleFocusMode = async () => {
     if (!isFocusMode) {
       try {
@@ -393,7 +391,15 @@ export function PracticeSession({
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [currentIndex, isChecked, answers, questions.length, isSubmitting, handleNext, handleCheck]);
+  }, [
+    currentIndex,
+    isChecked,
+    answers,
+    questions.length,
+    isSubmitting,
+    handleNext,
+    handleCheck,
+  ]);
 
   return (
     <div
@@ -463,7 +469,7 @@ export function PracticeSession({
                 })}
               </div>
             </div>
-            
+
             <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
               <Button
                 variant="ghost"
@@ -488,11 +494,13 @@ export function PracticeSession({
             : ""
         }`}
       >
-        <div className="bg-white dark:bg-slate-900 shadow-2xl min-h-[800px] p-12 lg:p-16 relative flex flex-col font-serif">
+        <div className="bg-white dark:bg-slate-900 shadow-2xl min-h-[800px] p-12 lg:p-16 relative flex flex-col font-serif overflow-hidden">
           {/* Exam Header */}
           <div className="flex justify-between items-end border-b-2 border-black dark:border-white pb-4 mb-12 text-black dark:text-white font-serif">
             <div className="text-sm space-y-1">
-              <p className="font-bold">Semester 1 Examinations, {new Date().getFullYear()}</p>
+              <p className="font-bold">
+                Semester 1 Examinations, {new Date().getFullYear()}
+              </p>
               {currentQuestion.options &&
                 Array.isArray(currentQuestion.options) &&
                 currentQuestion.options.length > 0 && (
@@ -534,9 +542,7 @@ export function PracticeSession({
               {mode === "practice" && enableTimer && (
                 <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-800 px-3 py-1.5 rounded-full text-xs font-sans">
                   <Timer className="size-3.5" />
-                  <span className="font-mono">
-                    {formatTime(elapsedTime)}
-                  </span>
+                  <span className="font-mono">{formatTime(elapsedTime)}</span>
                 </div>
               )}
 
@@ -615,78 +621,122 @@ export function PracticeSession({
                 )}
 
                 <div className="flex gap-2">
-                  <span className="font-bold text-lg select-none">{currentIndex + 1}.</span>
-                  <div className="flex-1">
+                  <span className="font-bold text-lg select-none">
+                    {currentIndex + 1}.
+                  </span>
+                  <div className="flex-1 min-w-0">
                     <LatexContent className="font-serif text-black dark:text-gray-100 text-lg leading-relaxed mb-4">
                       {currentQuestion.content}
                     </LatexContent>
                     {currentQuestion.code_snippet && (
-                      <CodeBlock code={currentQuestion.code_snippet} />
+                      <div className="max-w-full overflow-x-auto">
+                        <CodeBlock code={currentQuestion.code_snippet} />
+                      </div>
                     )}
                   </div>
                 </div>
 
                 {/* Content Area: Options OR Input */}
                 <div className="mt-8 pl-0 lg:pl-6">
-                  {currentQuestion.options && Array.isArray(currentQuestion.options) && currentQuestion.options.length > 0 ? (
+                  {currentQuestion.options &&
+                  Array.isArray(currentQuestion.options) &&
+                  currentQuestion.options.length > 0 ? (
                     /* Multiple Choice Options */
                     <div className="space-y-4">
-                      {(currentQuestion.options as any[])?.map((option: any, index: number) => {
-                        const optionLabel = String.fromCharCode(97 + index) + ")"; // a), b), c)...
-                        const userAnswer = answers[currentQuestion.id];
-                        const isSelected = userAnswer === option.label;
-                        const isCorrect = isChecked && option.label === currentQuestion.answer;
-                        const isWrong = isChecked && isSelected && option.label !== currentQuestion.answer;
-                        const shouldShowCorrect = isChecked && option.label === currentQuestion.answer;
+                      {(currentQuestion.options as any[])?.map(
+                        (option: any, index: number) => {
+                          const optionLabel =
+                            String.fromCharCode(97 + index) + ")"; // a), b), c)...
+                          const userAnswer = answers[currentQuestion.id];
+                          const isSelected = userAnswer === option.label;
+                          const isCorrect =
+                            isChecked &&
+                            option.label === currentQuestion.answer;
+                          const isWrong =
+                            isChecked &&
+                            isSelected &&
+                            option.label !== currentQuestion.answer;
+                          const shouldShowCorrect =
+                            isChecked &&
+                            option.label === currentQuestion.answer;
 
-                        return (
-                          <div
-                            key={option.label}
-                            onClick={() => !isChecked && handleAnswer(option.label)}
-                            className={`group flex items-start gap-3 p-3 -ml-2 rounded-lg cursor-pointer transition-colors ${
-                              !isChecked ? "hover:bg-gray-50 dark:hover:bg-gray-800" : ""
-                            }`}
-                          >
-                            <span
-                              className={`font-serif font-medium text-lg min-w-[32px] pt-0.5 ${
-                                isSelected || shouldShowCorrect ? "font-bold" : ""
-                              } ${
-                                 isCorrect ? "text-green-600" : isWrong ? "text-red-600" : "text-gray-700 dark:text-gray-300"
+                          return (
+                            <div
+                              key={option.label}
+                              onClick={() =>
+                                !isChecked && handleAnswer(option.label)
+                              }
+                              className={`group flex items-start gap-3 p-3 -ml-2 rounded-lg cursor-pointer transition-colors ${
+                                !isChecked
+                                  ? "hover:bg-gray-50 dark:hover:bg-gray-800"
+                                  : ""
                               }`}
                             >
-                              {optionLabel}
-                            </span>
-                            <div className={`flex-1 font-serif text-lg leading-relaxed ${
-                                 isCorrect ? "text-green-600" : isWrong ? "text-red-600" : "text-gray-900 dark:text-gray-100"
-                              } ${isSelected ? "underline decoration-2 underline-offset-4" : ""}`}>
-                              {option.content}
-                              {/* Feedback Markers */}
-                              {isChecked && (
-                                <span className="ml-2 font-bold sans-serif text-sm">
-                                  {isCorrect && <span className="text-green-600">(Correct)</span>}
-                                  {isWrong && <span className="text-red-600">(Your Answer)</span>}
-                                </span>
-                              )}
+                              <span
+                                className={`font-serif font-medium text-lg min-w-[32px] pt-0.5 ${
+                                  isSelected || shouldShowCorrect
+                                    ? "font-bold"
+                                    : ""
+                                } ${
+                                  isCorrect
+                                    ? "text-green-600"
+                                    : isWrong
+                                    ? "text-red-600"
+                                    : "text-gray-700 dark:text-gray-300"
+                                }`}
+                              >
+                                {optionLabel}
+                              </span>
+                              <div
+                                className={`flex-1 font-serif text-lg leading-relaxed ${
+                                  isCorrect
+                                    ? "text-green-600"
+                                    : isWrong
+                                    ? "text-red-600"
+                                    : "text-gray-900 dark:text-gray-100"
+                                } ${
+                                  isSelected
+                                    ? "underline decoration-2 underline-offset-4"
+                                    : ""
+                                }`}
+                              >
+                                {option.content}
+                                {/* Feedback Markers */}
+                                {isChecked && (
+                                  <span className="ml-2 font-bold sans-serif text-sm">
+                                    {isCorrect && (
+                                      <span className="text-green-600">
+                                        (Correct)
+                                      </span>
+                                    )}
+                                    {isWrong && (
+                                      <span className="text-red-600">
+                                        (Your Answer)
+                                      </span>
+                                    )}
+                                  </span>
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        }
+                      )}
                     </div>
-                  ) : currentQuestion.type === 'handwrite' ? (
-                     /* Handwriting Canvas */
+                  ) : currentQuestion.type === "handwrite" ? (
+                    /* Handwriting Canvas */
                     <div className="w-full h-[500px] border-2 border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-canvas-dark relative">
-                       <HandwriteCanvas
-                          strokeColor={isFocusMode ? "#000" : "#135bec"}
-                          onStroke={() => {
-                             // Mark as answered if stroking
-                             if (!answers[currentQuestion.id]) {
-                                handleAnswer("handwritten_content"); 
-                             }
-                          }}
-                          readOnly={isChecked}
-                       />
-                       {/* Background Lines for paper feel */}
-                       <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(transparent_23px,#000_24px)] bg-[size:100%_24px]" />
+                      <HandwriteCanvas
+                        strokeColor={isFocusMode ? "#000" : "#135bec"}
+                        onStroke={() => {
+                          // Mark as answered if stroking
+                          if (!answers[currentQuestion.id]) {
+                            handleAnswer("handwritten_content");
+                          }
+                        }}
+                        readOnly={isChecked}
+                      />
+                      {/* Background Lines for paper feel */}
+                      <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(transparent_23px,#000_24px)] bg-[size:100%_24px]" />
                     </div>
                   ) : (
                     /* Default Text Input (Essay / Fill Blank) */
@@ -699,9 +749,9 @@ export function PracticeSession({
                         placeholder=""
                         className="w-full min-h-[400px] p-0 bg-[repeating-linear-gradient(transparent,transparent_31px,#000000_32px)] text-lg leading-8 font-serif text-black dark:text-gray-100 border-none focus:ring-0 resize-y placeholder:text-gray-300 dark:placeholder:text-gray-700 bg-transparent translate-y-[6px]"
                         style={{
-                           lineHeight: "32px",
-                           backgroundAttachment: "local",
-                           backgroundSize: "100% 32px"
+                          lineHeight: "32px",
+                          backgroundAttachment: "local",
+                          backgroundSize: "100% 32px",
                         }}
                       />
                     </div>
@@ -818,29 +868,24 @@ export function PracticeSession({
               </div>
             )}
           </div>
-          </div>
-
+        </div>
 
         {/* Navigation & Actions Footer (External to paper or bottom of paper) */}
         <div className="mt-6 flex items-center justify-between print:hidden">
           <Button
-             variant="ghost"
-             onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
-             disabled={currentIndex === 0}
-             className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white group gap-2"
+            variant="ghost"
+            onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
+            disabled={currentIndex === 0}
+            className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white group gap-2"
           >
-             <span className="text-xs px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
-               ↑
-             </span>
-             Previous
+            <span className="text-xs px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
+              ↑
+            </span>
+            Previous
           </Button>
 
           <Button
-            onClick={
-              isChecked
-                ? handleNext
-                : () => handleCheck()
-            }
+            onClick={isChecked ? handleNext : () => handleCheck()}
             className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-all active:scale-95 group gap-2"
           >
             {isChecked
@@ -848,13 +893,11 @@ export function PracticeSession({
                 ? "Finish Exam"
                 : "Next Question"
               : "Submit Answer"}
-             <span className="text-xs px-1.5 py-0.5 rounded border border-white/20 bg-white/10 text-white/80 group-hover:text-white transition-colors">
-               ↓
-             </span>
+            <span className="text-xs px-1.5 py-0.5 rounded border border-white/20 bg-white/10 text-white/80 group-hover:text-white transition-colors">
+              ↓
+            </span>
           </Button>
         </div>
-
-
       </div>
 
       {/* Results Modal - Only for Practice Mode */}

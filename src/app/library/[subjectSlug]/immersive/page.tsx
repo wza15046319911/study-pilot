@@ -1,49 +1,58 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { Header } from "@/components/layout/Header";
+import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import ImmersiveSession from "@/app/practice/[subjectSlug]/immersive/ImmersiveSession";
-import { Profile, Question } from "@/types/database";
+import { Profile, Question, Subject } from "@/types/database";
 
 interface PageProps {
   params: Promise<{
-    slug: string;
+    subjectSlug: string;
   }>;
 }
 
-export default async function QuestionBankImmersivePage(props: PageProps) {
+export default async function LibraryImmersivePage(props: PageProps) {
   const params = await props.params;
-  const { slug } = params;
+  const { subjectSlug } = params;
+
   const supabase = await createClient();
 
+  // Get current user
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/login?next=/question-banks/${slug}/immersive`);
+    redirect("/login");
   }
 
-  const { data: bank } = await (supabase.from("question_banks") as any)
-    .select("*, subject:subjects(*)")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  if (!bank) {
-    redirect("/question-banks");
+  if (!subjectSlug) {
+    redirect("/library");
   }
 
-  // Fetch first question from bank
-  const { data: items } = await supabase
-    .from("question_bank_items")
-    .select("question:questions(*)")
-    .eq("bank_id", bank.id)
-    .order("order_index")
+  // Fetch subject to ensure it exists
+  const { data: subjectData } = await supabase
+    .from("subjects")
+    .select("*")
+    .eq("slug", subjectSlug)
+    .single();
+
+  const subject = subjectData as Subject | null;
+
+  if (!subject) {
+    redirect("/library");
+  }
+
+  // Fetch first random question
+  const { data: firstQuestionData } = await supabase
+    .from("questions")
+    .select("*")
+    .eq("subject_id", subject.id)
     .limit(1);
 
-  const firstQuestion = ((items?.[0] as any)?.question as Question) || null;
+  const firstQuestion = (firstQuestionData?.[0] as any as Question) || null;
 
-  // Fetch user profile
+  // Fetch user profile for session
   const { data: profileData } = await supabase
     .from("profiles")
     .select("*")
@@ -51,8 +60,9 @@ export default async function QuestionBankImmersivePage(props: PageProps) {
     .single();
 
   const profile = profileData as Profile | null;
+
   const userData = {
-    username: profile?.username || "User",
+    username: profile?.username || user.email?.split("@")[0] || "User",
     avatar_url: profile?.avatar_url ?? undefined,
     is_vip: profile?.is_vip || false,
   };
@@ -75,8 +85,8 @@ export default async function QuestionBankImmersivePage(props: PageProps) {
       <Header user={userData} />
       <ImmersiveSession
         initialQuestion={firstQuestion}
-        subjectId={bank.subject_id}
-        subjectName={`${bank.title}`}
+        subjectId={subject.id}
+        subjectName={subject.name}
         user={sessionUser}
       />
     </div>
