@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import { Lexend, Noto_Sans_SC, Fira_Code } from "next/font/google";
 import "./globals.css";
 import "katex/dist/katex.min.css";
+import "@fontsource/maple-mono";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import { FloatingSupportButton } from "@/components/common/FloatingSupportButton";
 
 const lexend = Lexend({
   variable: "--font-lexend",
@@ -45,7 +47,10 @@ export default async function RootLayout({
         className={`${lexend.variable} ${notoSansSC.variable} ${firaCode.variable} font-sans antialiased bg-white dark:bg-[#0f172a] text-slate-900 dark:text-white min-h-screen transition-colors duration-300`}
       >
         <NextIntlClientProvider messages={messages}>
-          <ThemeProvider>{children}</ThemeProvider>
+          <ThemeProvider>
+            {children}
+            <FloatingSupportButton />
+          </ThemeProvider>
         </NextIntlClientProvider>
       </body>
     </html>

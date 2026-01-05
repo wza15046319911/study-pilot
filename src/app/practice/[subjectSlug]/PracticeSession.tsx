@@ -23,10 +23,13 @@ import {
   CheckCircle2,
   XCircle,
   Check,
+  LogOut,
   Share2,
   BookPlus,
   Sparkles,
   Loader2,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import { encodeId } from "@/lib/ids";
@@ -66,6 +69,37 @@ export function PracticeSession({
   const [isLoadingAI, setIsLoadingAI] = useState(false);
   const [aiExplanation, setAiExplanation] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [isFocusMode, setIsFocusMode] = useState(false);
+
+  // Handle Fullscreen changes (e.g. user presses Esc)
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFocusMode(!!document.fullscreenElement);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
+
+
+  const toggleFocusMode = async () => {
+    if (!isFocusMode) {
+      try {
+        await document.documentElement.requestFullscreen();
+      } catch (err) {
+        console.error("Error attempting to enable fullscreen:", err);
+        // Still enable focus mode UI even if fullscreen fails
+        setIsFocusMode(true);
+      }
+    } else {
+      if (document.fullscreenElement) {
+        await document.exitFullscreen();
+      } else {
+        setIsFocusMode(false);
+      }
+    }
+  };
 
   const currentQuestion = questions[currentIndex];
   const isChecked = checkedAnswers[currentQuestion.id];
@@ -337,14 +371,38 @@ export function PracticeSession({
   const progressPercentage =
     (Object.keys(checkedAnswers).length / questions.length) * 100;
 
+  // Keyboard Navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input/textarea
+      if (
+        document.activeElement?.tagName === "INPUT" ||
+        document.activeElement?.tagName === "TEXTAREA"
+      ) {
+        return;
+      }
+
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setCurrentIndex((prev) => Math.max(0, prev - 1));
+      } else if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setCurrentIndex((prev) => Math.min(questions.length - 1, prev + 1));
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [currentIndex, isChecked, answers, questions.length, isSubmitting, handleNext, handleCheck]);
+
   return (
     <div
       className={`flex-1 w-full max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 ${
         mode === "standalone" ? "items-center justify-center" : ""
       }`}
     >
-      {/* Left Sidebar - Progress (Only in Practice Mode) */}
-      {mode === "practice" && (
+      {/* Left Sidebar - Progress (Only in Practice Mode and NOT in Focus Mode) */}
+      {mode === "practice" && !isFocusMode && (
         <aside className="w-full lg:w-72 flex flex-col gap-4 shrink-0 order-2 lg:order-1 lg:sticky lg:top-24 lg:self-start">
           {/* Progress Card */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
@@ -405,6 +463,17 @@ export function PracticeSession({
                 })}
               </div>
             </div>
+            
+            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+              <Button
+                variant="ghost"
+                className="w-full justify-center text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 group transform transition-all duration-200"
+                onClick={() => router.push("/question-banks")}
+              >
+                <LogOut className="mr-2 size-4 group-hover:-translate-x-1 transition-transform" />
+                Exit
+              </Button>
+            </div>
           </div>
         </aside>
       )}
@@ -412,33 +481,60 @@ export function PracticeSession({
       {/* Main Content - Question */}
       <div
         className={`flex-1 flex flex-col gap-6 order-1 lg:order-2 ${
-          mode === "standalone" ? "w-full max-w-4xl" : ""
+          mode === "standalone"
+            ? "w-full max-w-4xl"
+            : isFocusMode
+            ? "w-full max-w-5xl mx-auto transition-all duration-500"
+            : ""
         }`}
       >
-        <GlassPanel className="p-6 lg:p-8 shadow-lg flex-1">
-          {/* Question Header */}
-          <div className="flex items-start justify-between mb-6 pb-4 border-b border-gray-100 dark:border-gray-800">
-            <div className="flex items-center gap-3">
-              <span
-                className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide ${
-                  currentQuestion.difficulty === "easy"
-                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                    : currentQuestion.difficulty === "medium"
-                    ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                    : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                }`}
-              >
-                {currentQuestion.difficulty}
-              </span>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white line-clamp-1">
-                {currentQuestion.title}
-              </h2>
+        <div className="bg-white dark:bg-slate-900 shadow-2xl min-h-[800px] p-12 lg:p-16 relative flex flex-col font-serif">
+          {/* Exam Header */}
+          <div className="flex justify-between items-end border-b-2 border-black dark:border-white pb-4 mb-12 text-black dark:text-white font-serif">
+            <div className="text-sm space-y-1">
+              <p className="font-bold">Semester 1 Examinations, {new Date().getFullYear()}</p>
+              {currentQuestion.options &&
+                Array.isArray(currentQuestion.options) &&
+                currentQuestion.options.length > 0 && (
+                  <p className="italic">Part A - Multiple Choice Questions</p>
+                )}
             </div>
-            <div className="flex items-center gap-4">
+            <div className="text-right text-sm space-y-1">
+              {currentQuestion.options &&
+                Array.isArray(currentQuestion.options) &&
+                currentQuestion.options.length > 0 && (
+                  <p className="font-bold uppercase">Subject: {subjectId}</p>
+                )}
+              <p>
+                Page {currentIndex + 1} of {questions.length}
+              </p>
+            </div>
+          </div>
+
+          {/* Controls Overlay (Focus Mode, Timer etc - moved to absolute top right for minimal interference) */}
+          <div className="absolute top-4 right-4 flex items-center gap-4 print:hidden">
+            <div
+              className={`flex items-center gap-4 transition-opacity duration-300 ${
+                isFocusMode ? "opacity-30 hover:opacity-100" : "opacity-100"
+              }`}
+            >
+              {/* Focus Mode Toggle */}
+              <button
+                onClick={toggleFocusMode}
+                className="p-2 rounded-full transition-all text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-800 dark:hover:text-gray-300"
+                title={isFocusMode ? "Exit Focus Mode" : "Enter Focus Mode"}
+              >
+                {isFocusMode ? (
+                  <Minimize2 className="size-5" />
+                ) : (
+                  <Maximize2 className="size-5" />
+                )}
+              </button>
+
               {mode === "practice" && enableTimer && (
-                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 bg-white/50 dark:bg-slate-800/50 px-3 py-1.5 rounded-full border border-transparent dark:border-gray-700">
-                  <Timer className="size-4" />
-                  <span className="font-mono text-sm">
+                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-800 px-3 py-1.5 rounded-full text-xs font-sans">
+                  <Timer className="size-3.5" />
+                  <span className="font-mono">
                     {formatTime(elapsedTime)}
                   </span>
                 </div>
@@ -452,7 +548,7 @@ export function PracticeSession({
               >
                 <Share2 className="size-5" />
                 {copied && (
-                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-black/80 text-white text-xs rounded opacity-100 transition-opacity whitespace-nowrap">
+                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-black/80 text-white text-xs rounded opacity-100 transition-opacity whitespace-nowrap sans-serif">
                     Copied!
                   </span>
                 )}
@@ -462,8 +558,8 @@ export function PracticeSession({
                 onClick={toggleBookmark}
                 className={`p-2 rounded-full transition-all ${
                   bookmarks.has(currentQuestion.id)
-                    ? "text-yellow-500 bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
-                    : "text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-600 dark:hover:text-gray-300"
+                    ? "text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
+                    : "text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800"
                 }`}
               >
                 <Bookmark
@@ -485,7 +581,7 @@ export function PracticeSession({
                   <BookPlus className="size-5" />
                 )}
                 {addedMistake && (
-                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-black/80 text-white text-xs rounded opacity-100 transition-opacity whitespace-nowrap">
+                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-black/80 text-white text-xs rounded opacity-100 transition-opacity whitespace-nowrap sans-serif">
                     Added!
                   </span>
                 )}
@@ -503,198 +599,114 @@ export function PracticeSession({
             <div className="flex-1 min-w-0">
               {/* Question Text */}
               <div className="mb-8">
-                <LatexContent className="text-slate-900 dark:text-gray-100 text-lg leading-relaxed mb-4">
-                  {currentQuestion.content}
-                </LatexContent>
-                {currentQuestion.code_snippet && (
-                  <CodeBlock code={currentQuestion.code_snippet} />
-                )}
-              </div>
-
-              {/* Options */}
-              <div className="space-y-3">
-                {/* True/False Question Type */}
-                {currentQuestion.type === "true_false" ? (
-                  <div className="grid grid-cols-2 gap-4">
-                    {["True", "False"].map((option) => {
-                      const userAnswer = answers[currentQuestion.id];
-                      const isSelected = userAnswer === option;
-                      const isCorrectAnswer = currentQuestion.answer === option;
-
-                      let style =
-                        "bg-white/50 border-gray-200 hover:border-[#135bec]/50 hover:bg-white";
-                      let badgeStyle =
-                        option === "True"
-                          ? "bg-green-100 text-green-600"
-                          : "bg-red-100 text-red-600";
-
-                      if (isChecked) {
-                        if (isSelected && isCorrectAnswer) {
-                          style =
-                            "bg-green-100/50 border-green-500 text-green-700";
-                          badgeStyle = "bg-green-500 text-white";
-                        } else if (isSelected && !isCorrectAnswer) {
-                          style = "bg-red-100/50 border-red-500 text-red-700";
-                          badgeStyle = "bg-red-500 text-white";
-                        } else if (isCorrectAnswer) {
-                          style = "bg-green-50/50 border-green-300";
-                          badgeStyle = "bg-green-100 text-green-700";
-                        } else {
-                          style = "opacity-50";
-                        }
-                      } else if (isSelected) {
-                        style =
-                          "bg-[#135bec]/10 border-[#135bec] text-[#135bec]";
-                        badgeStyle = "bg-[#135bec] text-white";
-                      }
-
-                      return (
-                        <button
-                          key={option}
-                          onClick={() => handleAnswer(option)}
-                          disabled={isChecked}
-                          className={`p-6 rounded-xl text-center transition-all border ${style}`}
-                        >
-                          <span
-                            className={`inline-block px-4 py-2 rounded-full font-bold text-lg ${badgeStyle}`}
-                          >
-                            {option}
-                          </span>
-                          {isChecked &&
-                            isSelected &&
-                            (isCorrectAnswer ? (
-                              <CheckCircle2 className="size-5 mx-auto mt-2" />
-                            ) : (
-                              <XCircle className="size-5 mx-auto mt-2" />
-                            ))}
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : options && options.length > 0 ? (
-                  options.map((option) => {
-                    const userAnswer = answers[currentQuestion.id];
-                    const isSelected = userAnswer === option.label;
-                    const isCorrectAnswer =
-                      currentQuestion.answer === option.label;
-
-                    let style =
-                      "bg-white dark:bg-slate-800 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/20 text-gray-900 dark:text-gray-100";
-                    let badgeStyle =
-                      "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300";
-
-                    if (isChecked) {
-                      if (isSelected && isCorrectAnswer) {
-                        style =
-                          "bg-green-50 dark:bg-green-900/20 border-green-500 dark:border-green-600 text-green-700 dark:text-green-300";
-                        badgeStyle = "bg-green-500 text-white";
-                      } else if (isSelected && !isCorrectAnswer) {
-                        style =
-                          "bg-red-50 dark:bg-red-900/20 border-red-500 dark:border-red-600 text-red-700 dark:text-red-300";
-                        badgeStyle = "bg-red-500 text-white";
-                      } else if (isCorrectAnswer) {
-                        style =
-                          "bg-green-50/50 dark:bg-green-900/10 border-green-300 dark:border-green-700 text-green-700 dark:text-green-400";
-                        badgeStyle =
-                          "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400";
-                      } else {
-                        style =
-                          "opacity-50 bg-gray-50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-500";
-                      }
-                    } else if (isSelected) {
-                      style =
-                        "bg-blue-50 dark:bg-blue-900/20 border-blue-500 dark:border-blue-500 text-blue-700 dark:text-blue-300";
-                      badgeStyle = "bg-blue-500 text-white";
-                    }
-
-                    return (
-                      <button
-                        key={option.label}
-                        onClick={() => handleAnswer(option.label)}
-                        disabled={isChecked}
-                        className={`w-full p-4 rounded-xl text-left transition-all flex items-center gap-4 border ${style}`}
-                      >
-                        <span
-                          className={`size-8 rounded-full flex items-center justify-center font-bold text-sm ${badgeStyle}`}
-                        >
-                          {option.label}
-                        </span>
-                        <span className="font-medium text-current">
-                          {option.content}
-                        </span>
-                        {isChecked &&
-                          isSelected &&
-                          (isCorrectAnswer ? (
-                            <CheckCircle2 className="size-5" />
-                          ) : (
-                            <XCircle className="size-5" />
-                          ))}
-                      </button>
-                    );
-                  })
-                ) : // NON-MCQ Text Input
-                currentQuestion.type === "handwrite" ? (
-                  <div className="space-y-4">
-                    <HandwriteCanvas
-                      height={400}
-                      onStroke={() => handleAnswer("handwritten_content")}
-                      readOnly={isChecked}
-                      strokeColor={
-                        isChecked
-                          ? "#9ca3af" // Gray out user answer when checking
-                          : undefined
-                      }
-                    />
-                    {isChecked && (
-                      <div className="p-4 rounded-xl bg-green-50 border border-green-100 dark:bg-green-900/20 dark:border-green-800">
-                        <p className="font-bold text-green-800 dark:text-green-300 mb-2">
-                          Correct Answer:
-                        </p>
-                        <div className="prose dark:prose-invert max-w-none">
-                          <p>{currentQuestion.answer}</p>
-                        </div>
-                      </div>
-                    )}
-                    <p className="text-xs text-gray-400 text-center">
-                      Draw your answer above. Self-check your result.
+                {/* Part B Header for Non-MCQ */}
+                {(!currentQuestion.options ||
+                  !Array.isArray(currentQuestion.options) ||
+                  currentQuestion.options.length === 0) && (
+                  <div className="mb-8 font-serif text-black dark:text-white">
+                    <h3 className="font-bold text-lg mb-2">
+                      Part B – Short answer questions (8 marks)
+                    </h3>
+                    <p className="text-sm italic opacity-90">
+                      There are questions in Part B. Please answer all questions
+                      in the spaces provided on this examination paper.
                     </p>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    <input
-                      type="text"
-                      value={answers[currentQuestion.id] || ""}
-                      onChange={(e) => handleAnswer(e.target.value)}
-                      disabled={isChecked}
-                      placeholder="Type your answer here..."
-                      className={`w-full p-4 rounded-xl border bg-white/50 dark:bg-slate-800/50 text-lg font-medium outline-none transition-all dark:text-white ${
-                        isChecked
-                          ? answers[currentQuestion.id] ===
-                            currentQuestion.answer
-                            ? "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300"
-                            : "border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300"
-                          : "border-gray-200 dark:border-gray-700 focus:border-[#135bec] dark:focus:border-[#135bec] focus:ring-4 focus:ring-[#135bec]/10"
-                      }`}
-                      onKeyDown={(e) => {
-                        if (
-                          e.key === "Enter" &&
-                          !isChecked &&
-                          answers[currentQuestion.id]
-                        ) {
-                          mode === "standalone" ? handleCheck() : handleNext();
-                        }
-                      }}
-                    />
-                    {isChecked && (
-                      <div className="flex items-center gap-2 text-sm text-gray-500">
-                        <span className="font-medium">Correct Answer:</span>
-                        <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded font-mono">
-                          {currentQuestion.answer}
-                        </span>
-                      </div>
+                )}
+
+                <div className="flex gap-2">
+                  <span className="font-bold text-lg select-none">{currentIndex + 1}.</span>
+                  <div className="flex-1">
+                    <LatexContent className="font-serif text-black dark:text-gray-100 text-lg leading-relaxed mb-4">
+                      {currentQuestion.content}
+                    </LatexContent>
+                    {currentQuestion.code_snippet && (
+                      <CodeBlock code={currentQuestion.code_snippet} />
                     )}
                   </div>
-                )}
+                </div>
+
+                {/* Content Area: Options OR Input */}
+                <div className="mt-8 pl-0 lg:pl-6">
+                  {currentQuestion.options && Array.isArray(currentQuestion.options) && currentQuestion.options.length > 0 ? (
+                    /* Multiple Choice Options */
+                    <div className="space-y-4">
+                      {(currentQuestion.options as any[])?.map((option: any, index: number) => {
+                        const optionLabel = String.fromCharCode(97 + index) + ")"; // a), b), c)...
+                        const userAnswer = answers[currentQuestion.id];
+                        const isSelected = userAnswer === option.label;
+                        const isCorrect = isChecked && option.label === currentQuestion.answer;
+                        const isWrong = isChecked && isSelected && option.label !== currentQuestion.answer;
+                        const shouldShowCorrect = isChecked && option.label === currentQuestion.answer;
+
+                        return (
+                          <div
+                            key={option.label}
+                            onClick={() => !isChecked && handleAnswer(option.label)}
+                            className={`group flex items-start gap-3 p-3 -ml-2 rounded-lg cursor-pointer transition-colors ${
+                              !isChecked ? "hover:bg-gray-50 dark:hover:bg-gray-800" : ""
+                            }`}
+                          >
+                            <span
+                              className={`font-serif font-medium text-lg min-w-[32px] pt-0.5 ${
+                                isSelected || shouldShowCorrect ? "font-bold" : ""
+                              } ${
+                                 isCorrect ? "text-green-600" : isWrong ? "text-red-600" : "text-gray-700 dark:text-gray-300"
+                              }`}
+                            >
+                              {optionLabel}
+                            </span>
+                            <div className={`flex-1 font-serif text-lg leading-relaxed ${
+                                 isCorrect ? "text-green-600" : isWrong ? "text-red-600" : "text-gray-900 dark:text-gray-100"
+                              } ${isSelected ? "underline decoration-2 underline-offset-4" : ""}`}>
+                              {option.content}
+                              {/* Feedback Markers */}
+                              {isChecked && (
+                                <span className="ml-2 font-bold sans-serif text-sm">
+                                  {isCorrect && <span className="text-green-600">(Correct)</span>}
+                                  {isWrong && <span className="text-red-600">(Your Answer)</span>}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : currentQuestion.type === 'handwrite' ? (
+                     /* Handwriting Canvas */
+                    <div className="w-full h-[500px] border-2 border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-canvas-dark relative">
+                       <HandwriteCanvas
+                          strokeColor={isFocusMode ? "#000" : "#135bec"}
+                          onStroke={() => {
+                             // Mark as answered if stroking
+                             if (!answers[currentQuestion.id]) {
+                                handleAnswer("handwritten_content"); 
+                             }
+                          }}
+                          readOnly={isChecked}
+                       />
+                       {/* Background Lines for paper feel */}
+                       <div className="absolute inset-0 pointer-events-none opacity-5 bg-[linear-gradient(transparent_23px,#000_24px)] bg-[size:100%_24px]" />
+                    </div>
+                  ) : (
+                    /* Default Text Input (Essay / Fill Blank) */
+                    <div className="relative">
+                      <div className="absolute -left-6 top-8 bottom-8 w-0.5 bg-red-300/30 hidden lg:block" />
+                      <textarea
+                        value={answers[currentQuestion.id] || ""}
+                        onChange={(e) => handleAnswer(e.target.value)}
+                        disabled={isChecked}
+                        placeholder=""
+                        className="w-full min-h-[400px] p-0 bg-[repeating-linear-gradient(transparent,transparent_31px,#000000_32px)] text-lg leading-8 font-serif text-black dark:text-gray-100 border-none focus:ring-0 resize-y placeholder:text-gray-300 dark:placeholder:text-gray-700 bg-transparent translate-y-[6px]"
+                        style={{
+                           lineHeight: "32px",
+                           backgroundAttachment: "local",
+                           backgroundSize: "100% 32px"
+                        }}
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -740,7 +752,8 @@ export function PracticeSession({
                         const result = await getExplanation(
                           currentQuestion.content,
                           currentQuestion.answer,
-                          currentQuestion.code_snippet || undefined
+                          currentQuestion.code_snippet || undefined,
+                          currentQuestion.id
                         );
                         if (result.success && result.explanation) {
                           setAiExplanation(result.explanation);
@@ -805,62 +818,43 @@ export function PracticeSession({
               </div>
             )}
           </div>
-        </GlassPanel>
+          </div>
 
-        {/* Navigation */}
-        <div className="mt-8 flex items-center justify-between">
-          {mode === "standalone" ? (
-            <Button variant="secondary" onClick={() => router.back()}>
-              Cancel
-            </Button>
-          ) : (
-            <Button
-              variant="secondary"
-              onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
-              disabled={currentIndex === 0 || isSubmitting}
-            >
-              <ArrowLeft className="mr-2 size-4" />
-              Previous
-            </Button>
-          )}
 
-          {mode === "standalone" ? (
-            !isChecked && (
-              <Button
-                onClick={handleCheck}
-                disabled={!answers[currentQuestion.id]}
-                className="bg-[#135bec] text-white hover:bg-blue-600"
-              >
-                Submit <Check className="size-4 ml-2" />
-              </Button>
-            )
-          ) : (
-            <Button
-              onClick={handleNext}
-              disabled={!answers[currentQuestion.id] || isSubmitting}
-              variant={isChecked ? "primary" : "secondary"}
-              className={
-                !isChecked && answers[currentQuestion.id]
-                  ? "bg-[#135bec] text-white hover:bg-blue-600"
-                  : ""
-              }
-            >
-              {isSubmitting
-                ? "Submitting..."
-                : isChecked
-                ? currentIndex === questions.length - 1
-                  ? "Finish"
-                  : "Next Question"
-                : "Check Answer"}
-              {!isSubmitting &&
-                (isChecked ? (
-                  <ArrowRight className="size-4 ml-2" />
-                ) : (
-                  <Check className="size-4 ml-2" />
-                ))}
-            </Button>
-          )}
+        {/* Navigation & Actions Footer (External to paper or bottom of paper) */}
+        <div className="mt-6 flex items-center justify-between print:hidden">
+          <Button
+             variant="ghost"
+             onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
+             disabled={currentIndex === 0}
+             className="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white group gap-2"
+          >
+             <span className="text-xs px-1.5 py-0.5 rounded border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300 transition-colors">
+               ↑
+             </span>
+             Previous
+          </Button>
+
+          <Button
+            onClick={
+              isChecked
+                ? handleNext
+                : () => handleCheck()
+            }
+            className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-all active:scale-95 group gap-2"
+          >
+            {isChecked
+              ? currentIndex === questions.length - 1
+                ? "Finish Exam"
+                : "Next Question"
+              : "Submit Answer"}
+             <span className="text-xs px-1.5 py-0.5 rounded border border-white/20 bg-white/10 text-white/80 group-hover:text-white transition-colors">
+               ↓
+             </span>
+          </Button>
         </div>
+
+
       </div>
 
       {/* Results Modal - Only for Practice Mode */}

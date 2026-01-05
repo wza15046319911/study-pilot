@@ -20,6 +20,9 @@ import {
   ChevronRight,
   TrendingUp,
   Users,
+  Flame,
+  FileText,
+  Target,
 } from "lucide-react";
 
 // Combined types for props
@@ -53,6 +56,15 @@ interface ProfileContentProps {
     unusedReferrals: number;
     unlockedBanks: number;
   };
+  accessibleBanks: Array<{
+    id: number;
+    title: string;
+    slug: string | null;
+    subjects: Subject;
+    is_premium: boolean;
+    unlock_type: "free" | "premium" | "referral";
+    access_status: "Free" | "Unlocked" | "Premium";
+  }>;
 }
 
 export function ProfileContent({
@@ -62,6 +74,7 @@ export function ProfileContent({
   bookmarks,
   answerStats,
   referralStats,
+  accessibleBanks,
 }: ProfileContentProps) {
   // Calculate stats
   // unused for now: const totalCompleted = progress.reduce((acc, curr) => acc + (curr.completed_count || 0), 0);
@@ -143,29 +156,46 @@ export function ProfileContent({
                 {new Date(user.created_at).getFullYear()}
               </p>
 
-              <div className="w-full grid grid-cols-3 gap-3 mb-8">
-                <div className="p-4 rounded-2xl bg-gray-50 dark:bg-slate-800/50">
-                  <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">
-                    {user.streak_days || 0}
+              <div className="w-full mb-8 py-4 border-t border-b border-gray-100 dark:border-gray-800">
+                <div className="flex items-center justify-around text-center">
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center gap-1.5 mb-1 text-orange-500">
+                        <Flame className="size-4 fill-orange-500" />
+                    </div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none mb-1">
+                      {user.streak_days || 0}
+                    </div>
+                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                      Day Streak
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">
-                    Day Streak
+
+                  <div className="w-px h-8 bg-gray-100 dark:bg-gray-800" />
+
+                  <div className="flex flex-col items-center">
+                    <div className="flex items-center gap-1.5 mb-1 text-blue-500">
+                        <FileText className="size-4" />
+                    </div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none mb-1">
+                      {answerStats.total}
+                    </div>
+                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                      Questions
+                    </div>
                   </div>
-                </div>
-                <div className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-900/10">
-                  <div className="text-2xl font-bold text-blue-600 dark:text-blue-400 mb-1">
-                    {answerStats.total}
-                  </div>
-                  <div className="text-xs text-blue-600/70 dark:text-blue-400/70 font-medium uppercase tracking-wider">
-                    Questions
-                  </div>
-                </div>
-                <div className="p-4 rounded-2xl bg-green-50 dark:bg-green-900/10">
-                  <div className="text-2xl font-bold text-green-600 dark:text-green-400 mb-1">
-                    {answerStats.accuracy}%
-                  </div>
-                  <div className="text-xs text-green-600/70 dark:text-green-400/70 font-medium uppercase tracking-wider">
-                    Accuracy
+
+                  <div className="w-px h-8 bg-gray-100 dark:bg-gray-800" />
+
+                  <div className="flex flex-col items-center">
+                     <div className="flex items-center gap-1.5 mb-1 text-green-500">
+                        <Target className="size-4" />
+                    </div>
+                    <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none mb-1">
+                      {answerStats.accuracy}%
+                    </div>
+                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                      Accuracy
+                    </div>
                   </div>
                 </div>
               </div>
@@ -411,6 +441,57 @@ export function ProfileContent({
                 </Link>
               )}
             </div>
+          </div>
+          
+          {/* My Question Banks */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm">
+             <div className="flex items-center justify-between mb-8">
+               <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                 My Question Banks
+               </h2>
+               <Link href="/question-banks" className="text-sm font-medium text-blue-600 hover:text-blue-700">
+                 Explore More
+               </Link>
+             </div>
+             
+             {accessibleBanks.length > 0 ? (
+               <div className="grid sm:grid-cols-2 gap-4">
+                 {accessibleBanks.map((bank) => (
+                   <Link 
+                     href={`/question-banks/${bank.slug}`} 
+                     key={bank.id}
+                     className="block p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 border border-transparent hover:border-blue-200 dark:hover:border-blue-900/50 hover:shadow-md transition-all group"
+                   >
+                     <div className="flex justify-between items-start gap-4">
+                       <div>
+                         <h3 className="font-bold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 transition-colors line-clamp-1">
+                           {bank.title}
+                         </h3>
+                         <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+                           <span>{bank.subjects?.name || "Subject"}</span>
+                         </div>
+                       </div>
+                       
+                       <span className={`
+                         text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider
+                         ${bank.access_status === 'Free' 
+                           ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                           : bank.access_status === 'Premium'
+                           ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
+                           : 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                         }
+                       `}>
+                         {bank.access_status === 'Premium' && user.is_vip ? 'VIP Access' : bank.access_status}
+                       </span>
+                     </div>
+                   </Link>
+                 ))}
+               </div>
+             ) : (
+               <div className="text-center py-8 text-gray-500">
+                 You haven't unlocked any question banks yet.
+               </div>
+             )}
           </div>
         </div>
       </div>

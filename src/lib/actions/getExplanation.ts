@@ -1,5 +1,9 @@
+"use server";
+
 import { unstable_cache } from "next/cache";
 import { getAIProvider } from "@/lib/ai";
+
+import { createAdminClient } from "@/lib/supabase/server";
 
 /**
  * Cache usage:
@@ -24,14 +28,28 @@ const getCachedCompletion = unstable_cache(
 export async function getExplanation(
   questionContent: string,
   correctAnswer: string,
-  codeSnippet?: string
+  codeSnippet?: string | null, // Relaxed type to match DB
+  questionId?: number
 ): Promise<{ success: boolean; explanation?: string; error?: string }> {
   try {
     const explanation = await getCachedCompletion(
       questionContent,
       correctAnswer,
-      codeSnippet
+      codeSnippet || undefined
     );
+
+    if (explanation && questionId) {
+      // Background update (fire and forget mostly, but we await to ensure it runs in lambda context)
+      // Use admin client to bypass RLS if needed, or ensuring we have write access
+      const supabase = createAdminClient();
+      
+      // Only update if explanation is currently null (don't overwrite manual explanations)
+      await supabase
+        .from("questions")
+        .update({ explanation: explanation } as any) // Cast to any to avoid strict type checks on partial update depending on generated types
+        .eq("id", questionId)
+        .is("explanation", null);
+    }
 
     return { success: true, explanation };
   } catch (error) {

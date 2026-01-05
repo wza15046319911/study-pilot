@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Header } from "@/components/layout/Header";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { PracticeSession } from "@/app/practice/[subjectSlug]/PracticeSession";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
@@ -37,7 +36,7 @@ export default async function QuestionBankPracticePage(props: PageProps) {
     return (
       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc] dark:bg-slate-950">
         <AmbientBackground />
-        <Header user={{ username: "User" }} />
+
         <div className="flex-grow flex items-center justify-center">
           <NotFoundPage
             title="Question Bank Not Found"
@@ -94,7 +93,7 @@ export default async function QuestionBankPracticePage(props: PageProps) {
     return (
       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc]">
         <AmbientBackground />
-        <Header user={{ username: "User" }} />
+
         <div className="flex-grow flex items-center justify-center">
           <NotFoundPage
             title="Empty Bank"
@@ -136,7 +135,6 @@ export default async function QuestionBankPracticePage(props: PageProps) {
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
       <AmbientBackground />
-      <Header user={userData} />
       <PracticeSession
         questions={questions}
         user={sessionUser}

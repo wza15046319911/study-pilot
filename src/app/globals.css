@@ -41,7 +41,8 @@
   --color-background-light: var(--background-light);
   --color-background-dark: var(--background-dark);
   --font-sans: "Lexend", "Noto Sans SC", sans-serif;
-  --font-mono: "Fira Code", monospace;
+  --font-serif: "Times New Roman", Times, serif;
+  --font-mono: "Maple Mono", "Fira Code", monospace;
 
   /* Semantic Utilities */
   --color-background: var(--background);
@@ -142,4 +143,14 @@
 /* Base Styles */
 body {
   font-family: "Lexend", "Noto Sans SC", sans-serif;
+}
+
+@keyframes shake-small {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+.animate-shake-small {
+  animation: shake-small 0.2s ease-in-out infinite;
 }

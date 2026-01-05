@@ -98,6 +98,48 @@ export default async function ProfilePage() {
   // Fetch referral stats
   const referralStats = await getReferralStats();
 
+  // Fetch all question banks
+  const { data: allBanks } = await supabase
+    .from("question_banks")
+    .select("*, subjects!inner(*)") // Inner join to ensure subject exists
+    .eq("is_published", true)
+    .order("created_at", { ascending: false });
+
+  // Fetch user unlocked banks
+  const { data: unlockedBanksData } = await supabase
+    .from("user_bank_unlocks")
+    .select("unlocked_bank_id")
+    .eq("user_id", user.id);
+
+  const unlockedBankIds = new Set(
+    (unlockedBanksData || []).map((u: any) => u.unlocked_bank_id).filter(Boolean) as number[]
+  );
+
+  // Determine accessible banks
+  // If is_premium === false => Free for everyone
+  // If is_premium === true => Need VIP status OR explicit unlock in user_bank_unlocks
+  const isVip = profile?.is_vip || false;
+  const accessibleBanks = (allBanks || [])
+    .filter((bank: any) => {
+      // Free banks (not premium) are accessible to everyone
+      if (!bank.is_premium) return true;
+      // Premium banks: only if VIP or explicitly unlocked
+      if (isVip) return true;
+      if (unlockedBankIds.has(bank.id)) return true;
+      return false;
+    })
+    .map((bank: any) => ({
+      ...bank,
+      access_status:
+        !bank.is_premium
+          ? ("Free" as const)
+          : unlockedBankIds.has(bank.id)
+          ? ("Unlocked" as const)
+          : isVip
+          ? ("VIP" as const)
+          : ("Free" as const), // Fallback, shouldn't reach here
+    }));
+
   // Fallback profile if not found (should be handled by trigger, but just in case)
   // Also merge auth metadata avatar if profile doesn't have one
   const rawProfile = profile || {
@@ -152,6 +194,7 @@ export default async function ProfilePage() {
               unlockedBanks: 0,
             }
           }
+          accessibleBanks={accessibleBanks}
         />
       </main>
     </div>

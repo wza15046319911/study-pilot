@@ -27,6 +27,7 @@ export function CodeBlock({ code, language = "python" }: CodeBlockProps) {
           readOnly: true,
           minimap: { enabled: false },
           scrollBeyondLastLine: false,
+          fontFamily: '"Maple Mono", "Fira Code", monospace',
           fontSize: 14,
           lineNumbers: "on",
           renderLineHighlight: "none",
