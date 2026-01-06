@@ -432,7 +432,7 @@ export function WholePageScroll({
                               animate={{ y: 0, opacity: 1 }}
                               transition={{ delay: 0.1 }}
                             >
-                              <div className="p-4 bg-gradient-to-r from-violet-500 to-purple-600 flex items-center gap-3">
+                              <div className="p-4 bg-violet-600 flex items-center gap-3">
                                 <div className="size-8 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center">
                                   <Sparkles className="size-4 text-white" />
                                 </div>

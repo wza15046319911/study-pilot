@@ -43,8 +43,8 @@ export function SubjectGrid({
             href={`/library/${subject.slug}`}
             className="group relative bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 p-6 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1 overflow-hidden"
           >
-            {/* Gradient overlay on hover */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            {/* Hover Effect */}
+            <div className="absolute inset-0 bg-slate-50 dark:bg-slate-800/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
 
             <div className="relative z-10">
               {/* Icon and Title */}
@@ -57,7 +57,9 @@ export function SubjectGrid({
                     {subject.name}
                   </h3>
                 </div>
-                <ChevronRight className="size-5 text-slate-400 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                <div className="size-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">
+                  <ChevronRight className="size-5 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+                </div>
               </div>
 
               {/* Description */}

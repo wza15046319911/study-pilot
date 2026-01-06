@@ -48,9 +48,9 @@ export function PremiumModal({
 
             <GlassPanel className="p-0 overflow-hidden relative">
               {/* Header Image / Gradient */}
-              <div className="relative h-48 bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center overflow-hidden">
+              <div className="relative h-48 bg-amber-500 flex items-center justify-center overflow-hidden">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
+                <div className="absolute inset-0 bg-black/20" />
 
                 {/* Floating Icons Animation */}
                 <motion.div
@@ -88,7 +88,7 @@ export function PremiumModal({
                   <Link href="/pricing" className="block w-full">
                     <Button
                       size="lg"
-                      className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white shadow-lg shadow-orange-500/25 border-none text-lg font-bold py-6"
+                      className="w-full bg-amber-500 hover:bg-amber-600 text-white shadow-lg shadow-amber-500/25 border-none text-lg font-bold py-6"
                     >
                       <Crown className="size-5 mr-2 fill-current" />
                       Upgrade to Premium

@@ -1,14 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
-import { Loader2, LockOpen, Check, AlertCircle } from "lucide-react";
+import {
+  Loader2,
+  LockOpen,
+  Check,
+  ArrowRight,
+  Wallet,
+  Box,
+} from "lucide-react";
 import { unlockBankWithReferral } from "@/lib/actions/referral";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 
-// Simple Modal component if Dialog doesn't exist
+// Animated Modal component
 function Modal({
   isOpen,
   onClose,
@@ -22,10 +27,10 @@ function Modal({
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm transition-opacity"
         onClick={onClose}
       />
-      <div className="relative z-10 w-full max-w-2xl animate-in zoom-in-95 duration-200">
+      <div className="relative z-10 w-full max-w-lg animate-in fade-in zoom-in-95 duration-200">
         {children}
       </div>
     </div>
@@ -59,11 +64,10 @@ export function UnlockBankModal({
       const result = await unlockBankWithReferral(bankId);
       if (result.success) {
         setSuccess(bankId);
-        // Wait a bit then refresh and maybe close
         setTimeout(() => {
           onClose();
           router.refresh();
-        }, 1500);
+        }, 1200);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to unlock");
@@ -74,25 +78,38 @@ export function UnlockBankModal({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose}>
-      <GlassPanel className="bg-white dark:bg-slate-900 border-none shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
-        <div className="p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center">
+      <div className="group relative overflow-hidden rounded-2xl bg-white dark:bg-[#09090b] shadow-2xl ring-1 ring-black/5 dark:ring-white/10">
+        {/* Header Section */}
+        <div className="px-6 pt-6 pb-4 flex justify-between items-start bg-white dark:bg-[#09090b]">
           <div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Unlock a Question Bank
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-50 tracking-tight">
+              Unlock Bank
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              You have{" "}
-              <span className="font-bold text-[#135bec]">{credits}</span>{" "}
-              credits available.
-            </p>
+            <div className="flex items-center gap-2 mt-1.5">
+              <span
+                className={`
+                inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium border
+                ${
+                  credits > 0
+                    ? "bg-slate-50 border-slate-200 text-slate-700 dark:bg-slate-900 dark:border-slate-800 dark:text-slate-300"
+                    : "bg-red-50 border-red-100 text-red-600 dark:bg-red-950/30 dark:border-red-900/50 dark:text-red-400"
+                }
+              `}
+              >
+                <Wallet className="size-3" />
+                <span>
+                  {credits} Credit{credits !== 1 && "s"}
+                </span>
+              </span>
+            </div>
           </div>
+
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="p-2 -mr-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
           >
-            <span className="sr-only">Close</span>
             <svg
-              className="size-6"
+              className="size-5"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -100,27 +117,42 @@ export function UnlockBankModal({
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                strokeWidth={2}
+                strokeWidth={1.5}
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
           </button>
         </div>
 
-        <div className="overflow-y-auto p-6 space-y-4">
+        {/* Separator */}
+        <div className="h-px w-full bg-slate-100 dark:bg-slate-800/60" />
+
+        {/* Scrollable Content */}
+        <div className="p-2 max-h-[60vh] overflow-y-auto bg-slate-50/50 dark:bg-[#0c0c0e]">
           {error && (
-            <div className="bg-red-50 text-red-600 p-3 rounded-lg flex items-center gap-2 text-sm">
-              <AlertCircle className="size-4" />
+            <div className="m-4 mb-2 p-3 rounded-lg bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-900/30 text-xs font-medium text-red-600 dark:text-red-400">
               {error}
             </div>
           )}
 
           {banks.length === 0 ? (
-            <div className="text-center py-10 text-gray-500">
-              <p>No banks available to unlock right now.</p>
+            /* Clean Empty State */
+            <div className="py-16 flex flex-col items-center justify-center text-center px-6">
+              <div className="size-16 rounded-2xl bg-slate-100 dark:bg-slate-900 flex items-center justify-center mb-4 border border-slate-200 dark:border-slate-800">
+                <Box
+                  className="size-8 text-slate-400 dark:text-slate-500"
+                  strokeWidth={1.5}
+                />
+              </div>
+              <h3 className="text-base font-medium text-slate-900 dark:text-slate-200">
+                No Banks Available
+              </h3>
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-[200px]">
+                New premium content will appear here when available.
+              </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-4">
+            <div className="space-y-1 p-2">
               {banks.map((bank) => {
                 const isSuccess = success === bank.id;
                 const isLoading = loading === bank.id;
@@ -129,61 +161,76 @@ export function UnlockBankModal({
                   <div
                     key={bank.id}
                     className={`
-                                    relative p-4 rounded-xl border transition-all flex items-center justify-between gap-4
-                                    ${
-                                      isSuccess
-                                        ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800"
-                                        : "bg-gray-50 dark:bg-slate-800/50 border-gray-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700"
-                                    }
-                                `}
+                      relative flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 group/card
+                      ${
+                        isSuccess
+                          ? "bg-slate-50 border-slate-200 dark:bg-slate-900 dark:border-slate-800"
+                          : "bg-white dark:bg-[#09090b] border-slate-200/60 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-sm"
+                      }
+                    `}
                   >
-                    <div className="flex items-center gap-4">
-                      <div className="size-12 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-2xl shadow-sm">
-                        {bank.subject?.icon || "📚"}
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white">
-                          {bank.title}
-                        </h3>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
-                          {bank.description || "No description"}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[10px] font-medium bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-gray-600 dark:text-gray-300">
-                            {bank.items?.[0]?.count || 0} Questions
-                          </span>
-                          <span className="text-[10px] font-medium bg-blue-100 dark:bg-blue-900/30 px-1.5 py-0.5 rounded text-blue-600 dark:text-blue-400">
-                            {bank.subject?.name}
-                          </span>
-                        </div>
-                      </div>
+                    {/* Icon Box */}
+                    <div
+                      className={`
+                      size-12 rounded-lg flex items-center justify-center text-xl shrink-0 border
+                      ${
+                        isSuccess
+                          ? "bg-white dark:bg-slate-950 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100"
+                          : "bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800 text-slate-600 dark:text-slate-400 group-hover/card:bg-white dark:group-hover/card:bg-slate-800 transition-colors"
+                      }
+                    `}
+                    >
+                      {bank.subject?.icon || "📘"}
                     </div>
 
+                    {/* Text Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h3
+                          className={`text-sm font-semibold truncate transition-colors ${
+                            isSuccess
+                              ? "text-slate-900 dark:text-white"
+                              : "text-slate-700 dark:text-slate-200 group-hover/card:text-slate-900 dark:group-hover/card:text-white"
+                          }`}
+                        >
+                          {bank.title}
+                        </h3>
+                        {/* Subject Badge */}
+                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
+                          {bank.subject?.name}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
+                        {bank.items?.[0]?.count || 0} Questions
+                      </p>
+                    </div>
+
+                    {/* Action Button */}
                     <Button
                       onClick={() => handleUnlock(bank.id)}
                       disabled={loading !== null || credits <= 0 || isSuccess}
-                      variant={isSuccess ? "outline" : "primary"}
+                      size="sm"
                       className={`
-                                        shrink-0 min-w-[100px]
-                                        ${
-                                          isSuccess
-                                            ? "border-green-500 text-green-600 bg-green-50"
-                                            : ""
-                                        }
-                                    `}
+                        h-9 px-4 shrink-0 transition-all font-medium rounded-lg text-xs
+                        ${
+                          isSuccess
+                            ? "bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 cursor-default"
+                            : "bg-white border border-slate-200 text-slate-900 hover:bg-slate-50 hover:border-slate-300 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-100 dark:hover:bg-slate-800 dark:hover:border-slate-600 shadow-sm"
+                        }
+                      `}
                     >
                       {isLoading ? (
-                        <Loader2 className="size-4 animate-spin" />
+                        <Loader2 className="size-3.5 animate-spin" />
                       ) : isSuccess ? (
-                        <>
-                          <Check className="size-4 mr-1" />
-                          Unlocked
-                        </>
+                        <div className="flex items-center gap-1.5">
+                          <Check className="size-3.5" />
+                          <span>Unlocked</span>
+                        </div>
                       ) : (
-                        <>
-                          <LockOpen className="size-4 mr-1" />
-                          Unlock
-                        </>
+                        <div className="flex items-center gap-1.5">
+                          <LockOpen className="size-3.5 opacity-60" />
+                          <span>Unlock</span>
+                        </div>
                       )}
                     </Button>
                   </div>
@@ -192,7 +239,17 @@ export function UnlockBankModal({
             </div>
           )}
         </div>
-      </GlassPanel>
+
+        {/* Footer */}
+        {banks.length > 0 && (
+          <div className="p-3 bg-slate-50 dark:bg-[#0c0c0e] border-t border-slate-100 dark:border-slate-800/60">
+            <div className="text-center text-[11px] text-slate-400 dark:text-slate-500 flex items-center justify-center gap-1.5">
+              <span className="size-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
+              Consumes 1 credit per unlock
+            </div>
+          </div>
+        )}
+      </div>
     </Modal>
   );
 }

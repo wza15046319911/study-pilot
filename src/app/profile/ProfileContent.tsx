@@ -238,7 +238,7 @@ export function ProfileContent({
                     View Details
                   </Link>
                 </div>
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-4 text-left">
+                <div className="bg-blue-50 dark:bg-blue-900/10 rounded-2xl p-4 text-left">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="p-2 bg-white dark:bg-slate-800 rounded-lg text-blue-600 dark:text-blue-400 shadow-sm">
                       <Users className="size-5" />

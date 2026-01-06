@@ -40,7 +40,7 @@ export function FeatureBlock({
         animate={isInView ? { opacity: 1, x: 0 } : {}}
         transition={{ duration: 0.8, delay, ease: "easeOut" }}
       >
-        <div className="size-16 rounded-2xl bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 flex items-center justify-center text-[#135bec] dark:text-blue-400 mx-auto lg:mx-0 shadow-sm border border-white/50 dark:border-white/10">
+        <div className="size-16 rounded-2xl bg-white dark:bg-slate-800 flex items-center justify-center text-slate-900 dark:text-white mx-auto lg:mx-0 shadow-sm border border-slate-200 dark:border-slate-700">
           {icon}
         </div>
         <div>

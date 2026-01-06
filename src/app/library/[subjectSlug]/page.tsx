@@ -150,17 +150,6 @@ export default async function SubjectPage(props: PageProps) {
           </span>
         </nav>
 
-        {/* Page Header */}
-        <div className="mb-10">
-          <h1 className="text-3xl md:text-4xl font-black text-slate-900 dark:text-white mb-3 tracking-tight flex items-center gap-3">
-            {subject.icon && <span className="text-4xl">{subject.icon}</span>}
-            {subject.name}
-          </h1>
-          <p className="text-lg text-slate-600 dark:text-slate-300">
-            Explore practice materials, mock exams, and curated question banks.
-          </p>
-        </div>
-
         <SubjectContent
           subject={subject}
           exams={exams || []}

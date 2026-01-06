@@ -83,7 +83,7 @@ export function ReferralDashboard({
             <InviteCard code={referralCode} />
           </div>
 
-          <div className="bg-gradient-to-br from-[#135bec]/10 to-purple-500/10 rounded-2xl p-6 border border-blue-100 dark:border-blue-900/30">
+          <div className="bg-blue-50 dark:bg-blue-900/10 rounded-2xl p-6 border border-blue-100 dark:border-blue-900/30">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="space-y-2">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -91,8 +91,9 @@ export function ReferralDashboard({
                   Unlock a Premium Bank
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 max-w-md text-sm">
-                  You have <strong>{stats.unusedReferrals}</strong> unlock credits available. 
-                  Choose a premium question bank to unlock permanently.
+                  You have <strong>{stats.unusedReferrals}</strong> unlock
+                  credits available. Choose a premium question bank to unlock
+                  permanently.
                 </p>
               </div>
               <Button
@@ -110,10 +111,12 @@ export function ReferralDashboard({
               </div>
             )}
           </div>
-          
+
           {/* Rules Section */}
           <GlassPanel className="p-6 space-y-4">
-            <h3 className="font-bold text-gray-900 dark:text-white">How it works</h3>
+            <h3 className="font-bold text-gray-900 dark:text-white">
+              How it works
+            </h3>
             <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
               <li className="flex items-start gap-2">
                 <div className="mt-1 size-1.5 rounded-full bg-blue-500 shrink-0" />
@@ -121,11 +124,13 @@ export function ReferralDashboard({
               </li>
               <li className="flex items-start gap-2">
                 <div className="mt-1 size-1.5 rounded-full bg-blue-500 shrink-0" />
-                When a friend signs up using your link, you both get <strong>1 unlock credit</strong>.
+                When a friend signs up using your link, you both get{" "}
+                <strong>1 unlock credit</strong>.
               </li>
               <li className="flex items-start gap-2">
                 <div className="mt-1 size-1.5 rounded-full bg-blue-500 shrink-0" />
-                Use your credit to unlock any "Referral Exclusive" question bank permanently.
+                Use your credit to unlock any "Referral Exclusive" question bank
+                permanently.
               </li>
             </ul>
           </GlassPanel>
@@ -133,7 +138,7 @@ export function ReferralDashboard({
 
         {/* Right Column: Recent Activity (Placeholder for now) */}
         <div className="space-y-6">
-           {/* Can add list of referred users here later if needed */}
+          {/* Can add list of referred users here later if needed */}
         </div>
       </div>
 
@@ -146,4 +151,3 @@ export function ReferralDashboard({
     </div>
   );
 }
-

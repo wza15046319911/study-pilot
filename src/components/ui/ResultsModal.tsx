@@ -123,7 +123,7 @@ export function ResultsModal({
           >
             <GlassPanel className="p-8 text-center relative overflow-hidden">
               {/* Background decoration */}
-              <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-blue-500/10 to-transparent" />
+              <div className="absolute top-0 left-0 w-full h-32 bg-slate-50 dark:bg-slate-800/50" />
 
               {/* Trophy Icon */}
               <motion.div
@@ -222,10 +222,10 @@ export function ResultsModal({
                     transition={{ delay: 0.7, duration: 0.8, ease: "easeOut" }}
                     className={`h-full rounded-full ${
                       percentage >= 80
-                        ? "bg-gradient-to-r from-green-400 to-green-500"
+                        ? "bg-green-500"
                         : percentage >= 60
-                        ? "bg-gradient-to-r from-yellow-400 to-yellow-500"
-                        : "bg-gradient-to-r from-red-400 to-red-500"
+                        ? "bg-yellow-500"
+                        : "bg-red-500"
                     }`}
                   />
                 </div>

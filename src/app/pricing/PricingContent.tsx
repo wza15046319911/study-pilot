@@ -79,7 +79,7 @@ export function PricingContent() {
       <section className="max-w-7xl mx-auto text-center mb-16">
         {/* Early Bird Badge */}
         {isPromoActive && mounted && (
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 border border-amber-200 dark:border-amber-700 mb-6 animate-pulse">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 mb-6 animate-pulse">
             <Sparkles className="size-4 text-amber-500" />
             <span className="text-sm font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wide">
               🎉 Early Bird Special - Limited Time!
@@ -115,7 +115,7 @@ export function PricingContent() {
             }`}
           >
             {tier.popular && (
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-6 py-1.5 rounded-full text-sm font-bold shadow-lg flex items-center gap-2">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-6 py-1.5 rounded-full text-sm font-bold shadow-lg shadow-blue-600/20 flex items-center gap-2">
                 <ShieldCheck className="size-4" />
                 Best Value
               </div>
@@ -188,7 +188,7 @@ export function PricingContent() {
             </div>
 
             {tier.popular ? (
-              <CheckoutButton className="w-full py-4 rounded-xl font-bold transition-all duration-200 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:-translate-y-0.5">
+              <CheckoutButton className="w-full py-4 rounded-xl font-bold transition-all duration-200 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:-translate-y-0.5">
                 {tier.cta}
               </CheckoutButton>
             ) : (

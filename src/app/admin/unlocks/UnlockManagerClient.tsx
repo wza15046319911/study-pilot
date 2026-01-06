@@ -187,7 +187,7 @@ export default function UnlockManagerClient() {
                     style={{ backgroundImage: `url("${user.avatar_url}")` }}
                   />
                 ) : (
-                  <div className="size-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white font-bold">
+                  <div className="size-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
                     {user.username?.charAt(0)?.toUpperCase() || "?"}
                   </div>
                 )}
@@ -216,7 +216,7 @@ export default function UnlockManagerClient() {
                   }}
                 />
               ) : (
-                <div className="size-14 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white font-bold text-xl border-2 border-white shadow">
+                <div className="size-14 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xl border-2 border-white shadow">
                   {selectedUser.username?.charAt(0)?.toUpperCase() || "?"}
                 </div>
               )}

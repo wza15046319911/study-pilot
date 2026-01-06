@@ -75,7 +75,7 @@ export default async function SubjectsPage() {
       <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl sm:text-5xl font-black mb-4 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 bg-clip-text text-transparent">
+          <h1 className="text-4xl sm:text-5xl font-black mb-4 text-slate-900 dark:text-white">
             Explore Subjects
           </h1>
           <p className="text-gray-500 dark:text-gray-400 text-lg max-w-xl mx-auto">

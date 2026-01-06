@@ -8,12 +8,12 @@ import { ArrowRight, Search, Sparkles } from "lucide-react";
 
 // Gradient presets for cards
 const gradients = [
-  "from-indigo-600 via-purple-600 to-pink-500",
-  "from-cyan-500 via-blue-600 to-indigo-600",
-  "from-emerald-500 via-teal-600 to-cyan-600",
-  "from-orange-500 via-red-500 to-pink-600",
-  "from-violet-600 via-purple-600 to-fuchsia-500",
-  "from-sky-500 via-blue-500 to-indigo-500",
+  "from-slate-800 to-slate-900",
+  "from-zinc-800 to-zinc-900",
+  "from-neutral-800 to-neutral-900",
+  "from-stone-800 to-stone-900",
+  "from-slate-700 to-slate-800",
+  "from-gray-800 to-gray-900",
 ];
 
 interface SubjectsContentProps {

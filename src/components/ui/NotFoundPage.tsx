@@ -44,7 +44,7 @@ export function NotFoundPage({
           }}
           className="mx-auto size-32 bg-gray-50 dark:bg-gray-800 rounded-3xl flex items-center justify-center mb-8 shadow-xl shadow-blue-500/10 border border-gray-100 dark:border-gray-700 relative group"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+          <div className="absolute inset-0 bg-slate-100 dark:bg-slate-700/50 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           <FileQuestion className="size-16 text-gray-400 dark:text-gray-500 group-hover:scale-110 transition-transform duration-300 group-hover:text-blue-500" />
         </motion.div>
 
@@ -67,7 +67,7 @@ export function NotFoundPage({
           </Button>
 
           <Link href="/" className="w-full sm:w-auto">
-            <Button className="w-full sm:w-auto min-w-[140px] h-12 gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-lg shadow-blue-500/25">
+            <Button className="w-full sm:w-auto min-w-[140px] h-12 gap-2 bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-lg shadow-blue-500/25">
               <Home className="size-4" />
               Return Home
             </Button>

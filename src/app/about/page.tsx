@@ -50,9 +50,7 @@ export default function AboutPage() {
         <div className="text-center max-w-3xl mx-auto mb-32 fade-in">
           <h1 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-white mb-8">
             Empowering Your <br className="hidden md:block" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
-              Learning Journey
-            </span>
+            <span className="text-blue-600">Learning Journey</span>
           </h1>
           <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 leading-loose">
             StudyPilot is an intelligent learning companion designed to help
@@ -101,7 +99,7 @@ export default function AboutPage() {
             </p>
           </div>
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-3xl transform rotate-3 opacity-20 blur-xl" />
+            <div className="absolute inset-0 bg-blue-500/20 rounded-3xl transform rotate-3 blur-xl" />
             <div className="relative bg-white dark:bg-slate-900 rounded-3xl p-8 border border-gray-100 dark:border-gray-800 shadow-xl">
               <div className="space-y-6">
                 <div className="flex items-start gap-4">

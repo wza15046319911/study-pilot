@@ -178,7 +178,7 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                         className={`bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 shadow-sm cursor-pointer transition-all ${
                           user.is_vip
                             ? "border-amber-400 dark:border-amber-500 ring-2 ring-amber-100 dark:ring-amber-900/30"
-                            : "border-white dark:border-gray-700 bg-gradient-to-br from-blue-400 to-purple-500 group-hover:ring-2 group-hover:ring-[#135bec] dark:group-hover:ring-blue-500"
+                            : "border-white dark:border-gray-700 bg-slate-100 dark:bg-slate-800 group-hover:ring-2 group-hover:ring-slate-200 dark:group-hover:ring-slate-700"
                         }`}
                         style={
                           user.avatar_url

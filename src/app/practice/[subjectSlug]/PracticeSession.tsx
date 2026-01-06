@@ -416,7 +416,7 @@ export function PracticeSession({
               <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
                 Progress
               </p>
-              <div className="size-8 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
+              <div className="size-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-600/20">
                 <TrendingUp className="size-4" />
               </div>
             </div>
@@ -428,7 +428,7 @@ export function PracticeSession({
             </h3>
             <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-1.5 mt-3 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-blue-500 to-indigo-600 h-full rounded-full transition-all duration-500"
+                className="bg-blue-600 h-full rounded-full transition-all duration-500"
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
@@ -451,7 +451,7 @@ export function PracticeSession({
 
                   if (isCurrent) {
                     btnClass =
-                      "bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md shadow-blue-500/30 border border-transparent scale-105";
+                      "bg-blue-600 text-white shadow-md shadow-blue-600/20 border border-transparent scale-105";
                   } else if (wasChecked) {
                     btnClass =
                       "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800";

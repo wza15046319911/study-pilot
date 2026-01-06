@@ -120,24 +120,24 @@ export function QuestionBankPreviewContent({
                 <div className="relative h-full flex flex-col p-8 z-10">
                   <div className="flex justify-between items-start mb-6">
                     {bank.unlock_type === "paid" ? (
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-600/90 text-white rounded-lg shadow-md text-xs font-bold uppercase tracking-wider backdrop-blur-sm">
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-900 rounded-full shadow-sm border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-medium text-xs tracking-wide">
                         <DollarSign className="size-3.5" />
-                        {bank.price ? `$${bank.price}` : "Paid"}
+                        <span>{bank.price ? `$${bank.price}` : "Paid"}</span>
                       </div>
                     ) : bank.unlock_type === "referral" ? (
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-600/90 text-white rounded-lg shadow-md text-xs font-bold uppercase tracking-wider backdrop-blur-sm">
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-full shadow-sm border border-blue-100 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-medium text-xs tracking-wide">
                         <Gift className="size-3.5" />
-                        Invite Unlock
+                        <span>Invite Unlock</span>
                       </div>
                     ) : bank.is_premium ? (
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-500/90 text-white rounded-lg shadow-md text-xs font-bold uppercase tracking-wider backdrop-blur-sm">
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 rounded-full shadow-sm border border-amber-100 dark:border-amber-800 text-amber-700 dark:text-amber-300 font-medium text-xs tracking-wide">
                         <Crown className="size-3.5" />
-                        Premium
+                        <span>Premium</span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600/90 text-white rounded-lg shadow-md text-xs font-bold uppercase tracking-wider backdrop-blur-sm">
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium text-xs tracking-wide">
                         <Star className="size-3.5" />
-                        Public
+                        <span>Public</span>
                       </div>
                     )}
                   </div>

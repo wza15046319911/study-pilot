@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 // Generate a random 6-character code
@@ -132,14 +132,16 @@ export async function getUserUnlocks() {
 }
 
 export async function unlockBankWithReferral(bankId: number) {
-  const supabase = await createClient();
+  const supabase = await createClient(); // Keep for auth check
+  const adminClient = createAdminClient(); // For database mutations
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
   if (!user) throw new Error("Not authenticated");
 
-  // 1. Check if already unlocked
+  // 1. Check if already unlocked (user can read their own unlocks via RLS)
   const { data: existing } = await (supabase.from("user_bank_unlocks") as any)
     .select("id")
     .eq("user_id", user.id)
@@ -148,7 +150,7 @@ export async function unlockBankWithReferral(bankId: number) {
 
   if (existing) return { success: true, message: "Already unlocked" };
 
-  // 2. Find an unused referral
+  // 2. Find an unused referral (user can read their own referrals via RLS)
   const { data: referral } = await (supabase.from("referrals") as any)
     .select("id, referee_id")
     .eq("referrer_id", user.id)
@@ -160,22 +162,25 @@ export async function unlockBankWithReferral(bankId: number) {
     throw new Error("No unlock chances available");
   }
 
-  // 3. Perform Unlock Transaction (simulated with sequential ops since no RPC yet)
-  // Ideally this should be a stored procedure to ensure atomicity
+  // 3. Perform Unlock Transaction using ADMIN CLIENT to bypass RLS restrictions
+  // (Specifically, there is no public RLS policy for updating referrals)
 
   // A. Mark referral as used
-  const { error: updateError } = await (supabase.from("referrals") as any)
+  const { error: updateError } = await (adminClient.from("referrals") as any)
     .update({
       used_for_unlock: true,
       unlocked_bank_id: bankId,
     })
     .eq("id", referral.id);
 
-  if (updateError) throw new Error("Failed to consume referral");
+  if (updateError) {
+    console.error("Failed to consume referral:", updateError);
+    throw new Error("Failed to consume referral");
+  }
 
   // B. Unlock for Referrer (User A)
   const { error: unlockAError } = await (
-    supabase.from("user_bank_unlocks") as any
+    adminClient.from("user_bank_unlocks") as any
   ).insert({
     user_id: user.id,
     bank_id: bankId,
@@ -184,8 +189,9 @@ export async function unlockBankWithReferral(bankId: number) {
   });
 
   if (unlockAError) {
+    console.error("Failed to unlock for referrer:", unlockAError);
     // Rollback referral usage (best effort)
-    await (supabase.from("referrals") as any)
+    await (adminClient.from("referrals") as any)
       .update({ used_for_unlock: false, unlocked_bank_id: null })
       .eq("id", referral.id);
     throw new Error("Failed to unlock for you");
@@ -194,7 +200,7 @@ export async function unlockBankWithReferral(bankId: number) {
   // C. Unlock for Referee (User B - the friend)
   // They get the same bank unlocked for free!
   const { error: unlockBError } = await (
-    supabase.from("user_bank_unlocks") as any
+    adminClient.from("user_bank_unlocks") as any
   ).insert({
     user_id: referral.referee_id,
     bank_id: bankId,

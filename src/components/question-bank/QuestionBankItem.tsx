@@ -140,31 +140,26 @@ export function QuestionBankItem({
                 <div className="opacity-100">
                   {(variant === "default" || variant === "exam") &&
                     (isPaidType ? (
-                      <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500/90 to-indigo-600/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-blue-400/50 text-blue-50 font-bold text-base tracking-wide">
-                        <DollarSign className="size-5 drop-shadow-md" />
-                        <span className="drop-shadow-md">
-                          {bank.price ? `$${bank.price}` : "Paid"}
-                        </span>
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-900 rounded-full shadow-sm border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-medium text-xs tracking-wide">
+                        <DollarSign className="size-3.5" />
+                        <span>{bank.price ? `$${bank.price}` : "Paid"}</span>
                       </div>
                     ) : isReferralType ? (
-                      <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/90 to-violet-600/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-purple-400/50 text-purple-50 font-bold text-base tracking-wide">
-                        <Gift className="size-5 drop-shadow-md" />
-                        <span className="drop-shadow-md">Invite Unlock</span>
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-full shadow-sm border border-blue-100 dark:border-blue-800 text-blue-700 dark:text-blue-300 font-medium text-xs tracking-wide">
+                        <Gift className="size-3.5" />
+                        <span>Invite to Unlock</span>
                       </div>
                     ) : bank.is_premium ? (
-                      // Updated with lighter color for Premium
-                      <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-zinc-400/90 to-slate-500/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-zinc-300/50 text-white font-bold text-base tracking-wide">
-                        <Crown className="size-5 drop-shadow-md" />
-                        <span className="drop-shadow-md">
-                          Premium Collection
-                        </span>
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 rounded-full shadow-sm border border-amber-100 dark:border-amber-800 text-amber-700 dark:text-amber-300 font-medium text-xs tracking-wide">
+                        <Crown className="size-3.5" />
+                        <span>Premium</span>
                       </div>
                     ) : (
                       // Only show Public Edition for default variant (Question Banks), hide for Exams
                       variant === "default" && (
-                        <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500/90 to-emerald-600/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-green-400/50 text-green-50 font-bold text-base tracking-wide">
-                          <Star className="size-5 drop-shadow-md fill-green-50" />
-                          <span className="drop-shadow-md">Public Edition</span>
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 dark:bg-slate-800 rounded-full shadow-sm border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-medium text-xs tracking-wide">
+                          <Star className="size-3.5" />
+                          <span>Public</span>
                         </div>
                       )
                     ))}
@@ -238,10 +233,10 @@ export function QuestionBankItem({
 
             {/* Locked Metal Band */}
             {isLocked && (
-              <div className="absolute top-1/2 -translate-y-1/2 right-0 w-12 h-24 bg-gradient-to-l from-[#4a4a4a] to-[#2a2a2a] rounded-l-lg shadow-xl flex items-center justify-center border-l border-t border-b border-gray-600 z-30">
-                <div className="relative bg-gradient-to-br from-yellow-600 to-yellow-800 w-8 h-12 rounded shadow-inner flex flex-col items-center justify-center border border-yellow-900 px-1">
-                  <div className="w-1.5 h-3 bg-black rounded-full mb-1 z-10" />
-                  <div className="w-0.5 h-2 bg-black z-10" />
+              <div className="absolute top-1/2 -translate-y-1/2 right-0 w-12 h-24 bg-slate-800 rounded-l-lg shadow-xl flex items-center justify-center border-l border-t border-b border-slate-700 z-30">
+                <div className="relative bg-slate-900 w-8 h-12 rounded shadow-inner flex flex-col items-center justify-center border border-slate-700 px-1">
+                  <div className="w-1.5 h-3 bg-slate-600 rounded-full mb-1 z-10" />
+                  <div className="w-0.5 h-2 bg-slate-600 z-10" />
                 </div>
               </div>
             )}

@@ -6,12 +6,13 @@ import { useState } from "react";
 import { QuestionBankItem } from "@/components/question-bank/QuestionBankItem";
 import { PremiumModal } from "@/components/ui/PremiumModal";
 import {
-  BookOpen,
-  GraduationCap,
-  Layers,
   Play,
   Settings2,
   Lock,
+  Layers,
+  GraduationCap,
+  ChevronRight,
+  BookOpen,
 } from "lucide-react";
 
 interface SubjectContentProps {
@@ -47,7 +48,7 @@ export function SubjectContent({
   };
 
   return (
-    <div className="space-y-12">
+    <div className="py-12 space-y-24">
       <PremiumModal
         isOpen={showPremiumModal}
         onClose={() => setShowPremiumModal(false)}
@@ -55,180 +56,184 @@ export function SubjectContent({
         description="Configure your perfect practice session by choosing specific topics, difficulties, and question counts with StudyPilot Premium."
       />
 
-      {/* Practice All Section */}
-      <section>
-        <div className="flex items-center gap-3 mb-6">
-          <div className="h-8 w-1 bg-emerald-500 rounded-full" />
-          <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Play className="size-5" />
-            Practice All
+      {/* 1. Hero Section */}
+      <section className="max-w-6xl mx-auto space-y-6">
+        <div className="flex items-center gap-6">
+          <div className="size-20 bg-white dark:bg-slate-900 rounded-3xl flex items-center justify-center shadow-sm border border-slate-200 dark:border-slate-800 text-6xl">
+            {subject.icon}
+          </div>
+          <div>
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
+              {subject.name}
+            </h1>
+            <p className="text-xl text-slate-500 dark:text-slate-400 font-light max-w-2xl">
+              Explore practice materials, mock exams, and curated question
+              banks.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 2. Practice Zone */}
+      <section className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+            <Play className="size-6 text-blue-600 dark:text-blue-400" />
+            Practice Zone
           </h2>
+          <span className="hidden md:inline-block text-sm text-slate-500">
+            Start solving problems to master your skills.
+          </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Setup Card */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* A. Quick Practice */}
+          <Link
+            href={`/library/${subject.slug}/practice`}
+            className="group relative bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+          >
+            <div className="size-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+              <Play className="size-6 ml-1" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+              Quick Practice
+            </h3>
+            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-6">
+              Jump straight into a session with 10 random questions. Best for
+              daily consistency.
+            </p>
+            <div className="flex items-center text-blue-600 dark:text-blue-400 font-bold text-sm group-hover:gap-2 transition-all">
+              Start Session <ChevronRight className="size-4" />
+            </div>
+          </Link>
+
+          {/* B. Immersive Mode */}
+          <Link
+            href={`/library/${subject.slug}/immersive`}
+            className="group relative bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+          >
+            <div className="size-12 rounded-2xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-600 dark:text-purple-400 mb-6 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+              <Layers className="size-6" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+              Immersive
+            </h3>
+            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-6">
+              Distraction-free, infinite flow of questions. Focus purely on
+              problem solving.
+            </p>
+            <div className="flex items-center text-purple-600 dark:text-purple-400 font-bold text-sm group-hover:gap-2 transition-all">
+              Enter Flow <ChevronRight className="size-4" />
+            </div>
+          </Link>
+
+          {/* C. Configure (Premium) */}
           <Link
             href={isVip ? `/library/${subject.slug}/setup` : "#"}
             onClick={handleSetupClick}
-            className={`group relative rounded-2xl p-6 text-white overflow-hidden transition-all duration-300 hover:-translate-y-1 ${
-              isVip
-                ? "bg-gradient-to-br from-emerald-500 to-teal-600 hover:shadow-xl hover:shadow-emerald-500/20"
-                : "bg-slate-100 dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 cursor-pointer"
-            }`}
+            className={`group relative bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden`}
           >
-            {isVip ? (
-              /* VIP Content */
-              <>
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,0.15),_transparent_50%)]" />
-                <div className="relative z-10">
-                  <Settings2 className="size-10 mb-4 opacity-90" />
-                  <h3 className="text-xl font-bold mb-2">Configure Practice</h3>
-                  <p className="text-emerald-100 text-sm mb-4">
-                    Choose topics, difficulty, and question count for a
-                    customized practice session.
-                  </p>
-                  <div className="text-sm font-medium bg-white/20 rounded-full px-3 py-1 inline-block">
-                    {questionCount} questions available
-                  </div>
-                </div>
-              </>
-            ) : (
-              /* Locked Content */
-              <div className="relative z-10 h-full flex flex-col items-center justify-center text-center p-4">
-                <div className="absolute inset-0 bg-white/50 dark:bg-black/20" />{" "}
-                {/* Subtle overlay */}
-                <div className="relative z-20 flex flex-col items-center">
-                  <div className="size-12 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center mb-4">
-                    <Lock className="size-6 text-slate-400 dark:text-slate-500" />
-                  </div>
-                  <h3 className="text-lg font-bold text-slate-500 dark:text-slate-400 mb-2">
-                    Practice ALL
-                  </h3>
-                  <p className="text-slate-400 dark:text-slate-500 text-sm mb-4">
-                    Get access to ALL questions in this subject
-                  </p>
-                  <span className="text-xs font-bold text-amber-500 uppercase tracking-widest flex items-center gap-1">
-                    Premium Only
-                  </span>
+            {/* Premium Indicator if locked */}
+            {!isVip && (
+              <div className="absolute top-4 right-4">
+                <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full">
+                  <Lock className="size-4 text-slate-400" />
                 </div>
               </div>
             )}
-          </Link>
 
-          {/* Quick Practice Card */}
-          <Link
-            href={`/library/${subject.slug}/practice`}
-            className="group relative bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 p-6 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1"
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-xl bg-blue-100 dark:bg-blue-900/30">
-                <Play className="size-5 text-blue-600 dark:text-blue-400" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                Quick Practice
-              </h3>
+            <div className="size-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
+              <Settings2 className="size-6" />
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-              Jump into 10 random questions immediately.
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+              Custom Setup
+            </h3>
+            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-6">
+              Create a tailored exam with specific topics, difficulty levels,
+              and timing.
             </p>
-            <span className="text-sm font-medium text-blue-600 dark:text-blue-400 group-hover:underline">
-              Start now →
-            </span>
-          </Link>
-
-          {/* Immersive Mode Card */}
-          <Link
-            href={`/library/${subject.slug}/immersive`}
-            className="group relative bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 p-6 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 hover:-translate-y-1"
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="p-2 rounded-xl bg-purple-100 dark:bg-purple-900/30">
-                <Layers className="size-5 text-purple-600 dark:text-purple-400" />
-              </div>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
-                Immersive Mode
-              </h3>
+            <div
+              className={`flex items-center ${
+                isVip
+                  ? "text-emerald-600 dark:text-emerald-400"
+                  : "text-slate-400"
+              } font-bold text-sm group-hover:gap-2 transition-all`}
+            >
+              {isVip ? "Configure" : "Premium Only"}{" "}
+              <ChevronRight className="size-4" />
             </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-              One question at a time, infinite stream of practice.
-            </p>
-            <span className="text-sm font-medium text-purple-600 dark:text-purple-400 group-hover:underline">
-              Enter immersive →
-            </span>
           </Link>
         </div>
       </section>
 
-      {/* Mock Exams Section */}
-      {exams.length > 0 && (
-        <section>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-8 w-1 bg-blue-500 rounded-full" />
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <GraduationCap className="size-5" />
-              Mock Exams
-            </h2>
-            <span className="text-sm text-slate-500 dark:text-slate-400">
-              ({exams.length})
-            </span>
+      {/* 3. Study Materials (Split Layout) */}
+      <section className="max-w-6xl mx-auto space-y-16">
+        {/* Mock Exams */}
+        {exams.length > 0 && (
+          <div>
+            <div className="flex items-end justify-between mb-8 border-b border-slate-200 dark:border-slate-800 pb-4">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                <GraduationCap className="size-6 text-indigo-600 dark:text-indigo-400" />
+                Mock Exams
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {exams.map((exam: any) => (
+                <QuestionBankItem
+                  key={exam.id}
+                  bank={exam}
+                  isVip={isVip}
+                  questionCount={0}
+                  variant="exam"
+                  isUnlocked={true}
+                  onClickOverride={() => {
+                    router.push(`/library/${subject.slug}/exams/${exam.slug}`);
+                  }}
+                />
+              ))}
+            </div>
           </div>
+        )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {exams.map((exam: any) => (
-              <QuestionBankItem
-                key={exam.id}
-                bank={exam}
-                isVip={isVip}
-                questionCount={0}
-                variant="exam"
-                isUnlocked={true}
-                onClickOverride={() => {
-                  router.push(`/library/${subject.slug}/exams/${exam.slug}`);
-                }}
-              />
-            ))}
+        {/* Question Banks */}
+        {banks.length > 0 && (
+          <div>
+            <div className="flex items-end justify-between mb-8 border-b border-slate-200 dark:border-slate-800 pb-4">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                <BookOpen className="size-6 text-amber-600 dark:text-amber-400" />
+                Curated Collections
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              {banks.map((bank: any) => (
+                <QuestionBankItem
+                  key={bank.id}
+                  bank={bank}
+                  isVip={isVip}
+                  isUnlocked={unlockedBankIds.has(bank.id)}
+                  questionCount={bank.items?.[0]?.count || 0}
+                  onClickOverride={() => {
+                    router.push(
+                      `/library/${subject.slug}/question-banks/${bank.slug}`
+                    );
+                  }}
+                />
+              ))}
+            </div>
           </div>
-        </section>
-      )}
-
-      {/* Question Banks Section */}
-      {banks.length > 0 && (
-        <section>
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-8 w-1 bg-purple-500 rounded-full" />
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Layers className="size-5" />
-              Question Banks
-            </h2>
-            <span className="text-sm text-slate-500 dark:text-slate-400">
-              ({banks.length})
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {banks.map((bank: any) => (
-              <QuestionBankItem
-                key={bank.id}
-                bank={bank}
-                isVip={isVip}
-                isUnlocked={unlockedBankIds.has(bank.id)}
-                questionCount={bank.items?.[0]?.count || 0}
-                onClickOverride={() => {
-                  router.push(
-                    `/library/${subject.slug}/question-banks/${bank.slug}`
-                  );
-                }}
-              />
-            ))}
-          </div>
-        </section>
-      )}
+        )}
+      </section>
 
       {/* Empty State */}
       {exams.length === 0 && banks.length === 0 && (
-        <div className="text-center py-12 text-slate-500 dark:text-slate-400">
-          <p>No mock exams or question banks available for this subject yet.</p>
-          <p className="mt-2 text-sm">Use "Practice All" to start studying!</p>
+        <div className="max-w-md mx-auto text-center py-20 px-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
+          <BookOpen className="size-12 text-slate-300 mx-auto mb-4" />
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+            No Content Yet
+          </h3>
+          <p className="text-slate-500">
+            We're still adding materials for this subject. Check back soon!
+          </p>
         </div>
       )}
     </div>

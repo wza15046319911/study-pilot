@@ -171,7 +171,7 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
 
                 <div className="relative h-full flex flex-col p-8 z-10">
                   <div className="flex justify-between items-start mb-6">
-                    <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/90 to-violet-600/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-purple-400/50 text-purple-50 font-bold text-base tracking-wide">
+                    <div className="flex items-center gap-2 px-4 py-2 bg-purple-600 backdrop-blur-sm rounded-lg shadow-lg border-2 border-purple-400/50 text-white font-bold text-base tracking-wide">
                       <GraduationCap className="size-5 drop-shadow-md" />
                       <span className="drop-shadow-md">Mock Exam</span>
                     </div>

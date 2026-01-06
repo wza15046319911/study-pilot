@@ -48,7 +48,7 @@ export default async function PaymentCancelPage() {
         <GlassPanel className="max-w-lg w-full p-8 text-center">
           {/* Cancel Icon */}
           <div className="mb-6 flex justify-center">
-            <div className="rounded-full bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 p-4">
+            <div className="rounded-full bg-slate-200 dark:bg-slate-800 p-4">
               <XCircle className="size-12 text-slate-500 dark:text-slate-400" />
             </div>
           </div>
@@ -83,7 +83,7 @@ export default async function PaymentCancelPage() {
           <div className="space-y-3">
             <Link
               href="/pricing"
-              className="inline-flex items-center gap-2 w-full justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-xl"
+              className="inline-flex items-center gap-2 w-full justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-xl"
             >
               Try Again
             </Link>

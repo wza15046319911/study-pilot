@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Copy, Check, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -11,9 +11,13 @@ interface InviteCardProps {
 
 export function InviteCard({ code }: InviteCardProps) {
   const [copied, setCopied] = useState(false);
-  const inviteLink = typeof window !== "undefined" 
-    ? `${window.location.origin}/invite/${code}`
-    : `https://studypilot.io/invite/${code}`; // Fallback
+  const [inviteLink, setInviteLink] = useState(
+    `https://studypilot.io/invite/${code}`
+  );
+
+  useEffect(() => {
+    setInviteLink(`${window.location.origin}/invite/${code}`);
+  }, [code]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(inviteLink);
@@ -60,4 +64,3 @@ export function InviteCard({ code }: InviteCardProps) {
     </div>
   );
 }
-

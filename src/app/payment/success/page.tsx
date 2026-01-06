@@ -50,7 +50,7 @@ export default async function PaymentSuccessPage() {
           <div className="mb-6 flex justify-center">
             <div className="relative">
               <div className="absolute inset-0 rounded-full bg-green-500/20 animate-ping" />
-              <div className="relative rounded-full bg-gradient-to-br from-green-400 to-emerald-600 p-4">
+              <div className="relative rounded-full bg-green-500 p-4">
                 <CheckCircle2 className="size-12 text-white" />
               </div>
             </div>
@@ -68,7 +68,7 @@ export default async function PaymentSuccessPage() {
           </p>
 
           {/* Features unlocked */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 mb-6">
+          <div className="bg-blue-50 dark:bg-blue-900/10 rounded-xl p-4 mb-6">
             <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold mb-3">
               <Sparkles className="size-5" />
               <span>Features Unlocked</span>
@@ -100,7 +100,7 @@ export default async function PaymentSuccessPage() {
           {/* CTA */}
           <Link
             href="/library"
-            className="inline-flex items-center gap-2 w-full justify-center px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-xl"
+            className="inline-flex items-center gap-2 w-full justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-xl"
           >
             Start Learning
             <ArrowRight className="size-5" />

@@ -133,7 +133,7 @@ export default async function AdminReferralsPage() {
                       style={{ backgroundImage: `url("${user.avatarUrl}")` }}
                     />
                   ) : (
-                    <div className="size-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white font-bold">
+                    <div className="size-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold">
                       {user.username?.charAt(0)?.toUpperCase() || "?"}
                     </div>
                   )}

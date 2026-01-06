@@ -68,7 +68,7 @@ export default async function BlogIndexPage() {
             >
               <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800">
                 {/* Fallback pattern if no image */}
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900 flex items-center justify-center text-slate-300 dark:text-slate-600">
+                <div className="absolute inset-0 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-300 dark:text-slate-600">
                   <svg
                     className="w-16 h-16 opacity-50"
                     fill="none"

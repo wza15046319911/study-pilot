@@ -14,16 +14,24 @@ interface PageProps {
 
 export default async function InvitePage(props: PageProps) {
   const params = await props.params;
-  const { code } = params;
+  const { code: rawCode } = params;
+  // Normalize code to uppercase (codes are generated as uppercase)
+  const code = rawCode.toUpperCase();
+
   const supabase = await createClient();
 
-  // 1. Verify code and get referrer details
-  const { data: referral } = await (supabase.from("referral_codes") as any)
-    .select("user:profiles!user_id(username, avatar_url)")
+  // 1. Verify code exists
+  // RLS policies allow: anyone to lookup referral_codes, and anyone to view public profile fields
+  const { data: referral, error } = await supabase
+    .from("referral_codes")
+    .select("user_id")
     .eq("code", code)
     .single();
 
-  if (!referral) {
+  // Explicitly cast to avoid 'never' inference if types aren't fully generated
+  const referralData = referral as { user_id: string } | null;
+
+  if (!referralData || error) {
     return (
       <div className="relative min-h-screen flex flex-col items-center justify-center p-4 bg-[#f0f4fc] dark:bg-slate-950 overflow-hidden">
         <AmbientBackground />
@@ -45,10 +53,22 @@ export default async function InvitePage(props: PageProps) {
     );
   }
 
-  const referrerName = referral.user?.username || "A friend";
-  const avatarUrl = referral.user?.avatar_url;
+  // 2. Get referrer's profile info
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("username, avatar_url")
+    .eq("id", referralData.user_id)
+    .single();
 
-  // 2. Check if current user is already logged in
+  const profileData = profile as {
+    username: string;
+    avatar_url: string;
+  } | null;
+
+  const referrerName = profileData?.username || "A friend";
+  const avatarUrl = profileData?.avatar_url;
+
+  // 3. Check if current user is already logged in
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -76,7 +96,7 @@ export default async function InvitePage(props: PageProps) {
                 style={{ backgroundImage: `url("${avatarUrl}")` }}
               />
             ) : (
-              <div className="mx-auto size-24 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-xl text-white font-bold text-3xl">
+              <div className="mx-auto size-24 rounded-full bg-blue-600 flex items-center justify-center border-4 border-white dark:border-slate-800 shadow-xl text-white font-bold text-3xl">
                 {referrerName.charAt(0).toUpperCase()}
               </div>
             )}
