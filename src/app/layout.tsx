@@ -122,6 +122,10 @@ export const metadata: Metadata = {
   applicationName: "StudyPilot",
   category: "Education",
 
+  // Search Console Verification
+  verification: {
+    google: "C7ASyq2mQ5IecTQXJ5eYx_Ll9M4Leu2GlFw7J4ln77A",
+  },
 };
 
 export default async function RootLayout({
