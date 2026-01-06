@@ -642,6 +642,44 @@ export interface Database {
           created_at?: string;
         };
       };
+      payments: {
+        Row: {
+          id: number;
+          user_id: string;
+          stripe_session_id: string;
+          stripe_payment_intent: string | null;
+          amount: number;
+          currency: string;
+          status: "pending" | "completed" | "failed" | "refunded";
+          product_type: string;
+          created_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: number;
+          user_id: string;
+          stripe_session_id: string;
+          stripe_payment_intent?: string | null;
+          amount: number;
+          currency?: string;
+          status?: "pending" | "completed" | "failed" | "refunded";
+          product_type?: string;
+          created_at?: string;
+          completed_at?: string | null;
+        };
+        Update: {
+          id?: number;
+          user_id?: string;
+          stripe_session_id?: string;
+          stripe_payment_intent?: string | null;
+          amount?: number;
+          currency?: string;
+          status?: "pending" | "completed" | "failed" | "refunded";
+          product_type?: string;
+          created_at?: string;
+          completed_at?: string | null;
+        };
+      };
     };
   };
 }
@@ -674,6 +712,7 @@ export type ReferralCode =
 export type Referral = Database["public"]["Tables"]["referrals"]["Row"];
 export type UserBankUnlock =
   Database["public"]["Tables"]["user_bank_unlocks"]["Row"];
+export type Payment = Database["public"]["Tables"]["payments"]["Row"];
 
 export interface QuestionOption {
   label: string;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import {
   CheckCircle2,
@@ -14,6 +15,7 @@ import {
   CountdownTimer,
   isPromotionActive,
 } from "@/components/ui/CountdownTimer";
+import { CheckoutButton } from "@/components/payment/CheckoutButton";
 
 // Early Bird Promotion Config
 const PROMO_END_DATE = new Date("2026-02-06T23:59:59+11:00"); // Feb 6, 2026 AEST
@@ -185,15 +187,18 @@ export function PricingContent() {
               ))}
             </div>
 
-            <button
-              className={`w-full py-4 rounded-xl font-bold transition-all duration-200 ${
-                tier.popular
-                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:-translate-y-0.5"
-                  : "bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white border border-gray-200 dark:border-slate-700"
-              }`}
-            >
-              {tier.cta}
-            </button>
+            {tier.popular ? (
+              <CheckoutButton className="w-full py-4 rounded-xl font-bold transition-all duration-200 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:-translate-y-0.5">
+                {tier.cta}
+              </CheckoutButton>
+            ) : (
+              <Link
+                href="/library"
+                className="block w-full py-4 rounded-xl font-bold transition-all duration-200 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white border border-gray-200 dark:border-slate-700 text-center"
+              >
+                {tier.cta}
+              </Link>
+            )}
 
             {tier.popular && (
               <p className="text-xs text-center text-gray-400 mt-4">
