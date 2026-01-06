@@ -15,6 +15,7 @@ import {
   ListChecks,
   Sparkles,
   Layers,
+  DollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Header } from "@/components/layout/Header";
@@ -118,7 +119,12 @@ export function QuestionBankPreviewContent({
 
                 <div className="relative h-full flex flex-col p-8 z-10">
                   <div className="flex justify-between items-start mb-6">
-                    {bank.unlock_type === "referral" ? (
+                    {bank.unlock_type === "paid" ? (
+                      <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-600/90 text-white rounded-lg shadow-md text-xs font-bold uppercase tracking-wider backdrop-blur-sm">
+                        <DollarSign className="size-3.5" />
+                        {bank.price ? `$${bank.price}` : "Paid"}
+                      </div>
+                    ) : bank.unlock_type === "referral" ? (
                       <div className="flex items-center gap-2 px-3 py-1.5 bg-purple-600/90 text-white rounded-lg shadow-md text-xs font-bold uppercase tracking-wider backdrop-blur-sm">
                         <Gift className="size-3.5" />
                         Invite Unlock
@@ -327,12 +333,24 @@ export function QuestionBankPreviewContent({
                     Locked Content
                   </h3>
                   <p className="text-slate-600 dark:text-slate-400 mb-6">
-                    {bank.unlock_type === "referral"
+                    {bank.unlock_type === "paid"
+                      ? `This is a paid Question Bank. Purchase for ${
+                          bank.price ? `$${bank.price}` : "one-time access"
+                        } to unlock.`
+                      : bank.unlock_type === "referral"
                       ? "This is a special reward bank. Invite friends to StudyPilot to unlock it for free."
                       : "This is a premium Question Bank. Upgrade your account or purchase separately to access."}
                   </p>
 
-                  {bank.unlock_type === "referral" ? (
+                  {bank.unlock_type === "paid" ? (
+                    <button
+                      className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition-colors"
+                      onClick={() => alert("Payment integration coming soon!")}
+                    >
+                      <DollarSign className="size-5" />
+                      Purchase for {bank.price ? `$${bank.price}` : "Access"}
+                    </button>
+                  ) : bank.unlock_type === "referral" ? (
                     <Link href="/profile/referrals">
                       <Button
                         size="lg"

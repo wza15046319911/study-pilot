@@ -20,6 +20,7 @@ import {
   Lock,
   Globe,
   Gift,
+  DollarSign,
 } from "lucide-react";
 import { LatexContent } from "@/components/ui/LatexContent";
 import { CodeBlock } from "@/components/ui/CodeBlock";
@@ -34,8 +35,6 @@ interface BankBuilderProps {
   subjects: Subject[];
   initialData?: any;
 }
-
-
 
 export default function BankBuilder({
   subjects,
@@ -53,8 +52,11 @@ export default function BankBuilder({
   const [description, setDescription] = useState(
     initialData?.description || ""
   );
-  const [unlockType, setUnlockType] = useState<"free" | "premium" | "referral">(
-    initialData?.unlock_type || "free"
+  const [unlockType, setUnlockType] = useState<
+    "free" | "premium" | "referral" | "paid"
+  >(initialData?.unlock_type || "free");
+  const [price, setPrice] = useState<string>(
+    initialData?.price?.toString() || ""
   );
 
   // Auto-generate slug from title
@@ -150,6 +152,7 @@ export default function BankBuilder({
         slug: slug.trim(),
         description: description.trim(),
         unlockType,
+        price: unlockType === "paid" ? parseFloat(price) || null : null,
         isPublished: publish,
         questionIds: selectedQuestions.map((q) => q.id),
       };
@@ -335,6 +338,48 @@ export default function BankBuilder({
                       </span>
                     </div>
                   </label>
+
+                  <label
+                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition-all ${
+                      unlockType === "paid"
+                        ? "border-blue-300 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20"
+                        : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="unlockType"
+                      checked={unlockType === "paid"}
+                      onChange={() => setUnlockType("paid")}
+                      className="size-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <DollarSign className="size-5 text-blue-500" />
+                    <div className="flex-1">
+                      <span className="font-medium text-sm block">
+                        Paid (Purchase Required)
+                      </span>
+                      <span className="text-xs text-slate-400">
+                        Must be purchased, even by VIP users
+                      </span>
+                    </div>
+                  </label>
+
+                  {unlockType === "paid" && (
+                    <div className="mt-3 pl-8">
+                      <label className="block text-sm font-medium text-slate-500 mb-2">
+                        Price (AUD)
+                      </label>
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={price}
+                        onChange={(e) => setPrice(e.target.value)}
+                        placeholder="e.g. 9.99"
+                        className="w-32"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

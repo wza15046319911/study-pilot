@@ -65,28 +65,25 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
   let isUnlocked = false;
   let unlockReason = "";
 
-  if (!bank.is_premium && bank.unlock_type === "free") {
+  if (bank.unlock_type === "free") {
+    // Free banks are always accessible
     isUnlocked = true;
     unlockReason = "Free";
+  } else if (bank.unlock_type === "premium" && profile?.is_vip) {
+    // Premium banks are accessible to VIP users
+    isUnlocked = true;
+    unlockReason = "Premium";
   } else {
-    // Check Premium
-    if (bank.is_premium && profile?.is_vip) {
+    // For referral and paid banks (or premium without VIP), check explicit unlocks
+    const { data: unlock } = await (supabase.from("user_bank_unlocks") as any)
+      .select("id, unlock_type")
+      .eq("user_id", user.id)
+      .eq("bank_id", bank.id)
+      .single();
+
+    if (unlock) {
       isUnlocked = true;
-      unlockReason = "Premium";
-    }
-
-    // Check Explicit Unlocks (Referral or Purchase) if not already unlocked
-    if (!isUnlocked) {
-      const { data: unlock } = await (supabase.from("user_bank_unlocks") as any)
-        .select("id, unlock_type")
-        .eq("user_id", user.id)
-        .eq("bank_id", bank.id)
-        .single();
-
-      if (unlock) {
-        isUnlocked = true;
-        unlockReason = unlock.unlock_type;
-      }
+      unlockReason = unlock.unlock_type;
     }
   }
 

@@ -319,15 +319,8 @@ export default function ExamSession({
       >
         <div className="bg-white dark:bg-slate-900 shadow-2xl min-h-[800px] p-12 lg:p-16 relative flex flex-col font-serif overflow-hidden">
           {/* Exam Header (Matching PracticeSession exactly) */}
-          <div className="flex justify-between items-end border-b-2 border-black dark:border-white pb-4 mb-12 text-black dark:text-white font-serif">
-            <div className="text-sm space-y-1">
-              <p className="font-bold">
-                Semester 1 Examinations, {new Date().getFullYear()}
-              </p>
-              <p className="italic">Part A - Multiple Choice Questions</p>
-            </div>
-            <div className="text-right text-sm space-y-1">
-              <p className="font-bold uppercase">EXAM: {exam.title}</p>
+          <div className="flex justify-end items-end border-b-2 border-black dark:border-white pb-4 mb-12 text-black dark:text-white font-serif">
+            <div className="text-right text-sm">
               <p>{questions.length} Questions</p>
             </div>
           </div>

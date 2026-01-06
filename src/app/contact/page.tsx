@@ -1,14 +1,58 @@
-"use client";
-
 import { Mail } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
+import { createClient } from "@/lib/supabase/server";
+import { Profile } from "@/types/database";
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const supabase = await createClient();
+
+  // Check for session
+  let user = null;
+  try {
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+    user = authUser;
+  } catch (error) {
+    console.error("Auth error:", error);
+  }
+
+  let userData = null;
+  let isAdmin = false;
+
+  if (user) {
+    // Fetch profile
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", user.id)
+      .single();
+
+    const profile = profileData as Profile | null;
+
+    userData = {
+      username:
+        profile?.username ||
+        user.user_metadata?.name ||
+        user.email?.split("@")[0] ||
+        "User",
+      avatar_url:
+        profile?.avatar_url ||
+        user.user_metadata?.avatar_url ||
+        user.user_metadata?.picture ||
+        undefined,
+      is_vip: profile?.is_vip || false,
+    };
+
+    isAdmin =
+      !!process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL;
+  }
+
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
       <AmbientBackground />
-      <Header showNav={true} />
+      <Header showNav={true} user={userData} isAdmin={isAdmin} />
 
       <main className="flex-grow flex items-center justify-center p-4">
         <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-3xl p-8 md:p-12 shadow-xl border border-gray-100 dark:border-gray-800 text-center">

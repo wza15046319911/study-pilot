@@ -12,9 +12,11 @@ import {
   Layers,
   BookOpen,
   Home,
+  Download,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
+import { ExportExamButton } from "@/components/exam/ExportExamButton";
 
 interface PageProps {
   params: Promise<{
@@ -169,9 +171,9 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
 
                 <div className="relative h-full flex flex-col p-8 z-10">
                   <div className="flex justify-between items-start mb-6">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-lg shadow-lg border border-white/30 text-white font-bold text-base tracking-wide">
-                      <GraduationCap className="size-3.5" />
-                      Mock Exam
+                    <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/90 to-violet-600/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-purple-400/50 text-purple-50 font-bold text-base tracking-wide">
+                      <GraduationCap className="size-5 drop-shadow-md" />
+                      <span className="drop-shadow-md">Mock Exam</span>
                     </div>
                   </div>
 
@@ -255,6 +257,13 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
                     Start Mock Exam
                   </Button>
                 </Link>
+
+                <ExportExamButton
+                  examId={exam.id}
+                  examTitle={exam.title}
+                  examType={exam.exam_type}
+                  durationMinutes={exam.duration_minutes}
+                />
               </div>
             </div>
           </div>

@@ -510,7 +510,8 @@ export interface Database {
           subject_id: number;
           is_premium: boolean;
           is_published: boolean;
-          unlock_type: "free" | "premium" | "referral";
+          unlock_type: "free" | "premium" | "referral" | "paid";
+          price: number | null;
           created_at: string;
           updated_at: string;
         };
@@ -523,7 +524,8 @@ export interface Database {
           subject_id: number;
           is_premium?: boolean;
           is_published?: boolean;
-          unlock_type?: "free" | "premium" | "referral";
+          unlock_type?: "free" | "premium" | "referral" | "paid";
+          price?: number | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -536,7 +538,8 @@ export interface Database {
           subject_id?: number;
           is_premium?: boolean;
           is_published?: boolean;
-          unlock_type?: "free" | "premium" | "referral";
+          unlock_type?: "free" | "premium" | "referral" | "paid";
+          price?: number | null;
           created_at?: string;
           updated_at?: string;
         };

@@ -30,6 +30,7 @@ interface HeaderProps {
 export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const t = useTranslations("nav");
+  // Ensure we only render theme-dependent UI after mounting to prevent hydration mismatch
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -104,7 +105,7 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                   <button
                     onClick={() => setTheme("light")}
                     className={`flex items-center gap-2 w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      theme === "light"
+                      mounted && theme === "light"
                         ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                         : "text-slate-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
                     }`}
@@ -115,7 +116,7 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                   <button
                     onClick={() => setTheme("dark")}
                     className={`flex items-center gap-2 w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      theme === "dark"
+                      mounted && theme === "dark"
                         ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                         : "text-slate-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
                     }`}
@@ -126,7 +127,7 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                   <button
                     onClick={() => setTheme("system")}
                     className={`flex items-center gap-2 w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      theme === "system"
+                      mounted && theme === "system"
                         ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                         : "text-slate-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
                     }`}

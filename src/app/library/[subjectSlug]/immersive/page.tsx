@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Header } from "@/components/layout/Header";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import ImmersiveSession from "@/app/practice/[subjectSlug]/immersive/ImmersiveSession";
 import { Profile, Question, Subject } from "@/types/database";
@@ -82,7 +81,6 @@ export default async function LibraryImmersivePage(props: PageProps) {
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-white dark:bg-slate-950">
       <AmbientBackground />
-      <Header user={userData} />
       <ImmersiveSession
         initialQuestion={firstQuestion}
         subjectId={subject.id}

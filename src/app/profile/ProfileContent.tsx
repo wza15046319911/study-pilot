@@ -63,7 +63,7 @@ interface ProfileContentProps {
     slug: string | null;
     subjects: Subject;
     is_premium: boolean;
-    unlock_type: "free" | "premium" | "referral";
+    unlock_type: "free" | "premium" | "referral" | "paid";
     access_status: "Free" | "Unlocked" | "Premium";
   }>;
   isAdmin?: boolean;

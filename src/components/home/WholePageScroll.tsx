@@ -15,6 +15,7 @@ import {
   ChevronLeft,
   ChevronRight,
   GraduationCap,
+  Sparkles,
 } from "lucide-react";
 
 // ... (Subject and Props interfaces same as before)
@@ -82,24 +83,35 @@ const features = [
     icon: <Database size={24} />,
     title: "Question Bank",
     description:
-      "Access thousands of curated practice questions across multiple subjects.",
+      "Access 10,000+ real exam questions, meticulously categorized by topic and difficulty. Always updated to match the latest university curriculum.",
     color: "#2D60FF",
     bgColor: "#EEF2FF",
   },
   {
     icon: <BookOpen size={24} />,
+    title: "Practice Mode",
+    description:
+      "Clean, distraction-free interface to focus on what matters — mastering each question with instant feedback.",
+    color: "#3B82F6",
+    bgColor: "#EFF6FF",
+    image: "/practice-interface.png",
+  },
+  {
+    icon: <Sparkles size={24} />,
+    title: "AI Tutor",
+    description:
+      "Get instant, detailed explanations for every question. Like having a personal tutor available 24/7.",
+    color: "#8B5CF6",
+    bgColor: "#F5F3FF",
+    image: "/ai-tutor-interface.png",
+  },
+  {
+    icon: <Activity size={24} />,
     title: "Smart Review",
     description:
       "AI-powered mistake tracking helps you focus on areas that need improvement.",
     color: "#6C3FF5",
     bgColor: "#F3E8FF",
-  },
-  {
-    icon: <Activity size={24} />,
-    title: "Immersive Mode",
-    description: "Distraction-free practice sessions with real-time feedback.",
-    color: "#FF9B6B",
-    bgColor: "#FFF7ED",
   },
   {
     icon: <Zap size={24} />,
@@ -210,15 +222,7 @@ export function WholePageScroll({
     <>
       <div className="min-h-screen bg-background relative">
         {/* HERO / SPLASH SECTION */}
-        {/* HERO / SPLASH SECTION */}
         <SplashScreen user={user} />
-        {/* Header is usually fixed, but here it seems assumed to be inside or handled differently? 
-            Wait, WholePageScroll doesn't render Header directly? 
-            Yes it does on line 7: import { Header } from "@/components/layout/Header";
-            But I don't see <Header /> being used in the JSX?
-            Ah, I must have missed it in previous view_file or it's not there? 
-            Let me check the `view_file` output for `WholePageScroll.tsx` again.
-        */}
 
         {/* Impact Stats Section */}
         <section className="pt-24">
@@ -300,46 +304,400 @@ export function WholePageScroll({
                     {/* Feature Visual Placeholder */}
                     <div className="bg-muted rounded-2xl border border-border min-h-[350px] flex flex-col relative overflow-hidden group">
                       {features[currentFeature].title === "Mock Exam" ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-[#F5F3FF] p-8">
-                          {/* Background Interface Image */}
+                        <div className="absolute inset-0 flex items-center justify-center bg-[#F5F3FF] p-6 lg:p-8">
+                          {/* Exam Timer & Paper UI */}
+                          <div className="relative w-full max-w-sm flex flex-col gap-4">
+                            {/* Floating Timer */}
+                            <motion.div
+                              className="self-center bg-black text-white px-4 py-2 rounded-full font-mono font-bold text-lg shadow-lg flex items-center gap-2 z-20"
+                              initial={{ y: -20, opacity: 0 }}
+                              animate={{ y: 0, opacity: 1 }}
+                              transition={{ delay: 0.2 }}
+                            >
+                              <div className="size-2 rounded-full bg-red-500 animate-pulse" />
+                              01:59:34
+                            </motion.div>
+
+                            {/* Exam Paper Stack */}
+                            <div className="relative z-10">
+                              {/* Paper pages behind */}
+                              <div className="absolute top-2 left-2 right-[-8px] h-full bg-white rounded-lg border border-gray-200 shadow-sm rotate-1" />
+                              <div className="absolute top-1 left-1 right-[-4px] h-full bg-white rounded-lg border border-gray-200 shadow-sm -rotate-1" />
+
+                              {/* Main Paper */}
+                              <motion.div
+                                className="relative bg-white rounded-lg border border-gray-200 shadow-xl p-6 min-h-[220px] flex flex-col"
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                transition={{ duration: 0.4 }}
+                              >
+                                <div className="border-b-2 border-gray-100 pb-4 mb-4 flex justify-between items-end">
+                                  <div>
+                                    <div className="text-[10px] uppercase font-bold text-gray-400">
+                                      Subject Code
+                                    </div>
+                                    <div className="font-bold text-gray-900">
+                                      CS-2024-FINAL
+                                    </div>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="text-[10px] uppercase font-bold text-gray-400">
+                                      Total Marks
+                                    </div>
+                                    <div className="font-bold text-gray-900">
+                                      100
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="space-y-3">
+                                  <div className="h-4 bg-gray-100 rounded w-3/4" />
+                                  <div className="h-4 bg-gray-100 rounded w-full" />
+                                  <div className="h-4 bg-gray-100 rounded w-5/6" />
+                                </div>
+                                <div className="mt-auto pt-4 flex gap-4">
+                                  <div className="h-8 w-8 rounded-full border-2 border-gray-200" />
+                                  <div className="h-8 w-8 rounded-full border-2 border-black bg-black text-white flex items-center justify-center font-bold text-xs">
+                                    A
+                                  </div>
+                                  <div className="h-8 w-8 rounded-full border-2 border-gray-200" />
+                                  <div className="h-8 w-8 rounded-full border-2 border-gray-200" />
+                                </div>
+                              </motion.div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : features[currentFeature].title === "Practice Mode" ? (
+                        <div className="absolute inset-0 flex items-center justify-center bg-[#EFF6FF] p-6 lg:p-8">
+                          {/* Main Question Card */}
                           <motion.div
-                            className="absolute w-[85%] top-12 rounded-xl overflow-hidden shadow-xl border border-slate-200/60 dark:border-slate-700/60"
-                            initial={{ y: 20, opacity: 0, rotateX: 10 }}
-                            animate={{ y: 0, opacity: 1, rotateX: 0 }}
-                            transition={{ delay: 0.1, duration: 0.5 }}
-                            style={{ perspective: 1000 }}
+                            className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden flex flex-col"
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5 }}
                           >
-                            <Image
-                              src="/mock-exam-interface.png"
-                              alt="Mock Exam Interface"
-                              width={800}
-                              height={600}
-                              className="w-full h-auto object-cover opacity-90"
+                            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                Question 4/10
+                              </span>
+                              <div className="flex gap-1">
+                                <div className="size-2 rounded-full bg-blue-500" />
+                                <div className="size-2 rounded-full bg-gray-200" />
+                                <div className="size-2 rounded-full bg-gray-200" />
+                              </div>
+                            </div>
+                            <div className="p-6">
+                              <p className="font-serif text-lg leading-relaxed text-gray-800 mb-6">
+                                What is the time complexity of searching in a
+                                balanced Binary Search Tree?
+                              </p>
+                              <div className="space-y-3">
+                                <div className="p-3 rounded-lg border border-gray-200 text-sm text-gray-600 font-serif">
+                                  a) O(1)
+                                </div>
+                                <div className="p-3 rounded-lg border-2 border-green-500 bg-green-50 text-sm text-green-700 font-serif font-semibold flex justify-between items-center">
+                                  <span>b) O(log n)</span>
+                                  <motion.div
+                                    initial={{ scale: 0 }}
+                                    animate={{ scale: 1 }}
+                                    transition={{
+                                      delay: 0.5,
+                                      type: "spring",
+                                    }}
+                                  >
+                                    <div className="size-5 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">
+                                      ✓
+                                    </div>
+                                  </motion.div>
+                                </div>
+                                <div className="p-3 rounded-lg border border-gray-200 text-sm text-gray-600 font-serif">
+                                  c) O(n)
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        </div>
+                      ) : features[currentFeature].title === "AI Tutor" ? (
+                        <div className="absolute inset-0 flex items-center justify-center bg-[#F5F3FF] p-6 lg:p-8">
+                          <div className="relative w-full max-w-sm">
+                            {/* Question Context (Behind) */}
+                            <motion.div
+                              className="absolute top-[-20px] left-4 right-4 bg-white rounded-xl border border-gray-100 h-24 shadow-sm opacity-50 z-0"
+                              initial={{ y: 20, opacity: 0 }}
+                              animate={{ y: 0, opacity: 0.5 }}
                             />
-                            {/* Overlay gradient to fade bottom */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-[#F5F3FF] via-transparent to-transparent" />
+                            {/* AI Chat Bubble */}
+                            <motion.div
+                              className="bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(124,58,237,0.2)] border border-purple-100 overflow-hidden relative z-10"
+                              initial={{ y: 20, opacity: 0 }}
+                              animate={{ y: 0, opacity: 1 }}
+                              transition={{ delay: 0.1 }}
+                            >
+                              <div className="p-4 bg-gradient-to-r from-violet-500 to-purple-600 flex items-center gap-3">
+                                <div className="size-8 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center">
+                                  <Sparkles className="size-4 text-white" />
+                                </div>
+                                <span className="font-bold text-white text-sm">
+                                  AI Tutor Explanation
+                                </span>
+                              </div>
+                              <div className="p-5">
+                                <p className="text-gray-700 leading-relaxed text-sm mb-4">
+                                  <span className="font-semibold text-purple-600">
+                                    Why O(log n)?
+                                  </span>{" "}
+                                  In a balanced BST, each step cuts the search
+                                  space in half. This behaves like a binary
+                                  search algorithm.
+                                </p>
+                                <div className="flex gap-2">
+                                  <div className="px-2 py-1 bg-purple-50 text-purple-600 text-[10px] font-bold uppercase rounded">
+                                    Key Concept
+                                  </div>
+                                  <div className="px-2 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold uppercase rounded">
+                                    Trees
+                                  </div>
+                                </div>
+                              </div>
+                            </motion.div>
+
+                            {/* Floating Sparkles */}
+                            <motion.div
+                              className="absolute -right-2 -top-2 text-yellow-400 z-20"
+                              animate={{
+                                scale: [1, 1.2, 1],
+                                rotate: [0, 15, -15, 0],
+                              }}
+                              transition={{ repeat: Infinity, duration: 2 }}
+                            >
+                              <Sparkles size={24} fill="currentColor" />
+                            </motion.div>
+                          </div>
+                        </div>
+                      ) : features[currentFeature].title === "Question Bank" ? (
+                        <div className="absolute inset-0 flex items-center justify-center bg-[#EEF2FF] p-6 lg:p-8">
+                          {/* Folder/File UI Container */}
+                          <motion.div
+                            className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden flex flex-col"
+                            initial={{ y: 20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ duration: 0.5, type: "spring" }}
+                          >
+                            {/* Window Header */}
+                            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
+                              <div className="flex gap-2">
+                                <div className="size-3 rounded-full bg-red-400/80" />
+                                <div className="size-3 rounded-full bg-yellow-400/80" />
+                                <div className="size-3 rounded-full bg-green-400/80" />
+                              </div>
+                              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                                Question Bank
+                              </div>
+                              <div className="w-8" /> {/* Spacer */}
+                            </div>
+
+                            {/* Content List */}
+                            <div className="p-2 space-y-1 bg-gray-50/50 flex-1">
+                              {[
+                                {
+                                  name: "Algorithms & Data Structs",
+                                  q: "1,240 Qs",
+                                  color: "bg-blue-100 text-blue-700",
+                                },
+                                {
+                                  name: "Operating Systems",
+                                  q: "850 Qs",
+                                  color: "bg-indigo-100 text-indigo-700",
+                                },
+                                {
+                                  name: "Computer Networks",
+                                  q: "620 Qs",
+                                  color: "bg-purple-100 text-purple-700",
+                                },
+                                {
+                                  name: "Database Systems",
+                                  q: "980 Qs",
+                                  color: "bg-teal-100 text-teal-700",
+                                },
+                              ].map((item, i) => (
+                                <motion.div
+                                  key={item.name}
+                                  initial={{ x: -10, opacity: 0 }}
+                                  animate={{ x: 0, opacity: 1 }}
+                                  transition={{ delay: 0.2 + i * 0.1 }}
+                                  className="flex items-center justify-between p-3 rounded-xl bg-white border border-gray-100 hover:shadow-md transition-shadow cursor-default group"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <div
+                                      className={`size-8 rounded-lg ${item.color} flex items-center justify-center`}
+                                    >
+                                      <Database size={14} />
+                                    </div>
+                                    <span className="font-semibold text-sm text-gray-700 group-hover:text-blue-600 transition-colors">
+                                      {item.name}
+                                    </span>
+                                  </div>
+                                  <span className="text-xs font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md">
+                                    {item.q}
+                                  </span>
+                                </motion.div>
+                              ))}
+                            </div>
+
+                            {/* Footer Stats */}
+                            <div className="px-5 py-3 bg-white border-t border-gray-100 flex justify-between items-center text-xs text-gray-500 font-medium">
+                              <span>Total Questions</span>
+                              <span className="font-bold text-blue-600">
+                                10,000+
+                              </span>
+                            </div>
                           </motion.div>
 
-                          {/* Foreground Entry Card */}
+                          {/* Decorative Floating Elements */}
                           <motion.div
-                            className="relative w-[65%] shadow-[0_20px_60px_-15px_rgba(124,58,237,0.4)] rounded-xl overflow-hidden z-10"
-                            initial={{ scale: 0.8, opacity: 0, y: 30 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            animate={{ y: [0, -10, 0] }}
                             transition={{
-                              delay: 0.3,
-                              type: "spring",
-                              stiffness: 260,
-                              damping: 20,
+                              repeat: Infinity,
+                              duration: 4,
+                              ease: "easeInOut",
                             }}
+                            className="absolute -right-4 top-10 bg-white p-3 rounded-xl shadow-lg border border-gray-100 hidden lg:block"
                           >
-                            <Image
-                              src="/mock-exam-card.png"
-                              alt="Start Mock Exam"
-                              width={500}
-                              height={400}
-                              className="w-full h-auto object-cover"
-                            />
+                            <div className="flex items-center gap-2">
+                              <div className="flex -space-x-2">
+                                <div className="size-6 rounded-full bg-blue-500 border-2 border-white" />
+                                <div className="size-6 rounded-full bg-green-500 border-2 border-white" />
+                              </div>
+                              <span className="text-xs font-bold text-gray-600">
+                                2k+ Users
+                              </span>
+                            </div>
                           </motion.div>
+                        </div>
+                      ) : features[currentFeature].title === "Smart Review" ? (
+                        <div className="absolute inset-0 flex items-center justify-center bg-[#F3E8FF] p-6 lg:p-8">
+                          <motion.div
+                            className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-purple-100 p-6"
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ duration: 0.5 }}
+                          >
+                            <div className="flex items-center justify-between mb-6">
+                              <h4 className="font-bold text-gray-800">
+                                Weakness Analysis
+                              </h4>
+                              <div className="px-2 py-1 bg-red-50 text-red-600 text-xs font-bold rounded">
+                                Needs Focus
+                              </div>
+                            </div>
+
+                            <div className="space-y-4">
+                              <div>
+                                <div className="flex justify-between text-sm mb-1">
+                                  <span className="text-gray-600">
+                                    Dynamic Programming
+                                  </span>
+                                  <span className="text-red-500 font-bold">
+                                    42%
+                                  </span>
+                                </div>
+                                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                  <motion.div
+                                    className="h-full bg-red-500 rounded-full"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: "42%" }}
+                                    transition={{ delay: 0.4, duration: 1 }}
+                                  />
+                                </div>
+                              </div>
+                              <div>
+                                <div className="flex justify-between text-sm mb-1">
+                                  <span className="text-gray-600">
+                                    Graph Theory
+                                  </span>
+                                  <span className="text-yellow-500 font-bold">
+                                    65%
+                                  </span>
+                                </div>
+                                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                  <motion.div
+                                    className="h-full bg-yellow-500 rounded-full"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: "65%" }}
+                                    transition={{ delay: 0.6, duration: 1 }}
+                                  />
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="mt-6 pt-4 border-t border-gray-100">
+                              <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-xl">
+                                <div className="size-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
+                                  <Activity size={16} />
+                                </div>
+                                <div>
+                                  <div className="text-xs text-gray-500">
+                                    Recommended Action
+                                  </div>
+                                  <div className="text-sm font-bold text-purple-700">
+                                    Review 12 Mistakes
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        </div>
+                      ) : features[currentFeature].title ===
+                        "Spaced Repetition" ? (
+                        <div className="absolute inset-0 flex items-center justify-center bg-[#F0FDF4] p-6 lg:p-8">
+                          <div className="relative w-full max-w-sm h-64 flex items-center justify-center">
+                            {/* Cards Stack */}
+                            <motion.div
+                              className="absolute w-64 h-40 bg-white rounded-xl shadow-sm border border-green-100 rotate-6"
+                              initial={{ opacity: 0, x: 20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.3 }}
+                            />
+                            <motion.div
+                              className="absolute w-64 h-40 bg-white rounded-xl shadow-sm border border-green-200 rotate-3"
+                              initial={{ opacity: 0, x: 20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.2 }}
+                            />
+
+                            {/* Front Card */}
+                            <motion.div
+                              className="absolute w-64 h-40 bg-white rounded-xl shadow-xl border border-green-100 p-6 flex flex-col items-center justify-center text-center z-10"
+                              initial={{ scale: 0.8, opacity: 0 }}
+                              animate={{ scale: 1, opacity: 1 }}
+                              transition={{ type: "spring" }}
+                              style={{ transformOrigin: "bottom center" }}
+                            >
+                              <div className="text-xs uppercase font-bold text-green-500 mb-2">
+                                Flashcard
+                              </div>
+                              <h4 className="font-serif text-lg text-gray-800">
+                                HTTP Status 418?
+                              </h4>
+                              <motion.div
+                                className="mt-4 px-4 py-1 bg-gray-100 text-gray-500 text-xs rounded-full"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 1 }}
+                              >
+                                Tap to flip
+                              </motion.div>
+                            </motion.div>
+
+                            {/* Success Indicator */}
+                            <motion.div
+                              className="absolute -right-4 top-0 bg-green-500 text-white size-10 rounded-full flex items-center justify-center shadow-lg z-20"
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ delay: 1.2, type: "spring" }}
+                            >
+                              <Zap size={20} fill="currentColor" />
+                            </motion.div>
+                          </div>
                         </div>
                       ) : (
                         <div className="p-8 flex flex-col h-full relative">

@@ -168,7 +168,7 @@ export default async function LibraryPracticePage(props: PageProps) {
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
+    <div className="relative flex min-h-screen w-full flex-col bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
       <AmbientBackground />
       <PracticeSession
         questions={selectedQuestions}

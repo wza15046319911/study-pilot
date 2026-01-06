@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Lock, Crown, Star, Gift } from "lucide-react";
+import { Lock, Crown, Star, Gift, DollarSign } from "lucide-react";
 
 interface QuestionBankItemProps {
   bank: any;
@@ -30,11 +30,14 @@ export function QuestionBankItem({
 
   // Check if locked based on unlock type
   const isReferralType = bank.unlock_type === "referral";
+  const isPaidType = bank.unlock_type === "paid";
   const isPremiumLocked = bank.is_premium && !isVip;
   const isReferralLocked = isReferralType && !isUnlocked;
+  const isPaidLocked = isPaidType && !isUnlocked;
   // Exams and Practice usually don't have lock logic or handled differently, but if we reuse this, let's respect bank object if present
   const isLocked =
-    (isPremiumLocked || isReferralLocked) && variant === "default";
+    (isPremiumLocked || isReferralLocked || isPaidLocked) &&
+    variant === "default";
 
   const handleCardClick = () => {
     if (onClickOverride) {
@@ -67,12 +70,12 @@ export function QuestionBankItem({
       textDesc: "text-[#efebe9]",
     },
     exam: {
-      backCover: "bg-[#2e1065]", // violet-950
-      frontCover: "bg-[#8b5cf6]", // violet-500
-      border: "border-[#4c1d95]", // violet-900
-      spine: "bg-[#2e1065]",
-      textTitle: "text-white",
-      textDesc: "text-purple-100",
+      backCover: "bg-[#3e2723]", // Match default brown
+      frontCover: "bg-[#e0c097]", // Match default beige
+      border: "border-[#5d4037]", // Match default brown border
+      spine: "bg-[#3e2723]",
+      textTitle: "text-[#fff8e1]",
+      textDesc: "text-[#efebe9]",
     },
     practice: {
       backCover: "bg-[#0c4a6e]", // sky-900
@@ -135,31 +138,37 @@ export function QuestionBankItem({
               {/* Top Badge */}
               <div className="flex justify-between items-start mb-4">
                 <div className="opacity-100">
-                  {variant === "default" &&
-                    (isReferralType ? (
+                  {(variant === "default" || variant === "exam") &&
+                    (isPaidType ? (
+                      <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500/90 to-indigo-600/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-blue-400/50 text-blue-50 font-bold text-base tracking-wide">
+                        <DollarSign className="size-5 drop-shadow-md" />
+                        <span className="drop-shadow-md">
+                          {bank.price ? `$${bank.price}` : "Paid"}
+                        </span>
+                      </div>
+                    ) : isReferralType ? (
                       <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/90 to-violet-600/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-purple-400/50 text-purple-50 font-bold text-base tracking-wide">
                         <Gift className="size-5 drop-shadow-md" />
                         <span className="drop-shadow-md">Invite Unlock</span>
                       </div>
                     ) : bank.is_premium ? (
-                      <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500/90 to-amber-600/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-yellow-400/50 text-yellow-50 font-bold text-base tracking-wide">
+                      // Updated with lighter color for Premium
+                      <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-zinc-400/90 to-slate-500/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-zinc-300/50 text-white font-bold text-base tracking-wide">
                         <Crown className="size-5 drop-shadow-md" />
                         <span className="drop-shadow-md">
                           Premium Collection
                         </span>
                       </div>
                     ) : (
-                      <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500/90 to-emerald-600/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-green-400/50 text-green-50 font-bold text-base tracking-wide">
-                        <Star className="size-5 drop-shadow-md fill-green-50" />
-                        <span className="drop-shadow-md">Public Edition</span>
-                      </div>
+                      // Only show Public Edition for default variant (Question Banks), hide for Exams
+                      variant === "default" && (
+                        <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500/90 to-emerald-600/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-green-400/50 text-green-50 font-bold text-base tracking-wide">
+                          <Star className="size-5 drop-shadow-md fill-green-50" />
+                          <span className="drop-shadow-md">Public Edition</span>
+                        </div>
+                      )
                     ))}
-                  {variant === "exam" && (
-                    <div className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg shadow-lg border border-white/30 text-white font-bold text-base tracking-wide">
-                      <Crown className="size-5 drop-shadow-md" />
-                      <span className="drop-shadow-md">Mock Exam</span>
-                    </div>
-                  )}
+
                   {variant === "practice" && (
                     <div className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg shadow-lg border border-white/30 text-white font-bold text-base tracking-wide">
                       <Star className="size-5 drop-shadow-md" />
@@ -204,6 +213,11 @@ export function QuestionBankItem({
                       <>
                         <Gift className="size-4" />
                         <span>INVITE TO UNLOCK</span>
+                      </>
+                    ) : isPaidLocked ? (
+                      <>
+                        <DollarSign className="size-4" />
+                        <span>PURCHASE REQUIRED</span>
                       </>
                     ) : (
                       <>
