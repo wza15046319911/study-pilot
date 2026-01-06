@@ -1,45 +1,26 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { GlassPanel } from "@/components/ui/GlassPanel";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { createClient } from "@/lib/supabase/client";
-import { GraduationCap, Mail, Lock, Check } from "lucide-react";
+import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
 import { LoginVisuals } from "./LoginVisuals";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  
-  // Get referral code from URL
-  const referralCode = searchParams.get("referral_code");
-  const modeParam = searchParams.get("mode");
-
-  // "password" = password login
-  // "signup" = password signup
-  const [authMode, setAuthMode] = useState<"password" | "signup">(
-    modeParam === "signup" ? "signup" : "password"
-  );
-
-  useEffect(() => {
-    if (modeParam === "signup") {
-      setAuthMode("signup");
-    }
-  }, [modeParam]);
-
+  const [step, setStep] = useState<"email" | "sent">("email");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [message, setMessage] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
 
-  const handlePasswordLogin = async () => {
-    if (!email || !password) {
-      setError("Please enter both email and password");
+  // Get referral code from URL
+  const referralCode = searchParams.get("referral_code");
+
+  const handleMagicLink = async () => {
+    if (!email) {
+      setError("Please enter your email address");
       return;
     }
     setLoading(true);
@@ -47,47 +28,21 @@ function LoginForm() {
 
     try {
       const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithOtp({
         email,
-        password,
-      });
-
-      if (error) throw error;
-      router.push("/library");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSignUp = async () => {
-    if (!email || !password) {
-      setError("Please enter both email and password");
-      return;
-    }
-    setLoading(true);
-    setError("");
-    setMessage("");
-
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
         options: {
-          data: {
-            referral_code: referralCode, // Pass referral code to metadata
-          },
+          emailRedirectTo: `${
+            window.location.origin
+          }/auth/callback?referral_code=${referralCode || ""}`,
         },
       });
 
       if (error) throw error;
-      setMessage("Account created! Please check your email/login.");
-      // Auto login often works unless email confirm is strictly enforced
-      router.push("/library");
+      setStep("sent");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Sign up failed");
+      setError(
+        err instanceof Error ? err.message : "Failed to send login link"
+      );
     } finally {
       setLoading(false);
     }
@@ -112,108 +67,124 @@ function LoginForm() {
     }
   };
 
+  const handleGitHubLogin = async () => {
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "github",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?referral_code=${
+            referralCode || ""
+          }`,
+        },
+      });
+      if (error) throw error;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "GitHub login failed");
+      setLoading(false);
+    }
+  };
+
+  // Step 2: Email sent confirmation
+  if (step === "sent") {
+    return (
+      <div className="flex w-full flex-col items-center justify-center p-8 lg:w-1/2">
+        <div className="w-full max-w-[380px] space-y-8">
+          <div className="text-center space-y-4">
+            <div className="mx-auto size-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+              <CheckCircle className="size-8 text-green-600 dark:text-green-400" />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+              Check your email
+            </h1>
+            <p className="text-gray-500 dark:text-gray-400">
+              We sent a login link to
+              <br />
+              <span className="font-medium text-gray-900 dark:text-white">
+                {email}
+              </span>
+            </p>
+          </div>
+
+          <div className="space-y-4">
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-11 border-gray-200 rounded-lg text-gray-700 dark:text-white font-medium bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700"
+              onClick={() => {
+                setStep("email");
+                setEmail("");
+              }}
+            >
+              <ArrowLeft className="size-4 mr-2" />
+              Back to login
+            </Button>
+
+            <p className="text-center text-sm text-gray-500">
+              Didn&apos;t receive the email?{" "}
+              <button
+                onClick={handleMagicLink}
+                disabled={loading}
+                className="font-bold text-gray-900 dark:text-white hover:underline"
+              >
+                {loading ? "Sending..." : "Resend"}
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 1: Email input
   return (
     <div className="flex w-full flex-col items-center justify-center p-8 lg:w-1/2">
       <div className="w-full max-w-[380px] space-y-8">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-            {authMode === "signup" ? "Create an account" : "Welcome back!"}
+            Welcome to StudyPilot
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            Please enter your details
+            Sign in to continue to your account
           </p>
-          {referralCode && authMode === "signup" && (
-            <div className="bg-green-50 text-green-600 px-3 py-1 rounded text-sm font-medium inline-block">
+          {referralCode && (
+            <div className="bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-3 py-1 rounded text-sm font-medium inline-block">
               Referral code applied
             </div>
           )}
         </div>
 
         <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <label
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                htmlFor="email"
-              >
-                Email
-              </label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="name@example.com"
-                className="rounded-lg border-gray-200"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label
-                className="text-sm font-medium text-gray-700 dark:text-gray-300"
-                htmlFor="password"
-              >
-                Password
-              </label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="••••••••"
-                className="rounded-lg border-gray-200"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+          <div className="space-y-2">
+            <label
+              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+              htmlFor="email"
+            >
+              Email
+            </label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="name@example.com"
+              className="rounded-lg border-gray-200"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleMagicLink();
+              }}
+            />
           </div>
 
-          {authMode === "password" && (
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <div
-                  onClick={() => setRememberMe(!rememberMe)}
-                  className={`size-4 rounded border cursor-pointer flex items-center justify-center transition-colors ${
-                    rememberMe
-                      ? "bg-blue-600 border-blue-600"
-                      : "border-gray-300"
-                  }`}
-                >
-                  {rememberMe && <Check className="size-3 text-white" />}
-                </div>
-                <span
-                  className="text-gray-500 cursor-pointer select-none"
-                  onClick={() => setRememberMe(!rememberMe)}
-                >
-                  Remember for 30 days
-                </span>
-              </div>
-              <button
-                type="button"
-                className="font-semibold text-gray-900 dark:text-white hover:underline"
-              >
-                Forgot password?
-              </button>
-            </div>
-          )}
-
-          {error && (
-            <p className="text-red-500 text-sm text-center">{error}</p>
-          )}
-          {message && (
-            <p className="text-green-600 text-sm text-center">{message}</p>
-          )}
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
           <Button
-            className="w-full h-11 bg-gray-900 hover:bg-black text-white rounded-lg font-medium"
-            onClick={
-              authMode === "password" ? handlePasswordLogin : handleSignUp
-            }
+            className="w-full h-11 bg-gray-900 hover:bg-black text-white rounded-lg font-medium gap-2"
+            onClick={handleMagicLink}
             disabled={loading}
           >
-            {loading
-              ? "Processing..."
-              : authMode === "password"
-              ? "Log in"
-              : "Sign Up"}
+            <Mail className="size-4" />
+            {loading ? "Sending..." : "Continue with Email"}
           </Button>
 
           <div className="relative py-2">
@@ -255,28 +226,28 @@ function LoginForm() {
             Sign in with Google
           </Button>
 
-          <p className="text-center text-sm text-gray-500">
-            {authMode === "password" ? (
-              <>
-                Don&apos;t have an account?{" "}
-                <span
-                  onClick={() => setAuthMode("signup")}
-                  className="font-bold text-gray-900 dark:text-white cursor-pointer hover:underline"
-                >
-                  Sign up
-                </span>
-              </>
-            ) : (
-              <>
-                Already have an account?{" "}
-                <span
-                  onClick={() => setAuthMode("password")}
-                  className="font-bold text-gray-900 dark:text-white cursor-pointer hover:underline"
-                >
-                  Log in
-                </span>
-              </>
-            )}
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full h-11 border-gray-200 rounded-lg gap-2 text-gray-700 dark:text-white font-medium bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700"
+            onClick={handleGitHubLogin}
+            disabled={loading}
+          >
+            <svg className="size-5" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+            </svg>
+            Sign in with GitHub
+          </Button>
+
+          <p className="text-center text-xs text-gray-400">
+            By continuing, you agree to our{" "}
+            <a href="/terms" className="underline hover:text-gray-600">
+              Terms of Service
+            </a>{" "}
+            and{" "}
+            <a href="/privacy" className="underline hover:text-gray-600">
+              Privacy Policy
+            </a>
           </p>
         </form>
       </div>
@@ -287,7 +258,13 @@ function LoginForm() {
 export default function LoginPage() {
   return (
     <div className="flex min-h-screen w-full bg-white dark:bg-slate-900">
-      <Suspense fallback={<div className="flex w-full flex-col items-center justify-center p-8 lg:w-1/2">Loading...</div>}>
+      <Suspense
+        fallback={
+          <div className="flex w-full flex-col items-center justify-center p-8 lg:w-1/2">
+            Loading...
+          </div>
+        }
+      >
         <LoginForm />
       </Suspense>
 
