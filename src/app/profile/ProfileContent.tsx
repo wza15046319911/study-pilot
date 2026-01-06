@@ -280,7 +280,7 @@ export function ProfileContent({
                 </h2>
               </div>
               <Link
-                href="/subjects"
+                href="/library"
                 className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
               >
                 View All
@@ -291,7 +291,7 @@ export function ProfileContent({
               {progressDisplay.length > 0 ? (
                 progressDisplay.map((item, i) => (
                   <Link
-                    href={`/practice/${item.slug}/setup`}
+                    href={`/library/${item.slug}/setup`}
                     key={i}
                     className="block group"
                   >
@@ -467,7 +467,7 @@ export function ProfileContent({
                 My Question Banks
               </h2>
               <Link
-                href="/question-banks"
+                href="/library"
                 className="text-sm font-medium text-blue-600 hover:text-blue-700"
               >
                 Explore More
@@ -478,7 +478,7 @@ export function ProfileContent({
               <div className="grid sm:grid-cols-2 gap-4">
                 {accessibleBanks.map((bank) => (
                   <Link
-                    href={`/question-banks/${bank.slug}`}
+                    href={`/library/${bank.subjects?.slug}/question-banks/${bank.slug}`}
                     key={bank.id}
                     className="block p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 border border-transparent hover:border-blue-200 dark:hover:border-blue-900/50 hover:shadow-md transition-all group"
                   >

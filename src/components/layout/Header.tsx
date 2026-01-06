@@ -73,10 +73,10 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                 Contact Us
               </Link>
               <Link
-                href="/blogs"
+                href="/blog"
                 className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
               >
-                Blogs
+                Blog
               </Link>
             </div>
           )}

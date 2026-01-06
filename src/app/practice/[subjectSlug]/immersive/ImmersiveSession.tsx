@@ -201,7 +201,7 @@ export default function ImmersiveSession({
   };
 
   const handleExit = () => {
-    router.push("/subjects");
+    router.push("/library");
   };
 
   if (!currentQuestion) {
@@ -217,7 +217,7 @@ export default function ImmersiveSession({
             className="mt-6 border-gray-200"
             onClick={handleExit}
           >
-            Back to Subjects
+            Back to Library
           </Button>
         </div>
       </div>

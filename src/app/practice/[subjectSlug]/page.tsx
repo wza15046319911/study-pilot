@@ -47,7 +47,7 @@ export default async function PracticePage(props: PageProps) {
 
   // Fetch subject to ensure it exists.
   if (!subjectSlug) {
-    redirect("/subjects");
+    redirect("/library");
   }
 
   // Fetch subject by slug
@@ -68,8 +68,8 @@ export default async function PracticePage(props: PageProps) {
           <NotFoundPage
             title="Subject Not Found"
             description="We couldn't find the subject you're looking for. It might have been deleted or moved."
-            backLink="/subjects"
-            backText="Back to Subjects"
+            backLink="/library"
+            backText="Back to Library"
           />
         </div>
       </div>

@@ -208,6 +208,6 @@ export async function unlockBankWithReferral(bankId: number) {
   }
 
   revalidatePath("/profile/referrals");
-  revalidatePath("/question-banks");
+  revalidatePath("/library");
   return { success: true };
 }

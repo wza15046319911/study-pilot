@@ -227,11 +227,12 @@ export default async function Home() {
         <footer>
           <p>
             Built by students at the University of Queensland. Trusted by
-            thousands of students for CSSE1001, CSSE7030, COMP3506, INFS3202, INFS7202 and more.
+            thousands of students for CSSE1001, CSSE7030, COMP3506, INFS3202,
+            INFS7202 and more.
           </p>
           <nav aria-label="Quick Links">
             <Link href="/library">Browse Library</Link> |
-            <Link href="/question-banks">Question Banks</Link> |
+            <Link href="/library">Question Banks</Link> |
             <Link href="/faq">FAQ</Link> |<Link href="/pricing">Pricing</Link>
           </nav>
         </footer>

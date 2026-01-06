@@ -56,7 +56,7 @@ export function SubjectsContent({ subjects }: SubjectsContentProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Link href={`/practice/${featured.slug}/setup`}>
+          <Link href={`/library/${featured.slug}/setup`}>
             <div
               className={`relative group overflow-hidden rounded-3xl bg-gradient-to-br ${gradients[0]} p-8 md:p-12 text-white shadow-2xl cursor-pointer transition-transform duration-300 hover:scale-[1.02]`}
             >
@@ -123,7 +123,7 @@ export function SubjectsContent({ subjects }: SubjectsContentProps) {
             transition={{ duration: 0.4, delay: 0.1 * (index + 1) }}
           >
             <Link
-              href={`/practice/${subject.slug}/setup`}
+              href={`/library/${subject.slug}/setup`}
               className="block h-full"
             >
               <div

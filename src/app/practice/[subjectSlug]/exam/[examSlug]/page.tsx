@@ -26,7 +26,7 @@ export default async function ExamPage(props: PageProps) {
   }
 
   if (!subjectSlug || !examSlug) {
-    redirect("/subjects");
+    redirect("/library");
   }
 
   // Fetch subject to ensure correct redirect
@@ -39,7 +39,7 @@ export default async function ExamPage(props: PageProps) {
   const subject = subjectData as { id: number; slug: string } | null;
 
   if (!subject) {
-    redirect("/subjects");
+    redirect("/library");
   }
 
   // Fetch exam details

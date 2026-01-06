@@ -5,7 +5,7 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const referralCode = searchParams.get("referral_code");
-  const next = searchParams.get("next") ?? "/subjects";
+  const next = searchParams.get("next") ?? "/library";
 
   if (code) {
     const supabase = await createClient();

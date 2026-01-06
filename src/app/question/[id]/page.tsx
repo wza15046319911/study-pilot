@@ -55,8 +55,8 @@ export default async function QuestionPage(props: PageProps) {
           <NotFoundPage
             title="Question Not Found"
             description="We couldn't find the question you're looking for. It might have been deleted or you may have followed a broken link."
-            backLink="/subjects"
-            backText="Back to Subjects"
+            backLink="/library"
+            backText="Back to Library"
           />
         </div>
       </div>

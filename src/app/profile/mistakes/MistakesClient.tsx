@@ -184,7 +184,7 @@ export default function MistakesClient({
             You don't have any pending mistakes to review. Keep up the great
             work!
           </p>
-          <Button variant="outline" onClick={() => router.push("/subjects")}>
+          <Button variant="outline" onClick={() => router.push("/library")}>
             Start New Practice
           </Button>
         </div>

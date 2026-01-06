@@ -59,13 +59,13 @@ export default async function InvitePage(props: PageProps) {
     // For now, let's redirect them to dashboard but maybe show a message?
     // Or we could allow linking if they haven't been referred yet?
     // Plan says "邀请1人成功注册", so it implies new users.
-    redirect("/subjects");
+    redirect("/library");
   }
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-4 bg-[#f0f4fc] dark:bg-slate-900 overflow-hidden">
       <AmbientBackground />
-      
+
       <div className="relative z-10 w-full max-w-lg">
         <GlassPanel className="p-8 md:p-10 text-center space-y-8 shadow-2xl border-white/40 dark:border-white/10">
           {/* Avatar / Icon */}
@@ -90,7 +90,8 @@ export default async function InvitePage(props: PageProps) {
               {referrerName} invited you!
             </h1>
             <p className="text-lg text-slate-500 dark:text-slate-400">
-              Join StudyPilot and get exclusive access to premium question banks.
+              Join StudyPilot and get exclusive access to premium question
+              banks.
             </p>
           </div>
 
@@ -140,4 +141,3 @@ export default async function InvitePage(props: PageProps) {
     </div>
   );
 }
-

@@ -172,8 +172,8 @@ export default function BookmarksClient({
             When you encounter a question you want to review later, click the
             bookmark icon to save it here.
           </p>
-          <Button variant="outline" onClick={() => router.push("/subjects")}>
-            Explore Subjects
+          <Button variant="outline" onClick={() => router.push("/library")}>
+            Explore Library
           </Button>
         </div>
       ) : (

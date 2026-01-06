@@ -152,10 +152,10 @@ export function PracticeSetupContent({
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-400 mb-12">
         <Link
-          href="/subjects"
+          href="/library"
           className="hover:text-gray-900 dark:hover:text-white transition-colors"
         >
-          Subjects
+          Library
         </Link>
         <ChevronRight className="size-4" />
         <span className="text-gray-900 dark:text-white font-medium">

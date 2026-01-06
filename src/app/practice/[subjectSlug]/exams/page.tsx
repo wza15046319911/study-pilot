@@ -37,7 +37,7 @@ export default async function ExamListPage(props: PageProps) {
   }
 
   if (!subjectSlug) {
-    redirect("/subjects");
+    redirect("/library");
   }
 
   // Fetch subject by slug
@@ -54,7 +54,7 @@ export default async function ExamListPage(props: PageProps) {
   } | null;
 
   if (!subject) {
-    redirect("/subjects");
+    redirect("/library");
   }
 
   // Fetch published exams for this subject

@@ -36,9 +36,7 @@ export default async function ExamPreviewPage(props: PageProps) {
   }
 
   // Fetch Exam + Subject info
-  const { data: exam, error: examError } = await (
-    supabase.from("exams") as any
-  )
+  const { data: exam, error: examError } = await (supabase.from("exams") as any)
     .select(
       `
       *,
@@ -98,7 +96,7 @@ export default async function ExamPreviewPage(props: PageProps) {
           >
             Library
           </Link>
-           <ChevronRight className="size-4" />
+          <ChevronRight className="size-4" />
           <span className="text-gray-900 dark:text-white font-medium truncate max-w-[200px]">
             {exam.title}
           </span>
@@ -116,7 +114,7 @@ export default async function ExamPreviewPage(props: PageProps) {
 
                 <div className="relative h-full flex flex-col p-8 z-10">
                   <div className="flex justify-between items-start mb-6">
-                     <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-lg shadow-lg border border-white/30 text-white font-bold text-base tracking-wide">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-lg shadow-lg border border-white/30 text-white font-bold text-base tracking-wide">
                       <GraduationCap className="size-3.5" />
                       Mock Exam
                     </div>
@@ -135,7 +133,7 @@ export default async function ExamPreviewPage(props: PageProps) {
                       {exam.duration_minutes} MINS
                     </div>
                     <div className="flex items-center justify-center gap-2 text-white font-bold text-sm bg-purple-900/30 py-2 rounded-lg border border-purple-400/30">
-                       Full Simulation
+                      Full Simulation
                     </div>
                   </div>
                 </div>
@@ -156,43 +154,51 @@ export default async function ExamPreviewPage(props: PageProps) {
 
             {/* Exam Details Grid */}
             <div className="grid sm:grid-cols-2 gap-6 mb-12">
-               <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-start gap-4">
-                  <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-600">
-                     <Clock className="size-6" />
-                  </div>
-                  <div>
-                     <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-1">Duration</h3>
-                     <p className="text-slate-500 dark:text-slate-400">{exam.duration_minutes} Minutes</p>
-                  </div>
-               </div>
+              <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-start gap-4">
+                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-600">
+                  <Clock className="size-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-1">
+                    Duration
+                  </h3>
+                  <p className="text-slate-500 dark:text-slate-400">
+                    {exam.duration_minutes} Minutes
+                  </p>
+                </div>
+              </div>
 
-               <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-start gap-4">
-                  <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl text-purple-600">
-                     <FileText className="size-6" />
-                  </div>
-                  <div>
-                     <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-1">Format</h3>
-                     <p className="text-slate-500 dark:text-slate-400">Full {exam.exam_type} Simulation</p>
-                  </div>
-               </div>
+              <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-start gap-4">
+                <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-xl text-purple-600">
+                  <FileText className="size-6" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg text-slate-900 dark:text-white mb-1">
+                    Format
+                  </h3>
+                  <p className="text-slate-500 dark:text-slate-400">
+                    Full {exam.exam_type} Simulation
+                  </p>
+                </div>
+              </div>
             </div>
 
             {/* Action Buttons */}
             <div className="mt-auto">
-                <div className="flex flex-col gap-4">
-                  <Link
-                    href={`/practice/${exam.subject.slug}/exam/${exam.slug}`}
-                    className="w-full sm:w-auto"
+              <div className="flex flex-col gap-4">
+                <Link
+                  href={`/library/${exam.subject.slug}/exams/${exam.slug}`}
+                  className="w-full sm:w-auto"
+                >
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto min-w-[200px] text-lg rounded-xl shadow-xl shadow-purple-500/20 bg-purple-600 hover:bg-purple-700 text-white"
                   >
-                    <Button
-                      size="lg"
-                      className="w-full sm:w-auto min-w-[200px] text-lg rounded-xl shadow-xl shadow-purple-500/20 bg-purple-600 hover:bg-purple-700 text-white"
-                    >
-                      <Play className="size-5 mr-2 fill-current" />
-                      Start Mock Exam
-                    </Button>
-                  </Link>
-                </div>
+                    <Play className="size-5 mr-2 fill-current" />
+                    Start Mock Exam
+                  </Button>
+                </Link>
+              </div>
             </div>
           </div>
         </div>

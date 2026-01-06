@@ -105,5 +105,45 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...staticPages, ...subjectPages, ...questionBankPages, ...examPages];
+  // Blog pages (hardcoded static routes)
+  const blogPages: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/blog`,
+      lastModified: new Date(),
+      changeFrequency: "daily",
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/blog/why-you-shouldnt-trust-ai-for-exam-answers`,
+      lastModified: new Date("2026-01-06"),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/mastering-spaced-repetition`,
+      lastModified: new Date("2026-01-04"),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/engineering-mechanics-101`,
+      lastModified: new Date("2025-12-28"),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
+      url: `${baseUrl}/blog/updates-jan-2026`,
+      lastModified: new Date("2026-01-02"),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+  ];
+
+  return [
+    ...staticPages,
+    ...subjectPages,
+    ...questionBankPages,
+    ...examPages,
+    ...blogPages,
+  ];
 }

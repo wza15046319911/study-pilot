@@ -30,7 +30,7 @@ export async function upsertSubject(
   }
 
   revalidatePath("/admin/subjects");
-  revalidatePath("/subjects");
+  revalidatePath("/library");
   return { success: true };
 }
 
@@ -54,7 +54,7 @@ export async function deleteSubject(id: number) {
   }
 
   revalidatePath("/admin/subjects");
-  revalidatePath("/subjects");
+  revalidatePath("/library");
   return { success: true };
 }
 

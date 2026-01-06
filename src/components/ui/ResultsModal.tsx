@@ -258,7 +258,7 @@ export function ResultsModal({
                     Again
                   </Button>
                   <Button
-                    onClick={() => router.push("/subjects")}
+                    onClick={() => router.push("/library")}
                     className="flex-1"
                   >
                     <Home className="size-4 mr-2" />

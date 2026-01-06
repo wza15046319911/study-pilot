@@ -12,6 +12,7 @@ interface QuestionBankItemProps {
   titleOverride?: string;
   subtitleOverride?: string;
   onClickOverride?: () => void;
+  subjectSlug?: string; // For constructing proper /library URLs
 }
 
 export function QuestionBankItem({
@@ -23,6 +24,7 @@ export function QuestionBankItem({
   titleOverride,
   subtitleOverride,
   onClickOverride,
+  subjectSlug,
 }: QuestionBankItemProps) {
   const router = useRouter();
 
@@ -31,7 +33,8 @@ export function QuestionBankItem({
   const isPremiumLocked = bank.is_premium && !isVip;
   const isReferralLocked = isReferralType && !isUnlocked;
   // Exams and Practice usually don't have lock logic or handled differently, but if we reuse this, let's respect bank object if present
-  const isLocked = (isPremiumLocked || isReferralLocked) && variant === "default"; 
+  const isLocked =
+    (isPremiumLocked || isReferralLocked) && variant === "default";
 
   const handleCardClick = () => {
     if (onClickOverride) {
@@ -40,7 +43,13 @@ export function QuestionBankItem({
     }
     // Navigate to the bank page regardless of lock status
     // The individual bank page handles the locked state display/unlocking logic
-    router.push(`/question-banks/${bank.slug}`);
+    // Use /library path if subjectSlug is provided
+    if (subjectSlug) {
+      router.push(`/library/${subjectSlug}/question-banks/${bank.slug}`);
+    } else {
+      // Fallback to old path for backwards compatibility (legacy usage)
+      router.push(`/library`);
+    }
   };
 
   const containerClasses = `group relative w-full aspect-[3/4] perspective-[1500px] cursor-pointer ${
@@ -72,16 +81,13 @@ export function QuestionBankItem({
       spine: "bg-[#0c4a6e]",
       textTitle: "text-[#f0f9ff]",
       textDesc: "text-sky-100",
-    }
+    },
   };
 
   const currentStyle = styles[variant];
 
   return (
-    <div
-      onClick={handleCardClick}
-      className={`${containerClasses}`}
-    >
+    <div onClick={handleCardClick} className={`${containerClasses}`}>
       {/* Book Container */}
       <div
         className={`relative w-full h-full duration-700 preserve-3d transition-transform ease-[cubic-bezier(0.25,1,0.5,1)] ${
@@ -91,7 +97,9 @@ export function QuestionBankItem({
         }`}
       >
         {/* ================= BACK COVER & PAGES (Static Base) ================= */}
-        <div className={`absolute inset-0 ${currentStyle.backCover} rounded-r-xl rounded-l-sm shadow-xl transform translate-z-[-20px]`}>
+        <div
+          className={`absolute inset-0 ${currentStyle.backCover} rounded-r-xl rounded-l-sm shadow-xl transform translate-z-[-20px]`}
+        >
           {/* Right page edges (Thickness) */}
           <div className="absolute top-1 bottom-1 right-0 w-6 bg-[#fffcf5] border-l border-gray-300 transform translate-x-5 rotate-y-90 origin-right rounded-sm">
             <div className="w-full h-full bg-[repeating-linear-gradient(90deg,transparent,transparent_1px,#e5e5e5_2px)] opacity-50" />
@@ -110,7 +118,9 @@ export function QuestionBankItem({
           }`}
         >
           {/* --- FRONT FACE --- */}
-          <div className={`absolute inset-0 ${currentStyle.frontCover} rounded-r-xl rounded-l-sm shadow-[inset_5px_0_15px_rgba(0,0,0,0.1)] overflow-hidden border-l-8 ${currentStyle.border} backface-hidden`}>
+          <div
+            className={`absolute inset-0 ${currentStyle.frontCover} rounded-r-xl rounded-l-sm shadow-[inset_5px_0_15px_rgba(0,0,0,0.1)] overflow-hidden border-l-8 ${currentStyle.border} backface-hidden`}
+          >
             {/* Kraft Paper Texture / Noise Overlay */}
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')] opacity-20 mix-blend-multiply" />
 
@@ -125,36 +135,36 @@ export function QuestionBankItem({
               {/* Top Badge */}
               <div className="flex justify-between items-start mb-4">
                 <div className="opacity-100">
-                  {variant === 'default' && (
-                     isReferralType ? (
-                    <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/90 to-violet-600/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-purple-400/50 text-purple-50 font-bold text-base tracking-wide">
-                      <Gift className="size-5 drop-shadow-md" />
-                      <span className="drop-shadow-md">Invite Unlock</span>
-                    </div>
-                  ) : bank.is_premium ? (
-                    <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500/90 to-amber-600/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-yellow-400/50 text-yellow-50 font-bold text-base tracking-wide">
-                      <Crown className="size-5 drop-shadow-md" />
-                      <span className="drop-shadow-md">
-                        Premium Collection
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500/90 to-emerald-600/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-green-400/50 text-green-50 font-bold text-base tracking-wide">
-                      <Star className="size-5 drop-shadow-md fill-green-50" />
-                      <span className="drop-shadow-md">Public Edition</span>
-                    </div>
-                  ))}
-                  {variant === 'exam' && (
+                  {variant === "default" &&
+                    (isReferralType ? (
+                      <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500/90 to-violet-600/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-purple-400/50 text-purple-50 font-bold text-base tracking-wide">
+                        <Gift className="size-5 drop-shadow-md" />
+                        <span className="drop-shadow-md">Invite Unlock</span>
+                      </div>
+                    ) : bank.is_premium ? (
+                      <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500/90 to-amber-600/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-yellow-400/50 text-yellow-50 font-bold text-base tracking-wide">
+                        <Crown className="size-5 drop-shadow-md" />
+                        <span className="drop-shadow-md">
+                          Premium Collection
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500/90 to-emerald-600/90 backdrop-blur-sm rounded-lg shadow-lg border-2 border-green-400/50 text-green-50 font-bold text-base tracking-wide">
+                        <Star className="size-5 drop-shadow-md fill-green-50" />
+                        <span className="drop-shadow-md">Public Edition</span>
+                      </div>
+                    ))}
+                  {variant === "exam" && (
                     <div className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg shadow-lg border border-white/30 text-white font-bold text-base tracking-wide">
                       <Crown className="size-5 drop-shadow-md" />
                       <span className="drop-shadow-md">Mock Exam</span>
                     </div>
                   )}
-                  {variant === 'practice' && (
-                     <div className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg shadow-lg border border-white/30 text-white font-bold text-base tracking-wide">
-                       <Star className="size-5 drop-shadow-md" />
-                       <span className="drop-shadow-md">Full Practice</span>
-                     </div>
+                  {variant === "practice" && (
+                    <div className="flex items-center gap-2 px-4 py-2 bg-white/20 backdrop-blur-sm rounded-lg shadow-lg border border-white/30 text-white font-bold text-base tracking-wide">
+                      <Star className="size-5 drop-shadow-md" />
+                      <span className="drop-shadow-md">Full Practice</span>
+                    </div>
                   )}
                 </div>
               </div>
@@ -162,13 +172,19 @@ export function QuestionBankItem({
               {/* Title Area */}
               <div className="mt-4 mb-auto">
                 <div className="w-12 h-0.5 bg-white/40 mb-4 mx-auto opacity-70" />
-                <h3 className={`text-2xl md:text-3xl font-serif font-bold ${currentStyle.textTitle} text-center leading-tight tracking-tight drop-shadow-md`}>
+                <h3
+                  className={`text-2xl md:text-3xl font-serif font-bold ${currentStyle.textTitle} text-center leading-tight tracking-tight drop-shadow-md`}
+                >
                   {titleOverride || bank.title}
                 </h3>
                 <div className="w-12 h-0.5 bg-white/40 mt-4 mx-auto opacity-70" />
-                <p className={`mt-6 ${currentStyle.textDesc} text-sm text-center font-serif leading-relaxed line-clamp-4 italic opacity-90 px-2 drop-shadow-sm`}>
+                <p
+                  className={`mt-6 ${currentStyle.textDesc} text-sm text-center font-serif leading-relaxed line-clamp-4 italic opacity-90 px-2 drop-shadow-sm`}
+                >
                   &ldquo;
-                  {subtitleOverride || bank.description || "A curated collection of problems."}
+                  {subtitleOverride ||
+                    bank.description ||
+                    "A curated collection of problems."}
                   &rdquo;
                 </p>
               </div>
@@ -176,8 +192,9 @@ export function QuestionBankItem({
               {/* Bottom Section */}
               <div className="flex flex-col items-center gap-3 mt-4">
                 <div className="text-xs font-mono text-white/60 tracking-widest uppercase opacity-90 border-t border-b border-white/20 py-1 px-3">
-                   {/* Logic for count or time */}
-                   {variant === 'exam' ? `${bank.duration_minutes || 120} MINS` 
+                  {/* Logic for count or time */}
+                  {variant === "exam"
+                    ? `${bank.duration_minutes || 120} MINS`
                     : `Vol. ${questionCount || "ALL"} Items`}
                 </div>
 
@@ -196,7 +213,9 @@ export function QuestionBankItem({
                     )}
                   </div>
                 ) : (
-                  <div className={`mt-2 ${currentStyle.textTitle} text-xs font-serif italic opacity-80`}>
+                  <div
+                    className={`mt-2 ${currentStyle.textTitle} text-xs font-serif italic opacity-80`}
+                  >
                     Click to Open
                   </div>
                 )}
@@ -215,7 +234,9 @@ export function QuestionBankItem({
           </div>
 
           {/* --- BACK FACE (Inside Cover) --- */}
-          <div className={`absolute inset-0 ${currentStyle.backCover} rounded-l-xl rounded-r-sm overflow-hidden transform rotate-y-180 backface-hidden border-r-8 border-black/20`}>
+          <div
+            className={`absolute inset-0 ${currentStyle.backCover} rounded-l-xl rounded-r-sm overflow-hidden transform rotate-y-180 backface-hidden border-r-8 border-black/20`}
+          >
             {/* Paper texture for inside cover */}
             <div className="absolute inset-2 border border-white/10 rounded-lg opacity-50 flex items-center justify-center">
               <div className="text-white/20 font-serif italic text-center p-8 text-sm">

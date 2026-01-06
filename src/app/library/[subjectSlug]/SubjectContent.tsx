@@ -102,10 +102,10 @@ export function SubjectContent({
                     <Lock className="size-6 text-slate-400 dark:text-slate-500" />
                   </div>
                   <h3 className="text-lg font-bold text-slate-500 dark:text-slate-400 mb-2">
-                    Configure Practice
+                    Practice ALL
                   </h3>
                   <p className="text-slate-400 dark:text-slate-500 text-sm mb-4">
-                    Create custom practice sessions
+                    Get access to ALL questions in this subject
                   </p>
                   <span className="text-xs font-bold text-amber-500 uppercase tracking-widest flex items-center gap-1">
                     Premium Only

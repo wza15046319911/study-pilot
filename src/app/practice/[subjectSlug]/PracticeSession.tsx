@@ -474,7 +474,7 @@ export function PracticeSession({
               <Button
                 variant="ghost"
                 className="w-full justify-center text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 group transform transition-all duration-200"
-                onClick={() => router.push("/question-banks")}
+                onClick={() => router.push("/library")}
               >
                 <LogOut className="mr-2 size-4 group-hover:-translate-x-1 transition-transform" />
                 Exit

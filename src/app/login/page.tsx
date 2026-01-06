@@ -53,7 +53,7 @@ function LoginForm() {
       });
 
       if (error) throw error;
-      router.push("/subjects");
+      router.push("/library");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -85,7 +85,7 @@ function LoginForm() {
       if (error) throw error;
       setMessage("Account created! Please check your email/login.");
       // Auto login often works unless email confirm is strictly enforced
-      router.push("/subjects");
+      router.push("/library");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign up failed");
     } finally {

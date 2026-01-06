@@ -27,7 +27,7 @@ export default async function ImmersivePracticePage(props: PageProps) {
   }
 
   if (!subjectSlug) {
-    redirect("/subjects");
+    redirect("/library");
   }
 
   // Fetch subject to ensure it exists
@@ -40,7 +40,7 @@ export default async function ImmersivePracticePage(props: PageProps) {
   const subject = subjectData as Subject | null;
 
   if (!subject) {
-    redirect("/subjects");
+    redirect("/library");
   }
 
   // Fetch first random question

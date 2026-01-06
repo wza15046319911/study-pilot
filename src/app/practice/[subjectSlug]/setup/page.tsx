@@ -36,7 +36,7 @@ export default async function SetupPage(props: PageProps) {
   const profile = profileData as Profile | null;
 
   if (!subjectSlug) {
-    redirect("/subjects");
+    redirect("/library");
   }
 
   // Fetch subject details by Slug
@@ -49,7 +49,7 @@ export default async function SetupPage(props: PageProps) {
   const subject = subjectData as Subject | null;
 
   if (!subject) {
-    redirect("/subjects");
+    redirect("/library");
   }
 
   // Fetch topics with real question count
