@@ -62,6 +62,12 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                 Library
               </Link>
               <Link
+                href="/calendar"
+                className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
+              >
+                Calendar
+              </Link>
+              <Link
                 href="/pricing"
                 className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
               >
