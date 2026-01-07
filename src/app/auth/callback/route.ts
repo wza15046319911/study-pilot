@@ -2,11 +2,42 @@ import { randomUUID } from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
+// Validate redirect path to prevent open redirect attacks
+function getSafeRedirectPath(path: string | null): string {
+  const defaultPath = "/library";
+
+  if (!path) return defaultPath;
+
+  // Must start with / and not contain protocol or double slashes
+  if (
+    !path.startsWith("/") ||
+    path.startsWith("//") ||
+    path.includes("://") ||
+    path.includes("\\")
+  ) {
+    return defaultPath;
+  }
+
+  // Only allow alphanumeric, hyphens, underscores, slashes, and query strings
+  const safePathRegex = /^\/[a-zA-Z0-9\-_\/\?=&%]*$/;
+  if (!safePathRegex.test(path)) {
+    return defaultPath;
+  }
+
+  return path;
+}
+
+// Validate referral code format
+function isValidReferralCode(code: string | null): boolean {
+  if (!code) return false;
+  return /^[A-Z0-9]{6}$/.test(code);
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const referralCode = searchParams.get("referral_code");
-  const next = searchParams.get("next") ?? "/library";
+  const next = getSafeRedirectPath(searchParams.get("next"));
 
   if (code) {
     const supabase = await createClient();
@@ -26,14 +57,14 @@ export async function GET(request: Request) {
           console.error("Failed to update active session", sessionError);
         }
 
-        if (referralCode) {
+        if (referralCode && isValidReferralCode(referralCode)) {
           try {
             // 1. Find referrer
             const { data: referral } = await (
               supabase.from("referral_codes") as any
             )
               .select("user_id")
-              .eq("code", referralCode)
+              .eq("code", referralCode.toUpperCase())
               .single();
 
             if (referral && referral.user_id !== user.id) {
