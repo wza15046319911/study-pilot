@@ -101,6 +101,7 @@ export default async function LibraryQuestionBankImmersivePage(
     last_practice_date: null,
     is_vip: false,
     vip_expires_at: null,
+    active_session_id: null,
   };
 
   return (

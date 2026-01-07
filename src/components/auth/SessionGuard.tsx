@@ -27,17 +27,13 @@ export default function SessionGuard() {
     let isMounted = true;
 
     const syncLocalSessionId = async (userId: string) => {
-      const { data, error } = await supabase
-        .from("profiles")
+      const { data, error } = await (supabase.from("profiles") as any)
         .select("active_session_id")
         .eq("id", userId)
         .single();
 
       if (!error && data?.active_session_id) {
-        window.localStorage.setItem(
-          LOCAL_SESSION_KEY,
-          data.active_session_id
-        );
+        window.localStorage.setItem(LOCAL_SESSION_KEY, data.active_session_id);
         return data.active_session_id;
       }
 
@@ -70,14 +66,13 @@ export default function SessionGuard() {
             filter: `id=eq.${user.id}`,
           },
           async (payload: ProfileRealtimePayload) => {
-            const newSessionId = payload.new?.active_session_id;
+            const newSessionId = (payload.new as any)?.active_session_id;
             if (!newSessionId) {
               return;
             }
 
-            const currentSessionId = window.localStorage.getItem(
-              LOCAL_SESSION_KEY
-            );
+            const currentSessionId =
+              window.localStorage.getItem(LOCAL_SESSION_KEY);
 
             if (!currentSessionId) {
               window.localStorage.setItem(LOCAL_SESSION_KEY, newSessionId);

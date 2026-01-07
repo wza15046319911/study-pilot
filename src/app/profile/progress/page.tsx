@@ -25,13 +25,13 @@ export default async function ProgressPage() {
     .single();
 
   const userForHeader = {
-    username: profile?.username || user.user_metadata?.name || "User",
+    username: (profile as any)?.username || user.user_metadata?.name || "User",
     avatar_url:
-      profile?.avatar_url ||
+      (profile as any)?.avatar_url ||
       user.user_metadata?.avatar_url ||
       user.user_metadata?.picture ||
       undefined,
-    is_vip: profile?.is_vip || false,
+    is_vip: (profile as any)?.is_vip || false,
   };
 
   // 3. Fetch Subjects and Topics
@@ -56,19 +56,21 @@ export default async function ProgressPage() {
   // We need to join with questions to get the tags
   const { data: userAnswersData } = await supabase
     .from("user_answers")
-    .select(`
+    .select(
+      `
       is_correct,
       questions (
         tags
       )
-    `)
+    `
+    )
     .eq("user_id", user.id);
 
   // --- Data Processing ---
 
   // A. Process Subjects and Topics with Progress
   const topicProgressMap = new Map(
-    (topicProgressData || []).map((tp) => [tp.topic_id, tp])
+    (topicProgressData || []).map((tp: any) => [tp.topic_id, tp])
   );
 
   const subjectsWithTopics: SubjectWithTopics[] = (subjectsData || []).map(
@@ -91,13 +93,15 @@ export default async function ProgressPage() {
       return {
         ...subject,
         topics: subjectTopics,
-        // Aggregate subject progress from topics if needed, 
+        // Aggregate subject progress from topics if needed,
         // or we could fetch user_progress table for subject level stats.
         // For now let's aggregate from topic progress for consistency in this view
         progress: subjectTopics.reduce(
           (acc, topic) => ({
-            correct_count: acc.correct_count + (topic.progress?.correct_count || 0),
-            completed_count: acc.completed_count + (topic.progress?.completed_count || 0),
+            correct_count:
+              acc.correct_count + (topic.progress?.correct_count || 0),
+            completed_count:
+              acc.completed_count + (topic.progress?.completed_count || 0),
           }),
           { correct_count: 0, completed_count: 0 }
         ),
@@ -109,12 +113,14 @@ export default async function ProgressPage() {
   const tagStatsMap = new Map<string, { total: number; correct: number }>();
 
   // Join result type assertion
-  const answersWithTags = userAnswersData as unknown as {
-    is_correct: boolean;
-    questions: {
-      tags: string[] | null;
-    } | null;
-  }[] | null;
+  const answersWithTags = userAnswersData as unknown as
+    | {
+        is_correct: boolean;
+        questions: {
+          tags: string[] | null;
+        } | null;
+      }[]
+    | null;
 
   (answersWithTags || []).forEach((answer) => {
     const tags = answer.questions?.tags || [];
@@ -136,7 +142,8 @@ export default async function ProgressPage() {
       tag,
       total: stats.total,
       correct: stats.correct,
-      accuracy: stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0,
+      accuracy:
+        stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0,
     })
   );
 

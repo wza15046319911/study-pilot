@@ -18,8 +18,7 @@ export async function GET(request: Request) {
 
       if (user) {
         const newSessionId = randomUUID();
-        const { error: sessionError } = await supabase
-          .from("profiles")
+        const { error: sessionError } = await (supabase.from("profiles") as any)
           .update({ active_session_id: newSessionId })
           .eq("id", user.id);
 
@@ -39,8 +38,9 @@ export async function GET(request: Request) {
 
             if (referral && referral.user_id !== user.id) {
               // 2. Check if already referred
-              const { data: existing } = await supabase
-                .from("referrals")
+              const { data: existing } = await (
+                supabase.from("referrals") as any
+              )
                 .select("id")
                 .eq("referee_id", user.id)
                 .single();
