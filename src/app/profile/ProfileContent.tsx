@@ -3,13 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import {
-  Profile,
-  UserProgress,
-  Subject,
-  Mistake,
-  Question,
-} from "@/types/database";
+import { Profile, Subject, Mistake, Question } from "@/types/database";
 import {
   Check,
   Edit2,
@@ -26,9 +20,17 @@ import {
   Layers,
 } from "lucide-react";
 
+import { DailyTrendChart } from "./analytics/DailyTrendChart";
+import { DifficultyAnalysis } from "./analytics/DifficultyAnalysis";
+import { SubjectRadarChart } from "./analytics/SubjectRadarChart";
+
 // Combined types for props
-interface ProgressWithSubject extends UserProgress {
+// Combined types for props
+interface ProgressWithSubject {
   subjects: Subject;
+  total_attempts: number;
+  unique_completed: number;
+  unique_correct: number;
 }
 
 interface MistakeWithQuestion extends Mistake {
@@ -52,6 +54,17 @@ interface ProfileContentProps {
     correct: number;
     accuracy: number;
   };
+  dailyActivity: {
+    date: string;
+    count: number;
+    correct: number;
+  }[];
+  difficultyStats: {
+    level: string;
+    total: number;
+    correct: number;
+    accuracy: number;
+  }[];
   referralStats: {
     totalReferrals: number;
     unusedReferrals: number;
@@ -75,17 +88,19 @@ export function ProfileContent({
   mistakes,
   bookmarks,
   answerStats,
+  dailyActivity,
+  difficultyStats,
   referralStats,
   accessibleBanks,
   isAdmin = false,
 }: ProfileContentProps) {
   // Calculate stats
-  // unused for now: const totalCompleted = progress.reduce((acc, curr) => acc + (curr.completed_count || 0), 0);
+  // unused for now: const totalCompleted = progress.reduce((acc, curr) => acc + (curr.unique_completed || 0), 0);
 
   // Format progress data for display
   const progressDisplay = progress.map((p) => {
     const total = p.subjects.question_count || 0;
-    const completed = p.completed_count || 0;
+    const completed = p.unique_completed || 0;
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
 
     return {
@@ -122,6 +137,29 @@ export function ProfileContent({
           Profile
         </span>
       </div>
+
+      {/* Empty State for New Users */}
+      {answerStats.total === 0 && (
+        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-3xl p-8 mb-8 border border-blue-100 dark:border-blue-800 text-center">
+          <div className="max-w-xl mx-auto">
+            <div className="size-16 bg-blue-100 dark:bg-blue-800 rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-600 dark:text-blue-300">
+              <TrendingUp className="size-8" />
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              Start Your First Practice Session
+            </h2>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              You haven't answered any questions yet. Pick a subject and start
+              practicing to see your personalized analytics here!
+            </p>
+            <Link href="/library">
+              <Button size="lg" className="rounded-full px-8">
+                Explore Subjects
+              </Button>
+            </Link>
+          </div>
+        </div>
+      )}
 
       <div className="grid lg:grid-cols-12 gap-8">
         {/* Left Column - Profile Card */}
@@ -203,16 +241,8 @@ export function ProfileContent({
                 </div>
               </div>
 
-              <Button
-                variant="outline"
-                className="w-full rounded-xl border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-800 text-slate-900 dark:text-white"
-              >
-                <Edit2 className="mr-2 size-4" />
-                Edit Profile
-              </Button>
-
               {isAdmin && (
-                <div className="w-full mt-4">
+                <div className="w-full">
                   <Link href="/admin">
                     <Button
                       variant="primary"
@@ -268,58 +298,42 @@ export function ProfileContent({
 
         {/* Right Column - Stats & Content */}
         <div className="lg:col-span-8 space-y-8">
-          {/* Learning Progress */}
+          {/* Analytics Dashboard */}
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm">
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
-                  <TrendingUp className="size-5" />
-                </div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                  Learning Progress
-                </h2>
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
+                <TrendingUp className="size-5" />
               </div>
-              <Link
-                href="/library"
-                className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
-              >
-                View All
-              </Link>
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                Analytics Dashboard
+              </h2>
             </div>
 
-            <div className="space-y-6">
-              {progressDisplay.length > 0 ? (
-                progressDisplay.map((item, i) => (
-                  <Link
-                    href={`/library/${item.slug}/setup`}
-                    key={i}
-                    className="block group"
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="font-semibold text-gray-900 dark:text-white group-hover:text-blue-600 transition-colors">
-                        {item.subject}
-                      </span>
-                      <span className="text-xs font-medium text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded-md">
-                        {item.percentage}%
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          item.percentage === 100
-                            ? "bg-green-500"
-                            : "bg-blue-600"
-                        }`}
-                        style={{ width: `${item.percentage}%` }}
-                      />
-                    </div>
-                  </Link>
-                ))
-              ) : (
-                <div className="text-center py-6 text-gray-500 text-sm">
-                  No progress recorded yet.
-                </div>
-              )}
+            {/* Stacked Layout */}
+            <div className="flex flex-col gap-8">
+              {/* Daily Activity */}
+              <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-6">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                  Daily Activity (Last 30 Days)
+                </h3>
+                <DailyTrendChart data={dailyActivity} />
+              </div>
+
+              {/* Difficulty Analysis */}
+              <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-6">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                  Difficulty Analysis
+                </h3>
+                <DifficultyAnalysis stats={difficultyStats} />
+              </div>
+
+              {/* Subject Radar */}
+              <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-6">
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
+                  Subject Mastery
+                </h3>
+                <SubjectRadarChart progress={progress} />
+              </div>
             </div>
           </div>
 

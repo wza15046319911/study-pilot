@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { ReferralDashboard } from "./ReferralDashboard";
 import { Header } from "@/components/layout/Header";
-import { AmbientBackground } from "@/components/layout/AmbientBackground";
+// import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { Profile } from "@/types/database";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
@@ -81,7 +81,7 @@ export default async function ReferralsPage() {
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
-      <AmbientBackground />
+      {/* <AmbientBackground /> */}
       <Header user={headerUser} />
 
       <main className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

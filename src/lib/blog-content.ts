@@ -17,6 +17,23 @@ export interface BlogPost {
 
 export const blogPosts: BlogPost[] = [
   {
+    slug: "forgetting-curve-mistake-review",
+    title: "The Forgetting Curve: Why Reviewing Mistakes is Non-Negotiable",
+    excerpt:
+      "Understand Hermann Ebbinghaus's Forgetting Curve and how to use strategic mistake review to hack your memory retention.",
+    date: "Jan 8, 2026",
+    readTime: "6 min read",
+    category: "Learning Science",
+    author: {
+      name: "James Doe",
+      role: "Lead Educator",
+      avatar: "JD",
+    },
+    tags: ["Learning Science", "Productivity", "Memory"],
+    coverImage: "/images/blog/forgetting-curve.jpg", // Placeholder
+    content: "<p>Read full article...</p>",
+  },
+  {
     slug: "why-you-shouldnt-trust-ai-for-exam-answers",
     title: "Why You Shouldn't Rely on AI for Exam Answers",
     excerpt:

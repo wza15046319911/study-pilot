@@ -3,6 +3,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Theme Variables */
+html {
+  font-size: 106.25%; /* approx 17px base size */
+}
+
 :root {
   --primary: #135bec;
   --primary-dark: #0e45b8;
@@ -146,9 +150,16 @@ body {
 }
 
 @keyframes shake-small {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-2px); }
-  75% { transform: translateX(2px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-2px);
+  }
+  75% {
+    transform: translateX(2px);
+  }
 }
 
 .animate-shake-small {

@@ -74,27 +74,42 @@ export function PracticeSession({
   // Handle Fullscreen changes (e.g. user presses Esc)
   useEffect(() => {
     const handleFullscreenChange = () => {
-      setIsFocusMode(!!document.fullscreenElement);
+      // Sync focus mode state with actual fullscreen state
+      const isFullscreen = !!document.fullscreenElement;
+      setIsFocusMode(isFullscreen);
     };
     document.addEventListener("fullscreenchange", handleFullscreenChange);
-    return () =>
+    // Also listen to webkit prefix for Safari
+    document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+    return () => {
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
+      document.removeEventListener(
+        "webkitfullscreenchange",
+        handleFullscreenChange
+      );
+    };
   }, []);
 
   const toggleFocusMode = async () => {
     if (!isFocusMode) {
       try {
         await document.documentElement.requestFullscreen();
+        // State will be updated by fullscreenchange event
       } catch (err) {
         console.error("Error attempting to enable fullscreen:", err);
-        // Still enable focus mode UI even if fullscreen fails
+        // Fullscreen not supported or blocked, just toggle the focus UI
         setIsFocusMode(true);
       }
     } else {
+      // Always reset focus mode state first
+      setIsFocusMode(false);
+      // Then exit fullscreen if we're in it
       if (document.fullscreenElement) {
-        await document.exitFullscreen();
-      } else {
-        setIsFocusMode(false);
+        try {
+          await document.exitFullscreen();
+        } catch (err) {
+          console.error("Error exiting fullscreen:", err);
+        }
       }
     }
   };
@@ -162,7 +177,7 @@ export function PracticeSession({
       .select("id")
       .eq("user_id", user.id)
       .eq("question_id", questionId)
-      .single();
+      .maybeSingle();
 
     if (!existing) {
       await supabase.from("mistakes").insert({
@@ -218,10 +233,7 @@ export function PracticeSession({
       return;
     }
 
-    const isCorrect =
-      currentQuestion.type === "handwrite"
-        ? true // Always marked "correct" for logic flow, but user sees self-check
-        : answer === currentQuestion.answer;
+    const isCorrect = answer === currentQuestion.answer;
 
     // Record answer for progress tracking
     const { recordAnswer } = await import("@/lib/actions/recordAnswer");
@@ -234,12 +246,12 @@ export function PracticeSession({
         .select("error_count")
         .eq("user_id", user.id)
         .eq("question_id", currentQuestion.id)
-        .single();
+        .maybeSingle();
 
       const existing = existingData as { error_count: number } | null;
       const newCount = (existing?.error_count || 0) + 1;
 
-      await supabase.from("mistakes").upsert(
+      const { error: upsertError } = await supabase.from("mistakes").upsert(
         {
           user_id: user.id,
           question_id: currentQuestion.id,
@@ -250,9 +262,12 @@ export function PracticeSession({
         } as any,
         { onConflict: "user_id,question_id" }
       );
+
+      if (upsertError) {
+        console.error("Failed to record mistake:", upsertError);
+      }
     }
   };
-
 
   const handleNext = async () => {
     if (!answers[currentQuestion.id]) return;
@@ -309,20 +324,6 @@ export function PracticeSession({
     }
   };
 
-
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "easy":
-        return "bg-green-100 text-green-600";
-      case "medium":
-        return "bg-yellow-100 text-yellow-600";
-      case "hard":
-        return "bg-red-100 text-red-600";
-      default:
-        return "bg-gray-100 text-gray-600";
-    }
-  };
-
   // Parse options safely
   const options = currentQuestion.options as unknown as QuestionOption[] | null;
 
@@ -330,37 +331,8 @@ export function PracticeSession({
   const progressPercentage =
     (Object.keys(checkedAnswers).length / questions.length) * 100;
 
-  // Keyboard Navigation
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if user is typing in an input/textarea
-      if (
-        document.activeElement?.tagName === "INPUT" ||
-        document.activeElement?.tagName === "TEXTAREA"
-      ) {
-        return;
-      }
-
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        setCurrentIndex((prev) => Math.max(0, prev - 1));
-      } else if (e.key === "ArrowDown") {
-        e.preventDefault();
-        setCurrentIndex((prev) => Math.min(questions.length - 1, prev + 1));
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    currentIndex,
-    isChecked,
-    answers,
-    questions.length,
-    isSubmitting,
-    handleNext,
-    handleCheck,
-  ]);
+  // Keyboard navigation is disabled - question switching should be fully user-controlled
+  // Users can navigate using the question navigator or Next/Previous buttons only
 
   return (
     <div
@@ -834,19 +806,32 @@ export function PracticeSession({
             Previous
           </Button>
 
-          <Button
-            onClick={isChecked ? handleNext : () => handleCheck()}
-            className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-all active:scale-95 group gap-2"
-          >
-            {isChecked
-              ? currentIndex === questions.length - 1
-                ? "Finish Exam"
-                : "Next Question"
-              : "Submit Answer"}
-            <span className="text-xs px-1.5 py-0.5 rounded border border-white/20 bg-white/10 text-white/80 group-hover:text-white transition-colors">
-              ↓
-            </span>
-          </Button>
+          <div className="flex items-center gap-3">
+            {!isChecked ? (
+              <Button
+                onClick={() => handleCheck()}
+                disabled={!answers[currentQuestion.id]}
+                className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-all active:scale-95 group gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Submit Answer
+                <span className="text-xs px-1.5 py-0.5 rounded border border-white/20 bg-white/10 text-white/80 group-hover:text-white transition-colors">
+                  ✓
+                </span>
+              </Button>
+            ) : (
+              <Button
+                onClick={handleNext}
+                className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-all active:scale-95 group gap-2"
+              >
+                {currentIndex === questions.length - 1
+                  ? "Finish Exam"
+                  : "Next Question"}
+                <span className="text-xs px-1.5 py-0.5 rounded border border-white/20 bg-white/10 text-white/80 group-hover:text-white transition-colors">
+                  ↓
+                </span>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 

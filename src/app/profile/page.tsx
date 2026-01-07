@@ -1,22 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/Header";
-import { AmbientBackground } from "@/components/layout/AmbientBackground";
+// import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { ProfileContent } from "./ProfileContent";
 import { getReferralStats } from "@/lib/actions/referral";
-import {
-  Profile,
-  UserProgress,
-  Subject,
-  Mistake,
-  Question,
-} from "@/types/database";
+import { Profile, Subject, Mistake, Question } from "@/types/database";
 
-// Combined type for progress join query
-// Note: Supabase types are raw table rows, not joined result.
-// We need to define the shape of the join result.
-interface UserProgressWithSubject extends UserProgress {
+// Combined type for progress data calculated from user_answers
+interface ProgressWithSubject {
   subjects: Subject;
+  total_attempts: number;
+  unique_completed: number;
+  unique_correct: number;
 }
 
 interface MistakeWithQuestion extends Mistake {
@@ -43,16 +38,152 @@ export default async function ProfilePage() {
 
   const profile = profileData as Profile | null;
 
-  // Fetch user progress with subject details
-  // Note: Type assertion needed for joined data
-  const { data: progressData } = await supabase
-    .from("user_progress")
-    .select("*, subjects(*)")
-    .eq("user_id", user.id);
+  // Fetch user answers with question and subject details for progress calculation
+  const { data: userAnswersData } = (await supabase
+    .from("user_answers")
+    .select(
+      `
+      is_correct,
+      question_id,
+      created_at,
+      questions!inner (
+        subject_id,
+        difficulty,
+        subjects!inner (
+          id,
+          name,
+          slug,
+          category,
+          question_count
+        )
+      )
+    `
+    )
+    .eq("user_id", user.id)) as {
+    data:
+      | {
+          is_correct: boolean;
+          question_id: number;
+          created_at: string;
+          questions: {
+            subject_id: number;
+            difficulty: string;
+            subjects: any;
+          };
+        }[]
+      | null;
+  };
 
-  // Cast to correct type (handling the joined relationship being an object or array depending on relationship)
-  // Usually singular relation -> object
-  const progress = progressData as unknown as UserProgressWithSubject[] | null;
+  // Aggregate progress by subject from user_answers
+  const progressBySubject = new Map<
+    number,
+    {
+      subject: any;
+      totalAttempts: number;
+      uniqueCompleted: Set<number>;
+      uniqueCorrect: Set<number>;
+    }
+  >();
+
+  // --- Analytics Aggregation ---
+
+  // 1. Daily Activity (Last 14 Days)
+  const dailyActivityMap = new Map<
+    string,
+    { date: string; count: number; correct: number }
+  >();
+  const today = new Date();
+
+  // Initialize last 30 days with 0
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(today.getDate() - i);
+    const dateStr = d.toISOString().split("T")[0]; // YYYY-MM-DD
+    dailyActivityMap.set(dateStr, {
+      date: new Date(dateStr).toLocaleDateString(undefined, {
+        month: "short",
+        day: "numeric",
+      }),
+      count: 0,
+      correct: 0,
+    });
+  }
+
+  // 2. Difficulty Stats
+  const difficultyStatsMap = new Map<
+    string,
+    { total: number; correct: number }
+  >();
+  ["easy", "medium", "hard"].forEach((level) => {
+    difficultyStatsMap.set(level, { total: 0, correct: 0 });
+  });
+
+  if (userAnswersData) {
+    for (const answer of userAnswersData) {
+      // Daily Activity processing
+      const dateStr = new Date(answer.created_at).toISOString().split("T")[0];
+      if (dailyActivityMap.has(dateStr)) {
+        const dayStat = dailyActivityMap.get(dateStr)!;
+        dayStat.count++;
+        if (answer.is_correct) dayStat.correct++;
+        // map updates by reference, but set just in case
+      }
+
+      // Difficulty processing
+      const difficulty = answer.questions.difficulty?.toLowerCase() || "medium";
+      // Normalize difficulty levels if needed (e.g. if db has 'Medium' or 'Normal')
+      let normalizedDifficulty = "medium";
+      if (difficulty.includes("easy")) normalizedDifficulty = "easy";
+      if (difficulty.includes("hard")) normalizedDifficulty = "hard";
+
+      const diffStat = difficultyStatsMap.get(normalizedDifficulty) || {
+        total: 0,
+        correct: 0,
+      };
+      diffStat.total++;
+      if (answer.is_correct) diffStat.correct++;
+      difficultyStatsMap.set(normalizedDifficulty, diffStat); // Update map if it was a new entry
+
+      // ... existing Subject Logic ...
+      const question = answer.questions as any;
+      if (!question || !question.subjects) continue;
+
+      const subjectId = question.subjects.id;
+      const existing = progressBySubject.get(subjectId) || {
+        subject: question.subjects,
+        totalAttempts: 0,
+        uniqueCompleted: new Set<number>(),
+        uniqueCorrect: new Set<number>(),
+      };
+
+      existing.totalAttempts++;
+      existing.uniqueCompleted.add(answer.question_id);
+      if (answer.is_correct) {
+        existing.uniqueCorrect.add(answer.question_id);
+      }
+      progressBySubject.set(subjectId, existing);
+    }
+  }
+
+  const dailyActivity = Array.from(dailyActivityMap.values());
+
+  const difficultyStats = Array.from(difficultyStatsMap.entries()).map(
+    ([level, stats]) => ({
+      level: level.charAt(0).toUpperCase() + level.slice(1),
+      total: stats.total,
+      correct: stats.correct,
+      accuracy:
+        stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0,
+    })
+  );
+
+  // Convert to array format expected by ProfileContent
+  const progress = Array.from(progressBySubject.values()).map((item) => ({
+    subjects: item.subject,
+    total_attempts: item.totalAttempts,
+    unique_completed: item.uniqueCompleted.size,
+    unique_correct: item.uniqueCorrect.size,
+  }));
 
   // Fetch mistakes with question details
   const { data: mistakesData } = await supabase
@@ -72,7 +203,7 @@ export default async function ProfilePage() {
     .order("created_at", { ascending: false })
     .limit(5);
 
-  const bookmarks = bookmarksData as unknown as MistakeWithQuestion[] | null; // Using same type for simplicity as structure is similar enough for now or I can define proper type
+  const bookmarks = bookmarksData as unknown as MistakeWithQuestion[] | null;
 
   // Fetch aggregate stats from user_answers
   const { count: totalQuestionsAnswered } = await supabase
@@ -123,23 +254,38 @@ export default async function ProfilePage() {
   const isVip = profile?.is_vip || false;
   const accessibleBanks = (allBanks || [])
     .filter((bank: any) => {
+      const isPremium = bank.is_premium || bank.unlock_type !== "free";
+
       // Free banks (not premium) are accessible to everyone
-      if (!bank.is_premium) return true;
+      if (!isPremium) return true;
+
       // Premium banks: only if VIP or explicitly unlocked
       if (isVip) return true;
       if (unlockedBankIds.has(bank.id)) return true;
       return false;
     })
-    .map((bank: any) => ({
-      ...bank,
-      access_status: !bank.is_premium
-        ? ("Free" as const)
-        : unlockedBankIds.has(bank.id)
-        ? ("Unlocked" as const)
-        : isVip
-        ? ("VIP" as const)
-        : ("Free" as const), // Fallback, shouldn't reach here
-    }));
+    .map((bank: any) => {
+      // Determine if really premium based on flag OR unlock type
+      const isPremium = bank.is_premium || bank.unlock_type !== "free";
+
+      let status: "Free" | "Unlocked" | "Premium" = "Free";
+
+      if (isPremium) {
+        if (unlockedBankIds.has(bank.id)) {
+          status = "Unlocked";
+        } else if (isVip) {
+          status = "Premium";
+        } else {
+          // Should be filtered out by previous step, but safe fallback
+          status = "Premium";
+        }
+      }
+
+      return {
+        ...bank,
+        access_status: status,
+      };
+    });
 
   // Fallback profile if not found (should be handled by trigger, but just in case)
   // Also merge auth metadata avatar if profile doesn't have one
@@ -179,7 +325,7 @@ export default async function ProfilePage() {
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
-      <AmbientBackground />
+      {/* <AmbientBackground /> */}
       <Header user={headerUser} />
 
       <main className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -189,6 +335,8 @@ export default async function ProfilePage() {
           mistakes={mistakes || []}
           bookmarks={bookmarks || []}
           answerStats={answerStats}
+          dailyActivity={dailyActivity}
+          difficultyStats={difficultyStats}
           referralStats={
             referralStats || {
               totalReferrals: 0,

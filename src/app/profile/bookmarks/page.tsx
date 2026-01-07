@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import BookmarksClient from "./BookmarksClient";
 import { Header } from "@/components/layout/Header";
-import { AmbientBackground } from "@/components/layout/AmbientBackground";
+// import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { Profile } from "@/types/database";
 
 export default async function BookmarksPage() {
@@ -85,7 +85,7 @@ export default async function BookmarksPage() {
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
-      <AmbientBackground />
+      {/* <AmbientBackground /> */}
       <Header user={headerUser} />
       <main className="flex-grow flex flex-col w-full">
         <BookmarksClient bookmarks={bookmarks || []} userId={user.id} />

@@ -269,7 +269,7 @@ export function WholePageScroll({
               </button>
 
               {/* Carousel Content */}
-              <div className="overflow-hidden rounded-3xl bg-card border border-border shadow-2xl shadow-blue-900/5">
+              <div className="overflow-hidden rounded-3xl bg-card border border-border shadow-2xl shadow-gray-900/5">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentFeature}
@@ -307,7 +307,7 @@ export function WholePageScroll({
                     {/* Feature Visual Placeholder */}
                     <div className="bg-muted rounded-2xl border border-border min-h-[350px] flex flex-col relative overflow-hidden group">
                       {features[currentFeature].title === "Mock Exam" ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-[#F5F3FF] p-6 lg:p-8">
+                        <div className="absolute inset-0 flex items-center justify-center bg-muted p-6 lg:p-8">
                           {/* Exam Timer & Paper UI */}
                           <div className="relative w-full max-w-sm flex flex-col gap-4">
                             {/* Floating Timer */}
@@ -370,7 +370,7 @@ export function WholePageScroll({
                           </div>
                         </div>
                       ) : features[currentFeature].title === "Practice Mode" ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-[#EFF6FF] p-6 lg:p-8">
+                        <div className="absolute inset-0 flex items-center justify-center bg-muted p-6 lg:p-8">
                           {/* Main Question Card */}
                           <motion.div
                             className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden flex flex-col"
@@ -420,7 +420,7 @@ export function WholePageScroll({
                           </motion.div>
                         </div>
                       ) : features[currentFeature].title === "AI Tutor" ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-[#F5F3FF] p-6 lg:p-8">
+                        <div className="absolute inset-0 flex items-center justify-center bg-muted p-6 lg:p-8">
                           <div className="relative w-full max-w-sm">
                             {/* Question Context (Behind) */}
                             <motion.div
@@ -477,7 +477,7 @@ export function WholePageScroll({
                           </div>
                         </div>
                       ) : features[currentFeature].title === "Question Bank" ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-[#EEF2FF] p-6 lg:p-8">
+                        <div className="absolute inset-0 flex items-center justify-center bg-muted p-6 lg:p-8">
                           {/* Folder/File UI Container */}
                           <motion.div
                             className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden flex flex-col"
@@ -577,7 +577,7 @@ export function WholePageScroll({
                           </motion.div>
                         </div>
                       ) : features[currentFeature].title === "Smart Review" ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-[#F3E8FF] p-6 lg:p-8">
+                        <div className="absolute inset-0 flex items-center justify-center bg-muted p-6 lg:p-8">
                           <motion.div
                             className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-purple-100 p-6"
                             initial={{ scale: 0.9, opacity: 0 }}
@@ -651,7 +651,7 @@ export function WholePageScroll({
                         </div>
                       ) : features[currentFeature].title ===
                         "Spaced Repetition" ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-[#F0FDF4] p-6 lg:p-8">
+                        <div className="absolute inset-0 flex items-center justify-center bg-muted p-6 lg:p-8">
                           <div className="relative w-full max-w-sm h-64 flex items-center justify-center">
                             {/* Cards Stack */}
                             <motion.div

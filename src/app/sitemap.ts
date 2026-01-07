@@ -114,6 +114,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.8,
     },
     {
+      url: `${baseUrl}/blog/forgetting-curve-mistake-review`,
+      lastModified: new Date("2026-01-08"),
+      changeFrequency: "monthly",
+      priority: 0.7,
+    },
+    {
       url: `${baseUrl}/blog/why-you-shouldnt-trust-ai-for-exam-answers`,
       lastModified: new Date("2026-01-06"),
       changeFrequency: "monthly",

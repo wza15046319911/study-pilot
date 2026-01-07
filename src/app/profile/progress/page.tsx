@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/Header";
-import { AmbientBackground } from "@/components/layout/AmbientBackground";
+// import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { ProgressClient, SubjectWithTopics, TagStat } from "./ProgressClient";
 import { Subject, Topic } from "@/types/database";
 
@@ -35,7 +35,6 @@ export default async function ProgressPage() {
   };
 
   // 3. Fetch Subjects and Topics
-  // We want all subjects and their topics.
   const { data: subjectsData } = await supabase
     .from("subjects")
     .select("*")
@@ -43,44 +42,78 @@ export default async function ProgressPage() {
 
   const { data: topicsData } = await supabase
     .from("topics")
-    .select("*")
+    .select("*, questions(count)")
     .order("name");
 
-  // 4. Fetch Topic Progress
-  const { data: topicProgressData } = await supabase
-    .from("topic_progress")
-    .select("*")
-    .eq("user_id", user.id);
-
-  // 5. Fetch User Answers for Tag Analysis
-  // We need to join with questions to get the tags
-  const { data: userAnswersData } = await supabase
+  // 4. Fetch User Answers with Question Details
+  const { data: userAnswersData } = (await supabase
     .from("user_answers")
     .select(
       `
       is_correct,
-      questions (
+      questions!inner (
+        id,
+        subject_id,
+        topic_id,
         tags
       )
     `
     )
-    .eq("user_id", user.id);
+    .eq("user_id", user.id)) as { data: any[] | null };
 
   // --- Data Processing ---
 
-  // A. Process Subjects and Topics with Progress
-  const topicProgressMap = new Map(
-    (topicProgressData || []).map((tp: any) => [tp.topic_id, tp])
-  );
+  // A. Calculate Topic Progress from user_answers
+  // A. Calculate Topic Progress from user_answers
+  // Use map of Sets to track unique question IDs
+  const topicStatsMap = new Map<
+    number,
+    { correctIds: Set<number>; completedIds: Set<number> }
+  >();
 
+  if (userAnswersData) {
+    for (const answer of userAnswersData) {
+      const question = answer.questions as any;
+      if (!question || !question.topic_id) continue;
+
+      const topicId = question.topic_id;
+      const existing = topicStatsMap.get(topicId) || {
+        correctIds: new Set<number>(),
+        completedIds: new Set<number>(),
+      };
+
+      existing.completedIds.add(question.id);
+      if (answer.is_correct) existing.correctIds.add(question.id);
+      topicStatsMap.set(topicId, existing);
+    }
+  }
+
+  // Convert Sets to counts for valid progress objects
+  const topicProgressMap = new Map<
+    number,
+    { correct_count: number; completed_count: number }
+  >();
+
+  topicStatsMap.forEach((stats, topicId) => {
+    topicProgressMap.set(topicId, {
+      correct_count: stats.correctIds.size,
+      completed_count: stats.completedIds.size,
+    });
+  });
+
+  // B. Build Subjects with Topics and Progress
   const subjectsWithTopics: SubjectWithTopics[] = (subjectsData || []).map(
     (subject: Subject) => {
       const subjectTopics = (topicsData || [])
         .filter((topic: Topic) => topic.subject_id === subject.id)
         .map((topic: Topic) => {
           const progress = topicProgressMap.get(topic.id);
+          // Flatten question count
+          const qCount = (topic as any).questions?.[0]?.count || 0;
+
           return {
             ...topic,
+            question_count: qCount,
             progress: progress
               ? {
                   correct_count: progress.correct_count,
@@ -93,9 +126,7 @@ export default async function ProgressPage() {
       return {
         ...subject,
         topics: subjectTopics,
-        // Aggregate subject progress from topics if needed,
-        // or we could fetch user_progress table for subject level stats.
-        // For now let's aggregate from topic progress for consistency in this view
+        // Aggregate subject progress from topics
         progress: subjectTopics.reduce(
           (acc, topic) => ({
             correct_count:
@@ -109,10 +140,9 @@ export default async function ProgressPage() {
     }
   );
 
-  // B. Process Tag Stats
+  // C. Process Tag Stats from user_answers
   const tagStatsMap = new Map<string, { total: number; correct: number }>();
 
-  // Join result type assertion
   const answersWithTags = userAnswersData as unknown as
     | {
         is_correct: boolean;
@@ -158,7 +188,7 @@ export default async function ProgressPage() {
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
-      <AmbientBackground />
+      {/* <AmbientBackground /> */}
       <Header user={userForHeader} />
 
       <main className="flex-grow w-full px-4 sm:px-6 lg:px-8 py-8">

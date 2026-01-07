@@ -34,36 +34,5 @@ export async function recordAnswer(
     time_spent: timeSpent,
     mode: mode,
   });
-
-  // Get the question's subject_id and topic_id for progress update
-  const { data: questionData } = await supabase
-    .from("questions")
-    .select("subject_id, topic_id")
-    .eq("id", questionId)
-    .single();
-
-  const question = questionData as {
-    subject_id: number;
-    topic_id: number | null;
-  } | null;
-
-  if (question) {
-    // Use the RPC function (will be available after running migration)
-    await (supabase as any).rpc("increment_subject_progress", {
-      p_user_id: user.id,
-      p_subject_id: question.subject_id,
-      p_is_correct: isCorrect,
-    });
-
-    if (question.topic_id) {
-      await (supabase as any).rpc("increment_topic_progress", {
-        p_user_id: user.id,
-        p_topic_id: question.topic_id,
-        p_is_correct: isCorrect,
-      });
-    }
-  }
-
-  revalidatePath("/profile");
   return { success: true };
 }
