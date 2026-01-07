@@ -16,6 +16,7 @@ import {
   isPromotionActive,
 } from "@/components/ui/CountdownTimer";
 import { CheckoutButton } from "@/components/payment/CheckoutButton";
+import { FAQSection } from "@/components/common/FAQSection";
 
 // Early Bird Promotion Config
 const PROMO_END_DATE = new Date("2026-02-06T23:59:59+11:00"); // Feb 6, 2026 AEST
@@ -333,6 +334,39 @@ export function PricingContent() {
           </div>
         </GlassPanel>
       </section>
+
+      {/* Pricing FAQ Section */}
+      <FAQSection
+        items={[
+          {
+            question: "Can I cancel my subscription anytime?",
+            answer:
+              "Absolutely. If you choose a subscription plan (future), you can cancel anytime. For our current Lifetime Access deal, it's a one-time payment with no recurring fees.",
+          },
+          {
+            question: "Do you offer student discounts?",
+            answer:
+              "Our pricing is already optimized for students. The Lifetime Access plan is priced to be affordable for a student budget, equivalent to the cost of a few coffees.",
+          },
+          {
+            question: "What payment methods do you accept?",
+            answer:
+              "We accept all major credit cards (Visa, Mastercard, Amex), Apple Pay, and Google Pay through our secure payment processor Stripe.",
+          },
+          {
+            question: "Is there a money-back guarantee?",
+            answer:
+              "Yes! We offer a full 30-day money-back guarantee. If you're not satisfied with StudyPilot for any reason, just contact us for a full refund.",
+          },
+          {
+            question: "What happens after the early bird promotion ends?",
+            answer:
+              "Once the early bird promotion ends, correct pricing will revert to the regular price. We recommend locking in the lifetime deal now to save over 60%.",
+          },
+        ]}
+        className="mt-16 bg-white/50 dark:bg-black/20"
+      />
     </main>
   );
 }
+

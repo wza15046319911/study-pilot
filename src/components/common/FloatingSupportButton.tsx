@@ -61,7 +61,7 @@ export function FloatingSupportButton() {
                   </div>
 
                   <a
-                    href="mailto:cpuzianwang@gmail.com"
+                    href="mailto:zianwang9911@gmail.com"
                     className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors group"
                   >
                     <div className="bg-blue-100 dark:bg-blue-900/30 p-2 rounded-lg text-blue-600 dark:text-blue-400">
@@ -72,7 +72,7 @@ export function FloatingSupportButton() {
                         Email Support
                       </p>
                       <p className="text-xs text-slate-500 dark:text-slate-400">
-                        cpuzianwang@gmail.com
+                        zianwang9911@gmail.com
                       </p>
                     </div>
                   </a>

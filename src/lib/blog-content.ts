@@ -129,6 +129,22 @@ export const blogPosts: BlogPost[] = [
     tags: ["Product Update", "Features"],
     content: "<p>Content placeholder...</p>",
   },
+  {
+    slug: "how-to-use-past-exam-papers",
+    title: "How to Efficiently Use Past Exam Papers",
+    excerpt:
+      "Past papers are the gold standard of exam preparation. Learn the 4-step framework to maximize their value and skyrocket your grades.",
+    date: "Jan 7, 2026",
+    readTime: "6 min read",
+    category: "Study Tips",
+    author: {
+      name: "StudyPilot Team",
+      role: "Education Experts",
+      avatar: "SP",
+    },
+    tags: ["Exams", "Study Tips", "Productivity"],
+    content: "<p>Content placeholder...</p>",
+  },
 ];
 
 export function getBlogPost(slug: string): BlogPost | undefined {

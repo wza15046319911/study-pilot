@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { FloatingSupportButton } from "@/components/common/FloatingSupportButton";
+import SessionGuard from "@/components/auth/SessionGuard";
 import { WebsiteJsonLd, OrganizationJsonLd } from "@/components/seo/JsonLd";
 
 const lexend = Lexend({
@@ -147,6 +148,7 @@ export default async function RootLayout({
       >
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
+            <SessionGuard />
             {children}
             <FloatingSupportButton />
           </ThemeProvider>

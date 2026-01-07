@@ -110,10 +110,10 @@ export default async function ContactPage() {
             </p>
             <div>
               <a
-                href="mailto:cpuzianwang@gmail.com"
+                href="mailto:zianwang9911@gmail.com"
                 className="text-lg font-bold text-slate-900 dark:text-white border-b-2 border-blue-500/30 hover:border-blue-500 transition-colors pb-1"
               >
-                cpuzianwang@gmail.com
+                zianwang9911@gmail.com
               </a>
             </div>
           </div>

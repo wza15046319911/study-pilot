@@ -1,7 +1,6 @@
-"use client";
-
 import Link from "next/link";
-import { BookOpen, ChevronRight } from "lucide-react";
+import { BookOpen, ChevronRight, GraduationCap, FileText } from "lucide-react";
+import { GlassPanel } from "@/components/ui/GlassPanel";
 
 interface Subject {
   id: number;
@@ -25,75 +24,94 @@ export function SubjectGrid({
   if (subjects.length === 0) {
     return (
       <div className="text-center py-20">
-        <BookOpen className="size-16 text-gray-300 mx-auto mb-4" />
-        <p className="text-gray-500 text-lg">No subjects found.</p>
+        <div className="inline-flex items-center justify-center size-20 rounded-full bg-slate-100 dark:bg-slate-800 mb-6">
+          <BookOpen className="size-8 text-slate-400" />
+        </div>
+        <h3 className="text-xl font-serif font-bold text-slate-900 dark:text-white mb-2">
+          Library Empty
+        </h3>
+        <p className="text-slate-500 dark:text-slate-400">
+          No subjects found at the moment.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {subjects.map((subject) => {
         const bankCount = bankCounts[subject.id] || 0;
         const examCount = examCounts[subject.id] || 0;
+
+        // Extract course code if present (e.g. "CSSE1001" from start of string)
+        const codeMatch = subject.name.match(/^([A-Z]{4}\d{4})/);
+        const courseCode = codeMatch ? codeMatch[1] : null;
+        const displayName = courseCode
+          ? subject.name.substring(courseCode.length).replace(/^[\s-:]+/, "")
+          : subject.name;
 
         return (
           <Link
             key={subject.id}
             href={`/library/${subject.slug}`}
-            className="group relative bg-white dark:bg-slate-900/80 rounded-2xl border border-slate-200/60 dark:border-slate-700/50 p-6 hover:shadow-xl hover:shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+            className="group block h-full focus:outline-none"
           >
-            {/* Hover Effect */}
-            <div className="absolute inset-0 bg-slate-50 dark:bg-slate-800/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            <GlassPanel
+              variant="card"
+              className="h-full p-0 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:shadow-blue-900/10 hover:-translate-y-1 relative border-slate-200 dark:border-slate-800 group-hover:border-blue-200 dark:group-hover:border-blue-800"
+            >
+              {/* Decorative Spine/Accent */}
+              <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-blue-500 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-            <div className="relative z-10">
-              {/* Icon and Title */}
-              <div className="flex items-center gap-4 mb-4">
-                {subject.icon && (
-                  <span className="text-4xl">{subject.icon}</span>
-                )}
-                <div className="flex-1">
-                  <h3 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                    {subject.name}
+              <div className="p-7 flex flex-col h-full">
+                {/* Header */}
+                <div className="flex items-start justify-between gap-4 mb-6">
+                  <div className="size-12 rounded-xl bg-slate-50 dark:bg-slate-900/50 flex items-center justify-center text-3xl shadow-sm border border-slate-100 dark:border-slate-800 group-hover:scale-110 transition-transform duration-300">
+                    {subject.icon || "📚"}
+                  </div>
+                  <div className="size-8 rounded-full flex items-center justify-center text-slate-400 group-hover:text-blue-600 group-hover:bg-blue-50 dark:group-hover:bg-blue-900/20 transition-all">
+                    <ChevronRight className="size-5" />
+                  </div>
+                </div>
+
+                {/* Title */}
+                <div className="mb-4">
+                  {courseCode && (
+                    <div className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest mb-2">
+                      {courseCode}
+                    </div>
+                  )}
+                  <h3 className="text-xl font-serif font-bold text-slate-900 dark:text-white leading-tight group-hover:text-blue-700 dark:group-hover:text-blue-300 transition-colors">
+                    {displayName || courseCode || subject.name}
                   </h3>
                 </div>
-                <div className="size-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center group-hover:bg-blue-100 dark:group-hover:bg-blue-900/30 transition-colors">
-                  <ChevronRight className="size-5 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors" />
+
+                {/* Description */}
+                {subject.description && (
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 line-clamp-2 leading-relaxed flex-grow">
+                    {subject.description}
+                  </p>
+                )}
+
+                {!subject.description && <div className="flex-grow" />}
+
+                {/* Stats Footer */}
+                <div className="pt-5 border-t border-slate-100 dark:border-slate-800/50 flex items-center gap-6 text-xs font-medium text-slate-500 dark:text-slate-400">
+                  <div className="flex items-center gap-2">
+                    <FileText className="size-4 text-slate-400" />
+                    <span>
+                      {bankCount} Bank{bankCount !== 1 ? "s" : ""}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="size-4 text-slate-400" />
+                    <span>
+                      {examCount} Exam{examCount !== 1 ? "s" : ""}
+                    </span>
+                  </div>
                 </div>
               </div>
-
-              {/* Description */}
-              {subject.description && (
-                <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 line-clamp-2">
-                  {subject.description}
-                </p>
-              )}
-
-              {/* Stats */}
-              <div className="flex items-center gap-4 text-sm">
-                {examCount > 0 && (
-                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                    <span className="font-semibold text-slate-900 dark:text-white">
-                      {examCount}
-                    </span>
-                    <span>Mock Exam{examCount !== 1 ? "s" : ""}</span>
-                  </div>
-                )}
-                {bankCount > 0 && (
-                  <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
-                    <span className="font-semibold text-slate-900 dark:text-white">
-                      {bankCount}
-                    </span>
-                    <span>Question Bank{bankCount !== 1 ? "s" : ""}</span>
-                  </div>
-                )}
-                {examCount === 0 && bankCount === 0 && (
-                  <span className="text-slate-400 dark:text-slate-500">
-                    Practice available
-                  </span>
-                )}
-              </div>
-            </div>
+            </GlassPanel>
           </Link>
         );
       })}

@@ -62,18 +62,18 @@ export default function FAQPage() {
         <Header user={null} />
 
         <main className="flex-grow w-full max-w-7xl mx-auto px-4 md:px-8 py-12">
-          <div className="grid lg:grid-cols-[1fr_240px] gap-16">
+          <div className="max-w-3xl mx-auto">
             {/* Main Content */}
-            <article className="max-w-2xl">
+            <article>
               {/* Header */}
-              <header className="mb-12">
+              <header className="mb-12 text-center">
                 <p className="text-sm font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 mb-4">
                   Support
                 </p>
                 <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-6 tracking-tight">
                   Frequently Asked Questions
                 </h1>
-                <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+                <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed max-w-2xl mx-auto">
                   Everything you need to know about StudyPilot. Can&apos;t find
                   your answer?{" "}
                   <Link
@@ -107,43 +107,6 @@ export default function FAQPage() {
                 ))}
               </div>
             </article>
-
-            {/* Sidebar */}
-            <aside className="hidden lg:block">
-              <div className="sticky top-24 space-y-8">
-                <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-4">
-                    Quick Links
-                  </h3>
-                  <ul className="space-y-2 text-sm text-slate-500 dark:text-slate-400">
-                    <li>
-                      <Link
-                        href="/library"
-                        className="hover:text-blue-600 transition-colors"
-                      >
-                        Browse Library
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href="/pricing"
-                        className="hover:text-blue-600 transition-colors"
-                      >
-                        Pricing Plans
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href="/contact"
-                        className="hover:text-blue-600 transition-colors"
-                      >
-                        Contact Support
-                      </Link>
-                    </li>
-                  </ul>
-                </div>
-              </div>
-            </aside>
           </div>
         </main>
 

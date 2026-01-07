@@ -1,3 +1,4 @@
+import { randomUUID } from "crypto";
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 
@@ -10,16 +11,24 @@ export async function GET(request: Request) {
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
-
     if (!error) {
-      // Handle Referral for OAuth users
-      if (referralCode) {
-        try {
-          const {
-            data: { user },
-          } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-          if (user) {
+      if (user) {
+        const newSessionId = randomUUID();
+        const { error: sessionError } = await supabase
+          .from("profiles")
+          .update({ active_session_id: newSessionId })
+          .eq("id", user.id);
+
+        if (sessionError) {
+          console.error("Failed to update active session", sessionError);
+        }
+
+        if (referralCode) {
+          try {
             // 1. Find referrer
             const { data: referral } = await (
               supabase.from("referral_codes") as any
@@ -45,14 +54,14 @@ export async function GET(request: Request) {
                 });
               }
             }
+          } catch (e) {
+            console.error("Error processing referral in callback:", e);
+            // Don't block login on referral error
           }
-        } catch (e) {
-          console.error("Error processing referral in callback:", e);
-          // Don't block login on referral error
         }
-      }
 
-      return NextResponse.redirect(`${origin}${next}`);
+        return NextResponse.redirect(`${origin}${next}`);
+      }
     }
   }
 

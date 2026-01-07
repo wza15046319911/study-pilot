@@ -37,7 +37,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ### 3. 初始化数据库
 
-在 Supabase SQL Editor 中执行 `supabase/schema.sql` 文件的内容。
+在 Supabase SQL Editor 中执行 `supabase/schema.sql` 文件的内容，并依次执行 `supabase/migrations` 目录下的补丁（例如 `20260107_active_session_enforcement.sql`），以确保 `profiles.active_session_id` 字段和 Realtime 订阅都已经配置好。Realtime 必须开启，单设备登录守卫才能收到被踢下线通知。
 
 ### 4. 启动开发服务器
 

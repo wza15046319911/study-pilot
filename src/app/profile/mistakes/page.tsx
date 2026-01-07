@@ -77,10 +77,16 @@ export default async function MistakesPage() {
         answer,
         options,
         subject_id,
+        topic_id,
+        tags,
         subjects!inner (
           id,
           name,
           slug
+        ),
+        topics (
+          id,
+          name
         )
       )
     `
@@ -88,12 +94,70 @@ export default async function MistakesPage() {
     .eq("user_id", user.id)
     .order("last_error_at", { ascending: false });
 
+  // --- Calculate Quick Stats ---
+  const validMistakes = mistakes || [];
+  
+  // 1. Weakest Topic
+  const topicCounts: Record<string, number> = {};
+  
+  // Define type for calculation
+  type MistakeWithTopic = {
+    questions: {
+      topics: {
+        name: string;
+      } | null;
+    };
+  };
+
+  (validMistakes as unknown as MistakeWithTopic[]).forEach((m) => {
+    const topicName = m.questions?.topics?.name;
+    if (topicName) {
+      topicCounts[topicName] = (topicCounts[topicName] || 0) + 1;
+    }
+  });
+
+  const sortedTopics = Object.entries(topicCounts).sort((a, b) => b[1] - a[1]);
+  const topTopic = sortedTopics.length > 0 ? { name: sortedTopics[0][0], count: sortedTopics[0][1] } : undefined;
+
+  // 2. Top Hashtags
+  const tagCounts: Record<string, number> = {};
+  
+  type MistakeWithTags = {
+    questions: {
+      tags: string[] | null;
+    };
+  };
+
+  (validMistakes as unknown as MistakeWithTags[]).forEach((m) => {
+    const tags = m.questions?.tags;
+    if (Array.isArray(tags)) {
+      tags.forEach((tag: string) => {
+        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+      });
+    }
+  });
+
+  const topTags = Object.entries(tagCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([tag, count]) => ({ tag, count }));
+
+  const stats = {
+    totalMistakes: validMistakes.length,
+    topTopic,
+    topTags
+  };
+
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
       <AmbientBackground />
       <Header user={headerUser} />
       <main className="flex-grow flex flex-col w-full">
-        <MistakesClient mistakes={mistakes || []} userId={user.id} />
+        <MistakesClient 
+          mistakes={mistakes || []} 
+          userId={user.id} 
+          stats={stats}
+        />
       </main>
     </div>
   );

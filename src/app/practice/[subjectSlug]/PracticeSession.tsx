@@ -223,6 +223,10 @@ export function PracticeSession({
         ? true // Always marked "correct" for logic flow, but user sees self-check
         : answer === currentQuestion.answer;
 
+    // Record answer for progress tracking
+    const { recordAnswer } = await import("@/lib/actions/recordAnswer");
+    await recordAnswer(currentQuestion.id, answer, isCorrect, "practice");
+
     if (!isCorrect) {
       // Record mistake immediately
       const { data: existingData } = await supabase
@@ -248,6 +252,7 @@ export function PracticeSession({
       );
     }
   };
+
 
   const handleNext = async () => {
     if (!answers[currentQuestion.id]) return;
@@ -276,62 +281,17 @@ export function PracticeSession({
     setIsSubmitting(true);
 
     try {
+      // Calculate correct count for results modal
       let correctCount = 0;
-      const answerPromises = [];
-
-      // 1. Record answers and identify mistakes
       for (const q of questions) {
-        // Skip unanswered questions in metrics, or mark them?
-        // Usually practice assumes you try all.
         const userAnswer = answers[q.id];
         if (!userAnswer) continue;
-
-        const isCorrect = userAnswer === q.answer;
-
-        if (isCorrect) correctCount++;
-
-        answerPromises.push(
-          supabase.from("user_answers").insert({
-            user_id: user.id,
-            question_id: q.id,
-            user_answer: userAnswer,
-            is_correct: isCorrect,
-            time_spent: Math.round(elapsedTime / questions.length), // Approx time per question
-          } as any)
-        );
+        if (userAnswer === q.answer) correctCount++;
       }
 
-      await Promise.all([...answerPromises]);
+      // Note: Answers are already recorded in handleCheck() via recordAnswer
 
-      // 2. Update user progress
-      const { data: progressData } = await supabase
-        .from("user_progress")
-        .select("completed_count, correct_count")
-        .eq("user_id", user.id)
-        .eq("subject_id", subjectId)
-        .single();
-
-      const progress = progressData as {
-        completed_count: number;
-        correct_count: number;
-      } | null;
-
-      const newCompleted =
-        (progress?.completed_count || 0) + Object.keys(checkedAnswers).length;
-      const newCorrect = (progress?.correct_count || 0) + correctCount;
-
-      await supabase.from("user_progress").upsert(
-        {
-          user_id: user.id,
-          subject_id: subjectId,
-          completed_count: newCompleted,
-          correct_count: newCorrect,
-          updated_at: new Date().toISOString(),
-        } as any,
-        { onConflict: "user_id,subject_id" }
-      );
-
-      // 3. Update last practice date (no streak)
+      // Update last practice date
       await supabase
         .from("profiles")
         .update({
@@ -348,6 +308,7 @@ export function PracticeSession({
       setIsSubmitting(false);
     }
   };
+
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -409,59 +370,59 @@ export function PracticeSession({
     >
       {/* Left Sidebar - Progress (Only in Practice Mode and NOT in Focus Mode) */}
       {mode === "practice" && !isFocusMode && (
-        <aside className="w-full lg:w-72 flex flex-col gap-4 shrink-0 order-2 lg:order-1 lg:sticky lg:top-24 lg:self-start">
+        <aside className="w-full lg:w-72 flex flex-col gap-8 shrink-0 order-2 lg:order-1 lg:sticky lg:top-24 lg:self-start font-serif">
           {/* Progress Card */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
-            <div className="flex justify-between items-center mb-3">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+          <div className="bg-white dark:bg-slate-900 rounded-none border border-black dark:border-white p-6 shadow-none">
+            <div className="flex justify-between items-center mb-4 border-b border-black dark:border-white pb-2">
+              <p className="text-sm font-bold text-black dark:text-white uppercase tracking-widest">
                 Progress
               </p>
-              <div className="size-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-md shadow-blue-600/20">
-                <TrendingUp className="size-4" />
+              <div className="size-6 rounded-full border border-black dark:border-white flex items-center justify-center">
+                <TrendingUp className="size-3 text-black dark:text-white" />
               </div>
             </div>
-            <h3 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+            <h3 className="text-4xl font-black text-black dark:text-white tracking-tight mb-2">
               {Object.keys(checkedAnswers).length}
-              <span className="text-lg text-gray-400 font-medium ml-1">
+              <span className="text-lg text-gray-500 font-medium ml-1">
                 /{questions.length}
               </span>
             </h3>
-            <div className="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-1.5 mt-3 overflow-hidden">
+            <div className="w-full bg-gray-200 dark:bg-gray-800 h-1 mt-2">
               <div
-                className="bg-blue-600 h-full rounded-full transition-all duration-500"
+                className="bg-black dark:bg-white h-full transition-all duration-500"
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
           </div>
 
           {/* Question Navigator */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
-            <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
+          <div className="bg-white dark:bg-slate-900 rounded-none border border-black dark:border-white p-6 shadow-none">
+            <h3 className="text-sm font-bold text-black dark:text-white uppercase tracking-widest mb-4 border-b border-black dark:border-white pb-2">
               Questions
             </h3>
             <div className="max-h-[280px] overflow-y-auto pr-1 -mr-1">
-              <div className="grid grid-cols-5 gap-1.5">
+              <div className="grid grid-cols-5 gap-2">
                 {questions.map((q, i) => {
                   const isAnswered = answers[q.id] !== undefined;
                   const isCurrent = i === currentIndex;
                   const wasChecked = checkedAnswers[q.id];
 
                   let btnClass =
-                    "bg-gray-50 dark:bg-gray-800 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 border border-transparent";
+                    "bg-transparent text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 border border-transparent";
 
                   if (isCurrent) {
                     btnClass =
-                      "bg-blue-600 text-white shadow-md shadow-blue-600/20 border border-transparent scale-105";
+                      "bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white";
                   } else if (wasChecked) {
                     btnClass =
-                      "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800";
+                      "bg-gray-100 dark:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-600";
                   }
 
                   return (
                     <button
                       key={q.id}
                       onClick={() => setCurrentIndex(i)}
-                      className={`size-9 rounded-lg font-semibold text-xs flex items-center justify-center transition-all duration-200 ${btnClass}`}
+                      className={`size-9 rounded-sm font-serif font-bold text-sm flex items-center justify-center transition-all duration-200 ${btnClass}`}
                     >
                       {i + 1}
                     </button>
@@ -470,14 +431,14 @@ export function PracticeSession({
               </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+            <div className="mt-6 pt-4 border-t border-black dark:border-white">
               <Button
                 variant="ghost"
-                className="w-full justify-center text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 group transform transition-all duration-200"
+                className="w-full justify-center text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 font-serif font-bold rounded-none border border-transparent hover:border-red-200"
                 onClick={() => router.push("/library")}
               >
-                <LogOut className="mr-2 size-4 group-hover:-translate-x-1 transition-transform" />
-                Exit
+                <LogOut className="mr-2 size-4" />
+                Exit Exam
               </Button>
             </div>
           </div>
@@ -494,7 +455,7 @@ export function PracticeSession({
             : ""
         }`}
       >
-        <div className="bg-white dark:bg-slate-900 shadow-2xl min-h-[800px] p-12 lg:p-16 relative flex flex-col font-serif">
+        <div className="bg-white dark:bg-slate-900 shadow-none border border-gray-200 dark:border-gray-800 min-h-[800px] p-8 lg:p-16 relative flex flex-col font-serif">
           {/* Exam Header */}
           <div className="flex justify-end items-end border-b-2 border-black dark:border-white pb-4 mb-12 text-black dark:text-white font-serif">
             <div className="text-right text-sm">
@@ -525,7 +486,7 @@ export function PracticeSession({
               </button>
 
               {mode === "practice" && enableTimer && (
-                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-slate-800 px-3 py-1.5 rounded-full text-xs font-sans">
+                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-sm text-xs font-serif bg-white dark:bg-slate-900">
                   <Timer className="size-3.5" />
                   <span className="font-mono">{formatTime(elapsedTime)}</span>
                 </div>
@@ -585,9 +546,9 @@ export function PracticeSession({
             </div>
           </div>
 
-          {/* Question Content & Feedback Layout */}
-          <div className="flex flex-col lg:flex-row gap-8">
-            <div className="flex-1 min-w-0">
+          {/* Question Content & Feedback Layout - Now Vertical Column */}
+          <div className="flex flex-col gap-12">
+            <div className="w-full">
               {/* Question Text */}
               <div className="mb-8">
                 {/* Part B Header for Non-MCQ */}
@@ -745,110 +706,114 @@ export function PracticeSession({
               </div>
             </div>
 
-            {/* Right Column: Feedback & AI Tutor */}
+            {/* Feedback & AI Tutor Section - Moved Below */}
             {isChecked && (
               <div
-                className={`w-full lg:w-[400px] shrink-0 p-6 rounded-xl self-start sticky top-6 ${
+                className={`w-full p-8 border-t-2 border-dashed ${
                   answers[currentQuestion.id] === currentQuestion.answer
-                    ? "bg-green-50 border border-green-100 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-300"
-                    : "bg-red-50 border border-red-100 text-red-800 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300"
+                    ? "bg-green-50/50 border-green-200 text-green-900 dark:bg-green-900/10 dark:border-green-800 dark:text-green-200"
+                    : "bg-red-50/50 border-red-200 text-red-900 dark:bg-red-900/10 dark:border-red-800 dark:text-red-200"
                 }`}
               >
-                <div className="flex items-start gap-3">
+                <div className="flex items-start gap-4">
                   {answers[currentQuestion.id] === currentQuestion.answer ? (
-                    <Lightbulb className="size-5" />
+                    <Lightbulb className="size-6 shrink-0 mt-1" />
                   ) : (
-                    <Info className="size-5" />
+                    <Info className="size-6 shrink-0 mt-1" />
                   )}
-                  <div className="flex-1">
-                    <p className="font-bold mb-1">
-                      {answers[currentQuestion.id] === currentQuestion.answer
-                        ? "Correct!"
-                        : "Incorrect"}
-                    </p>
-                    <p className="text-sm opacity-90">
-                      {currentQuestion.explanation ||
-                        "No explanation provided."}
-                    </p>
-                  </div>
-                </div>
-
-                {/* AI Tutor Button */}
-                <div className="mt-4 pt-4 border-t border-current/10">
-                  {!aiExplanation ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        setIsLoadingAI(true);
-                        const { getExplanation } = await import(
-                          "@/lib/actions/getExplanation"
-                        );
-                        const result = await getExplanation(
-                          currentQuestion.content,
-                          currentQuestion.answer,
-                          currentQuestion.code_snippet || undefined,
-                          currentQuestion.id
-                        );
-                        if (result.success && result.explanation) {
-                          setAiExplanation(result.explanation);
-                        }
-                        setIsLoadingAI(false);
-                      }}
-                      disabled={isLoadingAI}
-                      className="gap-2 w-full"
-                    >
-                      {isLoadingAI ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        <Sparkles className="size-4" />
-                      )}
-                      {isLoadingAI ? "Generating..." : "AI Tutor Explanation"}
-                    </Button>
-                  ) : (
-                    <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-                      <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400 font-semibold mb-2">
-                        <Sparkles className="size-4" />
-                        AI Tutor
-                      </div>
-                      <div className="text-sm text-blue-800 dark:text-blue-200">
-                        <ReactMarkdown
-                          components={{
-                            p: ({ children }) => (
-                              <p className="mb-2 last:mb-0 leading-relaxed">
-                                {children}
-                              </p>
-                            ),
-                            strong: ({ children }) => (
-                              <span className="font-bold text-blue-900 dark:text-blue-100">
-                                {children}
-                              </span>
-                            ),
-                            ul: ({ children }) => (
-                              <ul className="list-disc pl-5 mb-2 space-y-1">
-                                {children}
-                              </ul>
-                            ),
-                            ol: ({ children }) => (
-                              <ol className="list-decimal pl-5 mb-2 space-y-1">
-                                {children}
-                              </ol>
-                            ),
-                            li: ({ children }) => (
-                              <li className="pl-1">{children}</li>
-                            ),
-                            code: ({ children }) => (
-                              <code className="bg-blue-100 dark:bg-blue-900/40 px-1 py-0.5 rounded font-mono text-xs">
-                                {children}
-                              </code>
-                            ),
-                          }}
-                        >
-                          {aiExplanation}
-                        </ReactMarkdown>
-                      </div>
+                  <div className="flex-1 space-y-4">
+                    <div>
+                      <p className="font-serif font-bold text-xl mb-2">
+                        {answers[currentQuestion.id] === currentQuestion.answer
+                          ? "Correct"
+                          : "Incorrect"}
+                      </p>
+                      <p className="font-serif text-lg leading-relaxed opacity-90">
+                        {currentQuestion.explanation ||
+                          "No explanation provided."}
+                      </p>
                     </div>
-                  )}
+
+                    {/* AI Tutor Button */}
+                    <div className="pt-4 border-t border-current/10 w-full">
+                      {!aiExplanation ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            setIsLoadingAI(true);
+                            const { getExplanation } = await import(
+                              "@/lib/actions/getExplanation"
+                            );
+                            const result = await getExplanation(
+                              currentQuestion.content,
+                              currentQuestion.answer,
+                              currentQuestion.code_snippet || undefined,
+                              currentQuestion.id
+                            );
+                            if (result.success && result.explanation) {
+                              setAiExplanation(result.explanation);
+                            }
+                            setIsLoadingAI(false);
+                          }}
+                          disabled={isLoadingAI}
+                          className="gap-2 bg-white dark:bg-black border-current hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors font-serif"
+                        >
+                          {isLoadingAI ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <Sparkles className="size-4" />
+                          )}
+                          {isLoadingAI
+                            ? "Consulting AI..."
+                            : "Ask AI Tutor for Detailed Breakdown"}
+                        </Button>
+                      ) : (
+                        <div className="bg-white dark:bg-black border border-current rounded-lg p-6 w-full">
+                          <div className="flex items-center gap-2 font-bold mb-4 border-b border-current pb-2">
+                            <Sparkles className="size-5" />
+                            AI Tutor Analysis
+                          </div>
+                          <div className="prose dark:prose-invert max-w-none font-serif leading-relaxed">
+                            <ReactMarkdown
+                              components={{
+                                p: ({ children }) => (
+                                  <p className="mb-4 last:mb-0 text-lg">
+                                    {children}
+                                  </p>
+                                ),
+                                strong: ({ children }) => (
+                                  <span className="font-bold underline decoration-2 underline-offset-2">
+                                    {children}
+                                  </span>
+                                ),
+                                ul: ({ children }) => (
+                                  <ul className="list-disc pl-5 mb-4 space-y-2">
+                                    {children}
+                                  </ul>
+                                ),
+                                ol: ({ children }) => (
+                                  <ol className="list-decimal pl-5 mb-4 space-y-2">
+                                    {children}
+                                  </ol>
+                                ),
+                                li: ({ children }) => (
+                                  <li className="pl-1 text-lg">{children}</li>
+                                ),
+                                code: ({ children }) => (
+                                  <code className="bg-blue-100 dark:bg-blue-900/40 px-1 py-0.5 rounded font-mono text-xs">
+                                    {children}
+                                  </code>
+                                ),
+                              }}
+                            >
+                              {aiExplanation}
+                            </ReactMarkdown>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
             )}

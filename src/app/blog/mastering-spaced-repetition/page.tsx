@@ -50,7 +50,7 @@ export default async function SpacedRepetitionPage() {
 
         <div className="grid lg:grid-cols-[1fr_240px] gap-16">
           {/* Main Content */}
-          <article className="max-w-2xl">
+          <article className="max-w-2xl font-serif">
             {/* Cover Image */}
             <div className="aspect-[16/9] w-full rounded-2xl bg-slate-100 dark:bg-slate-800 mb-12 overflow-hidden flex items-center justify-center">
               <div className="flex items-center gap-6">
@@ -63,17 +63,48 @@ export default async function SpacedRepetitionPage() {
               </div>
             </div>
 
+            {/* Header */}
+            <header className="mb-10 font-sans">
+              <div className="flex items-center gap-3 mb-6 text-sm font-bold uppercase tracking-wider text-purple-600 dark:text-purple-400">
+                <span>Study Tips</span>
+                <span className="text-slate-300 dark:text-slate-600">•</span>
+                <span className="text-slate-500 dark:text-slate-400">
+                  Jan 4, 2026
+                </span>
+                <span className="text-slate-300 dark:text-slate-600">•</span>
+                <span className="text-slate-500 dark:text-slate-400">
+                  7 min read
+                </span>
+              </div>
+              <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-6 tracking-tight leading-tight">
+                Mastering Spaced Repetition for Finals
+              </h1>
+              <div className="flex items-center gap-4">
+                <div className="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm font-bold text-slate-500 dark:text-slate-400 border border-white dark:border-slate-700 shadow-sm">
+                  SC
+                </div>
+                <div>
+                  <div className="font-bold text-slate-900 dark:text-white">
+                    Dr. Sarah Chen
+                  </div>
+                  <div className="text-sm text-slate-500 dark:text-slate-400">
+                    Cognitive Psychologist
+                  </div>
+                </div>
+              </div>
+            </header>
+
             {/* Intro */}
-            <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed mb-12">
+            <p className="text-xl text-slate-600 dark:text-slate-300 leading-relaxed mb-12">
               Learn how to optimize your study schedule using the scientifically
               proven spaced repetition technique to retain information longer
               and ace your finals.
             </p>
 
             {/* Content */}
-            <div className="space-y-14">
+            <div className="space-y-14 text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
               <section>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+                <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6 font-sans">
                   What is Spaced Repetition?
                 </h2>
                 <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
@@ -90,7 +121,7 @@ export default async function SpacedRepetitionPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+                <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6 font-sans">
                   The Science Behind It
                 </h2>
                 <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
@@ -110,7 +141,7 @@ export default async function SpacedRepetitionPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+                <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6 font-sans">
                   How to Implement
                 </h2>
                 <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">
@@ -127,7 +158,7 @@ export default async function SpacedRepetitionPage() {
               </section>
 
               <section>
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+                <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6 font-sans">
                   StudyPilot Flashcards
                 </h2>
                 <p className="text-slate-700 dark:text-slate-300 leading-relaxed mb-6">

@@ -73,9 +73,9 @@ export async function updateSession(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/admin")) {
     const adminEmail = process.env.ADMIN_EMAIL;
     if (!adminEmail || user?.email !== adminEmail) {
-      // Redirect unauthorized users to login
+      // Redirect unauthorized users to 403 page
       const url = request.nextUrl.clone();
-      url.pathname = "/login";
+      url.pathname = "/forbidden";
       return NextResponse.redirect(url);
     }
   }

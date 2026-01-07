@@ -17,6 +17,7 @@ import {
   GraduationCap,
   Sparkles,
 } from "lucide-react";
+import { FAQSection } from "@/components/common/FAQSection";
 
 // ... (Subject and Props interfaces same as before)
 interface Subject {
@@ -76,6 +77,7 @@ interface WholePageScrollProps {
       questions: string;
     };
   };
+  faqs: { question: string; answer: string }[];
 }
 
 const features = [
@@ -202,6 +204,7 @@ export function WholePageScroll({
   isAdmin,
   subjects,
   content,
+  faqs,
 }: WholePageScrollProps) {
   const [currentFeature, setCurrentFeature] = useState(0);
 
@@ -814,6 +817,9 @@ export function WholePageScroll({
             </div>
           </div>
         </section>
+
+        {/* FAQ Section */}
+        <FAQSection items={faqs} className="bg-background" />
 
         {/* CTA Section */}
         <section className="py-32 bg-background text-foreground">

@@ -28,7 +28,8 @@ CREATE TABLE public.profiles (
   level INTEGER DEFAULT 1,
   streak_days INTEGER DEFAULT 0,
   last_practice_date DATE,
-  created_at TIMESTAMPTZ DEFAULT NOW()
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  active_session_id UUID DEFAULT uuid_generate_v4()
 );
 
 -- Enable RLS
@@ -60,6 +61,22 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE OR REPLACE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Ensure profiles table is part of Supabase Realtime publication
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_publication_rel rel
+    JOIN pg_publication pub ON pub.oid = rel.prpubid
+    JOIN pg_class tbl ON tbl.oid = rel.prrelid
+    WHERE pub.pubname = 'supabase_realtime'
+      AND tbl.relname = 'profiles'
+  ) THEN
+    ALTER PUBLICATION supabase_realtime ADD TABLE profiles;
+  END IF;
+END;
+$$;
 
 -- ============================================
 -- SUBJECTS TABLE

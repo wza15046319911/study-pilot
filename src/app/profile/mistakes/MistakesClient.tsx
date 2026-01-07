@@ -18,6 +18,9 @@ import {
   RotateCw,
   Search,
   Check,
+  Zap,
+  BookOpen,
+  Hash
 } from "lucide-react";
 
 interface MistakeData {
@@ -33,24 +36,37 @@ interface MistakeData {
     difficulty: string;
     type: string;
     answer: string;
-    options?: any;
+    options?: unknown;
     subject_id: number;
     subjects: {
       id: number;
       name: string;
       slug: string;
     };
+    topics?: {
+      id: number;
+      name: string;
+    } | null;
+    tags?: string[] | null;
   };
+}
+
+interface MistakeStats {
+  totalMistakes: number;
+  topTopic?: { name: string; count: number };
+  topTags: { tag: string; count: number }[];
 }
 
 interface MistakesClientProps {
   mistakes: MistakeData[];
   userId: string;
+  stats: MistakeStats;
 }
 
 export default function MistakesClient({
   mistakes: initialMistakes,
   userId,
+  stats,
 }: MistakesClientProps) {
   const router = useRouter();
   const [mistakes, setMistakes] = useState(initialMistakes);
@@ -116,7 +132,7 @@ export default function MistakesClient({
       </div>
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 mb-4">
             <AlertTriangle className="size-3.5 text-red-600 dark:text-red-500" />
@@ -128,7 +144,7 @@ export default function MistakesClient({
             Mistake Book
           </h1>
           <p className="text-gray-500 text-lg">
-            Detailed breakdown of questions you've missed.
+            Detailed breakdown of questions you&apos;ve missed.
           </p>
         </div>
 
@@ -153,6 +169,59 @@ export default function MistakesClient({
           </div>
         )}
       </div>
+
+      {/* Stats Summary - ONLY IF MISTAKES EXIST */}
+      {mistakes.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+          {/* Card 1: Total Active */}
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-blue-600 dark:text-blue-400">
+               <Zap className="size-6" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 font-medium">Active Mistakes</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.totalMistakes}</p>
+            </div>
+          </div>
+
+          {/* Card 2: Weakest Topic */}
+          <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl text-red-600 dark:text-red-400">
+               <BookOpen className="size-6" />
+            </div>
+            <div>
+              <p className="text-sm text-gray-500 font-medium">Primary Weakness</p>
+              <p className="text-lg font-bold text-gray-900 dark:text-white line-clamp-1" title={stats.topTopic?.name || "N/A"}>
+                {stats.topTopic ? stats.topTopic.name : "N/A"}
+              </p>
+              {stats.topTopic && (
+                 <p className="text-xs text-red-500 font-medium">{stats.topTopic.count} mistakes</p>
+              )}
+            </div>
+          </div>
+
+           {/* Card 3: Common Tags */}
+           <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm flex items-center gap-4">
+            <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl text-amber-600 dark:text-amber-400">
+               <Hash className="size-6" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm text-gray-500 font-medium mb-1">Recurring Themes</p>
+              {stats.topTags.length > 0 ? (
+                <div className="flex flex-wrap gap-1.5">
+                  {stats.topTags.map(t => (
+                    <span key={t.tag} className="text-[10px] font-bold px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-gray-600 dark:text-gray-400">
+                      #{t.tag} ({t.count})
+                    </span>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-400">No tags found</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Search & Filter */}
       {mistakes.length > 0 && (
@@ -181,7 +250,7 @@ export default function MistakesClient({
             Clean Sheet!
           </h2>
           <p className="text-gray-500 max-w-md mx-auto mb-8">
-            You don't have any pending mistakes to review. Keep up the great
+            You don&apos;t have any pending mistakes to review. Keep up the great
             work!
           </p>
           <Button variant="outline" onClick={() => router.push("/library")}>
@@ -215,7 +284,7 @@ export default function MistakesClient({
                     </button>
 
                     <div className="flex-1 space-y-4">
-                      <div className="flex items-center gap-2">
+                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-bold rounded uppercase tracking-wider flex items-center gap-1.5">
                           <RotateCw className="size-3" />
                           {mistake.error_count} Attempts
@@ -223,6 +292,18 @@ export default function MistakesClient({
                         <span className="text-xs text-gray-400 font-medium">
                           {mistake.questions.type.replace("_", " ")}
                         </span>
+                         {mistake.questions.topics && (
+                           <span className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-semibold rounded flex items-center gap-1">
+                             <BookOpen className="size-3" />
+                             {mistake.questions.topics.name}
+                           </span>
+                         )}
+                         {mistake.questions.tags && mistake.questions.tags.map(tag => (
+                           <span key={tag} className="px-2 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-xs font-semibold rounded flex items-center gap-1">
+                             <Hash className="size-3" />
+                             {tag}
+                           </span>
+                         ))}
                       </div>
                       <div>
                         <h4 className="font-semibold text-lg text-gray-900 dark:text-white mb-2">

@@ -277,6 +277,7 @@ export default async function Home() {
         isAdmin={isAdmin}
         subjects={subjects}
         content={content}
+        faqs={homepageFaqs}
       />
     </>
   );

@@ -20,6 +20,7 @@ export interface Database {
           is_vip: boolean;
           vip_expires_at: string | null;
           created_at: string;
+          active_session_id: string | null;
         };
         Insert: {
           id: string;
@@ -31,6 +32,7 @@ export interface Database {
           is_vip?: boolean;
           vip_expires_at?: string | null;
           created_at?: string;
+          active_session_id?: string | null;
         };
         Update: {
           id?: string;
@@ -42,6 +44,7 @@ export interface Database {
           is_vip?: boolean;
           vip_expires_at?: string | null;
           created_at?: string;
+          active_session_id?: string | null;
         };
       };
       topics: {
