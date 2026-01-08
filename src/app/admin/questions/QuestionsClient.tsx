@@ -33,6 +33,7 @@ import {
   Settings2,
   Plus,
   Copy,
+  FileText,
 } from "lucide-react";
 
 interface Subject {
@@ -115,6 +116,7 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
   const [subjectFilter, setSubjectFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("");
+  const [topicFilter, setTopicFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
@@ -141,6 +143,18 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery]);
+
+  useEffect(() => {
+    if (!topicFilter || !subjectFilter) return;
+    const topicMatchesSubject = topics.some(
+      (t) =>
+        t.id === parseInt(topicFilter) &&
+        t.subject_id === parseInt(subjectFilter)
+    );
+    if (!topicMatchesSubject) {
+      setTopicFilter("");
+    }
+  }, [subjectFilter, topicFilter, topics]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -199,6 +213,9 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
     if (difficultyFilter) {
       query = query.eq("difficulty", difficultyFilter);
     }
+    if (topicFilter) {
+      query = query.eq("topic_id", parseInt(topicFilter));
+    }
     if (debouncedSearch) {
       query = query.or(
         `title.ilike.%${debouncedSearch}%,content.ilike.%${debouncedSearch}%`
@@ -221,6 +238,7 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
     subjectFilter,
     typeFilter,
     difficultyFilter,
+    topicFilter,
     debouncedSearch,
     currentPage,
     sortColumn,
@@ -541,6 +559,22 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
             className="w-40"
           />
 
+          <Select
+            value={topicFilter}
+            onChange={(e) => setTopicFilter(e.target.value)}
+            options={[
+              { value: "", label: "All Topics" },
+              ...topics
+                .filter(
+                  (t) =>
+                    !subjectFilter ||
+                    t.subject_id === parseInt(subjectFilter)
+                )
+                .map((t) => ({ value: t.id, label: t.name })),
+            ]}
+            className="w-48"
+          />
+
           <div className="flex-1 min-w-[200px] max-w-md relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
             <Input
@@ -597,19 +631,8 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
                         ))}
                     </div>
                   </th>
-                  <th
-                    className="px-4 py-3 text-left text-xs font-semibold text-[#4c669a] dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors"
-                    onClick={() => handleSort("title")}
-                  >
-                    <div className="flex items-center gap-1">
-                      Title
-                      {sortColumn === "title" &&
-                        (sortDirection === "asc" ? (
-                          <ChevronUp className="size-3" />
-                        ) : (
-                          <ChevronDown className="size-3" />
-                        ))}
-                    </div>
+                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#4c669a] dark:text-gray-400 uppercase tracking-wider">
+                    Question
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-[#4c669a] dark:text-gray-400 uppercase tracking-wider">
                     Subject
@@ -654,102 +677,157 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                {questions.map((q) => (
-                  <tr
-                    key={q.id}
-                    className="hover:bg-gray-50 dark:hover:bg-slate-800/30 transition-colors"
-                  >
-                    <td className="px-4 py-4">
-                      <button
-                        onClick={() => toggleSelection(q.id)}
-                        className="text-gray-400 hover:text-blue-600"
-                      >
-                        {selectedIds.has(q.id) ? (
-                          <CheckSquare className="size-4 text-blue-600" />
-                        ) : (
-                          <Square className="size-4" />
-                        )}
-                      </button>
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400 font-mono">
-                      #{q.id}
-                    </td>
-                    <td className="px-4 py-4">
-                      <p
-                        className="text-sm font-medium text-[#0d121b] dark:text-white line-clamp-2 max-w-md cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                        onClick={() => setPreviewQuestion(q)}
-                      >
-                        {q.title}
-                      </p>
-                    </td>
-                    <td className="px-4 py-4 text-sm text-[#4c669a] dark:text-gray-400">
-                      {q.subjects?.name || "-"}
-                    </td>
-                    <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-500">
-                      {q.topics?.name || "-"}
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className="text-xs px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
-                        {getTypeLabel(q.type)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full font-medium ${getDifficultyColor(
-                          q.difficulty
-                        )}`}
-                      >
-                        {q.difficulty}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex flex-wrap gap-1">
-                        {q.tags && q.tags.length > 0 ? (
-                          q.tags.slice(0, 3).map((tag, i) => (
-                            <span
-                              key={i}
-                              className="text-xs px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"
-                            >
-                              {tag}
+                {questions.map((q) => {
+                  const isChoiceType =
+                    q.type === "single_choice" || q.type === "multiple_choice";
+                  const contentPreview =
+                    q.content.length > 220
+                      ? `${q.content.slice(0, 220)}...`
+                      : q.content;
+                  return (
+                    <tr
+                      key={q.id}
+                      onClick={() => toggleSelection(q.id)}
+                      className={`transition-colors cursor-pointer ${
+                        selectedIds.has(q.id)
+                          ? "bg-blue-50/70 dark:bg-blue-900/20"
+                          : "hover:bg-gray-50 dark:hover:bg-slate-800/30"
+                      }`}
+                    >
+                      <td className="px-4 py-4">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleSelection(q.id);
+                          }}
+                          className="text-gray-400 hover:text-blue-600"
+                        >
+                          {selectedIds.has(q.id) ? (
+                            <CheckSquare className="size-4 text-blue-600" />
+                          ) : (
+                            <Square className="size-4" />
+                          )}
+                        </button>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400 font-mono">
+                        #{q.id}
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-slate-900/60 p-3 space-y-2">
+                          <p className="text-sm text-[#0d121b] dark:text-white whitespace-pre-line">
+                            {contentPreview || "No content"}
+                          </p>
+                          {isChoiceType && q.options && q.options.length > 0 && (
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              {q.options.slice(0, 4).map((opt, idx) => {
+                                const optionPreview =
+                                  opt.content.length > 80
+                                    ? `${opt.content.slice(0, 80)}...`
+                                    : opt.content;
+                                return (
+                                  <div
+                                    key={`${q.id}-${idx}`}
+                                    className="text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-slate-800/60 rounded-md px-2 py-1"
+                                  >
+                                    <span className="font-semibold">
+                                      {opt.label}.
+                                    </span>{" "}
+                                    {optionPreview}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 text-sm text-[#4c669a] dark:text-gray-400">
+                        {q.subjects?.name || "-"}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-500">
+                        {q.topics?.name || "-"}
+                      </td>
+                      <td className="px-4 py-4">
+                        <span className="text-xs px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                          {getTypeLabel(q.type)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full font-medium ${getDifficultyColor(
+                            q.difficulty
+                          )}`}
+                        >
+                          {q.difficulty}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex flex-wrap gap-1">
+                          {q.tags && q.tags.length > 0 ? (
+                            q.tags.slice(0, 3).map((tag, i) => (
+                              <span
+                                key={i}
+                                className="text-xs px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"
+                              >
+                                {tag}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-xs text-gray-400">-</span>
+                          )}
+                          {q.tags && q.tags.length > 3 && (
+                            <span className="text-xs text-gray-400">
+                              +{q.tags.length - 3}
                             </span>
-                          ))
-                        ) : (
-                          <span className="text-xs text-gray-400">-</span>
-                        )}
-                        {q.tags && q.tags.length > 3 && (
-                          <span className="text-xs text-gray-400">
-                            +{q.tags.length - 3}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => handleEdit(q)}
-                          className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors"
-                          title="Edit"
-                        >
-                          <Edit2 className="size-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDuplicate(q.id)}
-                          className="p-2 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 transition-colors"
-                          title="Duplicate"
-                        >
-                          <Copy className="size-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(q.id)}
-                          className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 transition-colors"
-                          title="Delete"
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPreviewQuestion(q);
+                            }}
+                            className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors"
+                            title="Preview"
+                          >
+                            <FileText className="size-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEdit(q);
+                            }}
+                            className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors"
+                            title="Edit"
+                          >
+                            <Edit2 className="size-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDuplicate(q.id);
+                            }}
+                            className="p-2 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 transition-colors"
+                            title="Duplicate"
+                          >
+                            <Copy className="size-4" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(q.id);
+                            }}
+                            className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="size-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -810,6 +888,7 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
       <EditQuestionModal
         isOpen={isModalOpen}
         question={editingQuestion}
+        topics={topics}
         onClose={() => {
           setIsModalOpen(false);
           setEditingQuestion(null);

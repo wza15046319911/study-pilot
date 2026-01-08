@@ -42,16 +42,51 @@ interface Question {
   created_at: string;
 }
 
+interface Topic {
+  id: number;
+  name: string;
+  subject_id: number;
+}
+
 interface EditQuestionModalProps {
   isOpen: boolean;
   question: Question | null;
+  topics: Topic[];
   onClose: () => void;
   onSave: (updated: Partial<Question>) => void;
 }
 
+const presetTags = [
+  "arithmetic operation",
+  "boolean operation",
+  "relational operation",
+  "if-elif-else",
+  "for loop",
+  "while loop",
+  "data types",
+  "string",
+  "list",
+  "tuple",
+  "dictionary",
+  "functions",
+  "type hint",
+  "scope of variable",
+  "class",
+  "mro",
+  "advanced functions",
+  "files",
+  "midterm",
+  "final",
+  "slicing",
+  "range",
+  "list comprehension",
+  "lambda function"
+];
+
 export default function EditQuestionModal({
   isOpen,
   question,
+  topics,
   onClose,
   onSave,
 }: EditQuestionModalProps) {
@@ -62,6 +97,7 @@ export default function EditQuestionModal({
   const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">(
     "medium"
   );
+  const [topicId, setTopicId] = useState("");
   const [codeSnippet, setCodeSnippet] = useState("");
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
@@ -99,6 +135,7 @@ export default function EditQuestionModal({
       setAnswer(question.answer || "");
       setExplanation(question.explanation || "");
       setDifficulty(question.difficulty as "easy" | "medium" | "hard");
+      setTopicId(question.topic_id ? String(question.topic_id) : "");
       setCodeSnippet(question.code_snippet || "");
       setTags(question.tags || []);
       setOptions(question.options || []);
@@ -118,6 +155,7 @@ export default function EditQuestionModal({
         answer,
         explanation,
         difficulty,
+        topicId,
         codeSnippet,
         tags,
         options,
@@ -135,6 +173,7 @@ export default function EditQuestionModal({
     answer,
     explanation,
     difficulty,
+    topicId,
     codeSnippet,
     tags,
     options,
@@ -175,6 +214,7 @@ export default function EditQuestionModal({
       setAnswer(draft.answer || "");
       setExplanation(draft.explanation || "");
       setDifficulty(draft.difficulty || "medium");
+      setTopicId(draft.topicId || "");
       setCodeSnippet(draft.codeSnippet || "");
       setTags(draft.tags || []);
       setOptions(draft.options || []);
@@ -209,6 +249,7 @@ export default function EditQuestionModal({
       answer,
       explanation: explanation || null,
       difficulty,
+      topic_id: topicId ? parseInt(topicId, 10) : null,
       code_snippet: codeSnippet || null,
       tags: tags.length > 0 ? tags : null,
       options: isChoiceType ? options : null,
@@ -224,6 +265,13 @@ export default function EditQuestionModal({
     if (trimmed && !tags.includes(trimmed)) {
       setTags([...tags, trimmed]);
       setNewTag("");
+    }
+  };
+
+  const addPresetTag = (tag: string) => {
+    const trimmed = tag.trim().toLowerCase();
+    if (trimmed && !tags.includes(trimmed)) {
+      setTags([...tags, trimmed]);
     }
   };
 
@@ -471,6 +519,28 @@ export default function EditQuestionModal({
                       ]}
                     />
                   </div>
+
+                  {/* Topic */}
+                  <div>
+                    <label className="block text-sm font-medium text-[#4c669a] dark:text-gray-400 mb-2">
+                      Topic
+                    </label>
+                    <Select
+                      value={topicId}
+                      onChange={(e) => setTopicId(e.target.value)}
+                      options={[
+                        { value: "", label: "No Topic" },
+                        ...topics
+                          .filter(
+                            (topic) => topic.subject_id === question.subject_id
+                          )
+                          .map((topic) => ({
+                            value: String(topic.id),
+                            label: topic.name,
+                          })),
+                      ]}
+                    />
+                  </div>
                 </div>
 
                 {/* Right Column */}
@@ -593,6 +663,31 @@ export default function EditQuestionModal({
                       >
                         <Plus className="size-4" />
                       </Button>
+                    </div>
+                    <div className="mt-3">
+                      <p className="text-xs text-[#4c669a] dark:text-gray-400 mb-2">
+                        Preset tags
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {presetTags.map((tag) => {
+                          const isSelected = tags.includes(tag);
+                          return (
+                            <button
+                              key={tag}
+                              type="button"
+                              onClick={() => addPresetTag(tag)}
+                              disabled={isSelected}
+                              className={`px-2 py-1 rounded-full text-xs border transition ${
+                                isSelected
+                                  ? "bg-purple-100 text-purple-700 border-purple-200 cursor-default dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800"
+                                  : "bg-white text-[#4c669a] border-gray-200 hover:border-purple-300 hover:text-purple-700 dark:bg-slate-800 dark:text-gray-300 dark:border-gray-700 dark:hover:border-purple-700"
+                              }`}
+                            >
+                              {tag}
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
                 </div>

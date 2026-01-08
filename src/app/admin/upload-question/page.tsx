@@ -33,6 +33,33 @@ interface ParsedQuestion {
   rawText: string;
 }
 
+const presetTags = [
+  "arithmetic operation",
+  "boolean operation",
+  "relational operation",
+  "if-elif-else",
+  "for loop",
+  "while loop",
+  "data types",
+  "string",
+  "list",
+  "tuple",
+  "dictionary",
+  "functions",
+  "type hint",
+  "scope of variable",
+  "class",
+  "mro",
+  "advanced functions",
+  "files",
+  "midterm",
+  "final",
+  "slicing",
+  "range",
+  "list comprehension",
+  "lambda function"
+];
+
 // Parse a single question block
 function parseQuestionText(
   text: string,
@@ -352,6 +379,13 @@ export default function UploadQuestionPage() {
     }
   };
 
+  const addPresetTag = (tag: string) => {
+    const trimmed = tag.trim().toLowerCase();
+    if (trimmed && !tags.includes(trimmed)) {
+      setTags([...tags, trimmed]);
+    }
+  };
+
   const removeTag = (tag: string) => {
     setTags(tags.filter((t) => t !== tag));
   };
@@ -620,6 +654,29 @@ export default function UploadQuestionPage() {
                   >
                     <Plus className="size-4" />
                   </Button>
+                </div>
+                <div className="mt-3">
+                  <p className="text-xs text-[#4c669a] mb-2">Preset tags</p>
+                  <div className="flex flex-wrap gap-2">
+                    {presetTags.map((tag) => {
+                      const isSelected = tags.includes(tag);
+                      return (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => addPresetTag(tag)}
+                          disabled={isSelected}
+                          className={`px-2 py-1 rounded-full text-xs border transition ${
+                            isSelected
+                              ? "bg-purple-100 text-purple-700 border-purple-200 cursor-default dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800"
+                              : "bg-white text-[#4c669a] border-gray-200 hover:border-purple-300 hover:text-purple-700 dark:bg-slate-800 dark:text-gray-300 dark:border-gray-700 dark:hover:border-purple-700"
+                          }`}
+                        >
+                          {tag}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
