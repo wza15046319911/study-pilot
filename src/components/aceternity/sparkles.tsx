@@ -157,7 +157,7 @@ export const SparklesCore = (props: SparklesProps) => {
                 close: true,
                 fill: true,
                 options: {},
-                type: {},
+                type: undefined,
               },
               groups: {},
               move: {
@@ -193,10 +193,6 @@ export const SparklesCore = (props: SparklesProps) => {
                 path: {
                   clamp: true,
                   delay: {
-                    random: {
-                      enable: false,
-                      minimumValue: 0,
-                    },
                     value: 0,
                   },
                   enable: false,
@@ -238,10 +234,6 @@ export const SparklesCore = (props: SparklesProps) => {
                 value: particleDensity || 120,
               },
               opacity: {
-                random: {
-                  enable: true,
-                  minimumValue: 0.1,
-                },
                 value: {
                   min: 0.1,
                   max: 1,
@@ -256,7 +248,6 @@ export const SparklesCore = (props: SparklesProps) => {
                   mode: "auto",
                   startValue: "random",
                   destroy: "none",
-                  minimumValue: 0.1,
                 },
               },
               reduceDuplicates: false,
@@ -278,10 +269,6 @@ export const SparklesCore = (props: SparklesProps) => {
                 type: "circle",
               },
               size: {
-                random: {
-                  enable: true,
-                  minimumValue: minSize || 1,
-                },
                 value: {
                   min: minSize || 1,
                   max: maxSize || 3,
@@ -296,7 +283,6 @@ export const SparklesCore = (props: SparklesProps) => {
                   mode: "auto",
                   startValue: "random",
                   destroy: "none",
-                  minimumValue: 0.1,
                 },
               },
               stroke: {

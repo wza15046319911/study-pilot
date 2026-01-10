@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { EvervaultCard, Icon } from "@/components/aceternity/evervault-card";
 import { HoverBorderGradient } from "@/components/aceternity/hover-border-gradient";
-import { Lock, Crown, Star, Gift, DollarSign } from "lucide-react";
+import { Lock, Crown, Star, Gift, DollarSign, BookOpen } from "lucide-react";
 
 interface QuestionBankItemProps {
   bank: any;
