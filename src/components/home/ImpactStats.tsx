@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useInView } from "framer-motion";
 import { Users, HelpCircle, BookOpen, Trophy } from "lucide-react";
+import { Spotlight } from "@/components/aceternity/spotlight";
+import { HoverEffect } from "@/components/aceternity/hover-effect";
 
 interface StatItem {
   icon: React.ReactNode;
@@ -61,7 +63,7 @@ function AnimatedCounter({
   }, [isInView, value]);
 
   return (
-    <span ref={ref}>
+    <span ref={ref} className="text-neutral-800 dark:text-neutral-100">
       {count.toLocaleString()}
       {suffix}
     </span>
@@ -69,46 +71,33 @@ function AnimatedCounter({
 }
 
 export function ImpactStats() {
+  const formattedStats = stats.map((stat) => ({
+    icon: stat.icon,
+    value: <AnimatedCounter value={stat.value} suffix={stat.suffix} />,
+    label: stat.label,
+  }));
+
   return (
-    <section className="py-24 bg-card">
-      <div className="max-w-6xl mx-auto px-6">
+    <section className="py-24 bg-neutral-50 dark:bg-black relative overflow-hidden">
+      <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" fill="white" />
+      
+      <div className="max-w-6xl mx-auto px-6 relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className="text-center mb-8"
         >
-          <h2 className="text-4xl font-bold text-foreground tracking-tight">
+          <h2 className="text-4xl font-bold text-neutral-800 dark:text-white tracking-tight">
             Our Impact by the Numbers
           </h2>
-          <p className="mt-4 text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="mt-4 text-neutral-600 dark:text-neutral-300 text-lg max-w-2xl mx-auto">
             Join thousands of students achieving their academic goals
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-          {stats.map((stat, index) => (
-            <motion.div
-              key={index}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
-              className="flex flex-col items-center text-center p-6"
-            >
-              <div className="size-14 rounded-2xl bg-muted flex items-center justify-center text-primary mb-4">
-                {stat.icon}
-              </div>
-              <span className="text-4xl md:text-5xl font-bold text-foreground">
-                <AnimatedCounter value={stat.value} suffix={stat.suffix} />
-              </span>
-              <span className="mt-2 text-muted-foreground font-medium">
-                {stat.label}
-              </span>
-            </motion.div>
-          ))}
-        </div>
+        <HoverEffect items={formattedStats} />
       </div>
     </section>
   );

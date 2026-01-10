@@ -4,8 +4,9 @@ import { BlogFooter } from "@/components/blog/BlogFooter";
 import { getAllBlogPosts } from "@/lib/blog-content";
 import { createClient } from "@/lib/supabase/server";
 import { Profile } from "@/types/database";
-import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import { BentoGrid, BentoGridItem } from "@/components/aceternity/bento-grid";
+import { cn } from "@/lib/utils";
 
 export const metadata = {
   title: "Blog | StudyPilot",
@@ -39,8 +40,6 @@ export default async function BlogIndexPage() {
   }
 
   const posts = getAllBlogPosts();
-  const featuredPost = posts[0];
-  const remainingPosts = posts.slice(1);
 
   return (
     <div className="relative min-h-screen flex flex-col bg-[#f0f4fc] dark:bg-slate-950 overflow-x-hidden selection:bg-blue-500/30">
@@ -60,97 +59,52 @@ export default async function BlogIndexPage() {
             </p>
           </div>
 
-          {/* Featured Post */}
-          {featuredPost && (
-            <Link
-              href={`/blog/${featuredPost.slug}`}
-              className="group relative grid md:grid-cols-2 gap-8 p-6 md:p-12 rounded-3xl bg-white dark:bg-slate-900/50 shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
-            >
-              <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800">
-                {/* Fallback pattern if no image */}
-                <div className="absolute inset-0 bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-300 dark:text-slate-600">
-                  <svg
-                    className="w-16 h-16 opacity-50"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={1}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                    />
-                  </svg>
-                </div>
-              </div>
-              <div className="flex flex-col justify-center">
-                <div className="flex items-center gap-3 mb-6 text-sm font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400">
-                  <span>{featuredPost.category}</span>
-                  <span className="text-slate-300 dark:text-slate-600">•</span>
-                  <span className="text-slate-500 dark:text-slate-400">
-                    {featuredPost.date}
-                  </span>
-                </div>
-                <h2 className="text-3xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6 leading-tight group-hover:text-blue-600 transition-colors">
-                  {featuredPost.title}
-                </h2>
-                <p className="text-lg text-slate-600 dark:text-slate-400 mb-8 line-clamp-3 leading-relaxed">
-                  {featuredPost.excerpt}
-                </p>
-                <div className="flex items-center gap-4 mt-auto">
-                  <div className="size-10 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-sm font-bold text-slate-500 dark:text-slate-400 border border-white dark:border-slate-700 shadow-sm">
-                    {featuredPost.author.avatar}
-                  </div>
-                  <div>
-                    <div className="font-bold text-slate-900 dark:text-white">
-                      {featuredPost.author.name}
-                    </div>
-                    <div className="text-sm text-slate-500 dark:text-slate-400">
-                      {featuredPost.author.role}
-                    </div>
-                  </div>
-                  <div className="ml-auto flex items-center gap-2 text-sm font-bold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform">
-                    Read Post <ArrowUpRight className="size-4" />
-                  </div>
-                </div>
-              </div>
-            </Link>
-          )}
-
-          {/* Grid Layout */}
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {remainingPosts.map((post) => (
+          <BentoGrid className="max-w-7xl mx-auto">
+            {posts.map((post, i) => (
               <Link
-                href={`/blog/${post.slug}`}
                 key={post.slug}
-                className="group flex flex-col p-8 rounded-3xl bg-white dark:bg-slate-900/50 shadow-lg shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                href={`/blog/${post.slug}`}
+                className={cn(
+                  "row-span-1 rounded-xl group/bento hover:shadow-xl transition duration-200 shadow-input dark:shadow-none dark:bg-black dark:border-white/[0.2] bg-white border border-transparent justify-between flex flex-col space-y-4 p-4",
+                  i === 0 || i === 3 ? "md:col-span-2" : ""
+                )}
               >
-                <div className="flex items-center justify-between mb-6">
-                  <span className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-3 py-1 rounded-full">
-                    {post.category}
-                  </span>
-                  <span className="text-sm text-slate-500 dark:text-slate-400">
-                    {post.date}
-                  </span>
-                </div>
-                <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4 leading-snug group-hover:text-blue-600 transition-colors">
-                  {post.title}
-                </h3>
-                <p className="text-slate-600 dark:text-slate-400 mb-6 line-clamp-3 leading-relaxed flex-grow">
-                  {post.excerpt}
-                </p>
-                <div className="pt-6 mt-auto border-t border-slate-100 dark:border-slate-800 flex items-center gap-3">
-                  <div className="size-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-500 dark:text-slate-400 border border-white dark:border-slate-700">
-                    {post.author.avatar}
-                  </div>
-                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    {post.author.name}
-                  </span>
-                </div>
+                <BentoGridItem
+                  title={post.title}
+                  description={post.excerpt}
+                  header={
+                    <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-gradient-to-br from-neutral-200 dark:from-neutral-900 dark:to-neutral-800 to-neutral-100 flex items-center justify-center overflow-hidden relative">
+                       {/* Placeholder pattern */}
+                       <svg
+                        className="w-16 h-16 opacity-10 absolute"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={1}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
+                    </div>
+                  }
+                  icon={
+                    <div className="flex items-center gap-2 mb-2">
+                        <div className="size-6 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-500 dark:text-slate-400 border border-white dark:border-slate-700">
+                            {post.author.avatar}
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 px-2 py-0.5 rounded-full">
+                            {post.category}
+                        </span>
+                    </div>
+                  }
+                  className="h-full bg-transparent border-none shadow-none p-0"
+                />
               </Link>
             ))}
-          </div>
+          </BentoGrid>
         </div>
       </main>
 

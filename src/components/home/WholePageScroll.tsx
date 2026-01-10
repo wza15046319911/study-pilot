@@ -3,21 +3,21 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { motion, AnimatePresence } from "framer-motion";
-import { Header } from "@/components/layout/Header";
+import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import { SplashScreen } from "./SplashScreen";
 import { ImpactStats } from "./ImpactStats";
 import {
   Database,
   BookOpen,
   Activity,
-  Zap,
-  ChevronLeft,
-  ChevronRight,
   GraduationCap,
-  Sparkles,
 } from "lucide-react";
 import { FAQSection } from "@/components/common/FAQSection";
+import { AnimatedTestimonials } from "@/components/aceternity/animated-testimonials";
+import { FlipWords } from "@/components/aceternity/flip-words";
+import { StatefulButton } from "@/components/ui/stateful-button";
+import { FeaturesSection, FeatureItem, FeatureSkeleton } from "./FeaturesSection";
 
 // ... (Subject and Props interfaces same as before)
 interface Subject {
@@ -64,6 +64,7 @@ interface WholePageScrollProps {
     };
     results: {
       accuracy: string;
+      accuracyDescription?: string;
     };
     analytics: {
       title: string;
@@ -80,122 +81,48 @@ interface WholePageScrollProps {
   faqs: { question: string; answer: string }[];
 }
 
-const features = [
-  {
-    icon: <Database size={24} />,
-    title: "Question Bank",
-    description:
-      "Access 10,000+ real exam questions, meticulously categorized by topic and difficulty. Always updated to match the latest university curriculum.",
-    color: "#2D60FF",
-    bgColor: "#EEF2FF",
-  },
-  {
-    icon: <BookOpen size={24} />,
-    title: "Practice Mode",
-    description:
-      "Clean, distraction-free interface to focus on what matters — mastering each question with instant feedback.",
-    color: "#3B82F6",
-    bgColor: "#EFF6FF",
-    image: "/practice-interface.png",
-  },
-  {
-    icon: <Sparkles size={24} />,
-    title: "AI Tutor",
-    description:
-      "Get instant, detailed explanations for every question. Like having a personal tutor available 24/7.",
-    color: "#8B5CF6",
-    bgColor: "#F5F3FF",
-    image: "/ai-tutor-interface.png",
-  },
-  {
-    icon: <Activity size={24} />,
-    title: "Smart Review",
-    description:
-      "AI-powered mistake tracking helps you focus on areas that need improvement.",
-    color: "#6C3FF5",
-    bgColor: "#F3E8FF",
-  },
-  {
-    icon: <Zap size={24} />,
-    title: "Spaced Repetition",
-    description:
-      "Scientifically-proven flashcard system for long-term retention.",
-    color: "#22C55E",
-    bgColor: "#F0FDF4",
-  },
-  {
-    icon: <GraduationCap size={24} />,
-    title: "Mock Exam",
-    description:
-      "Simulate real exam conditions with timed practice sessions. Experience the pressure before the real day.",
-    color: "#7C3AED",
-    bgColor: "#F5F3FF",
-  },
-];
-
 const testimonials = [
   {
     quote:
       "The AI Tutor's explanations are incredibly clear. It's like having a private tutor available 24/7.",
     name: "Sarah Lin",
-    role: "Computer Science Student",
-    avatar: "/placeholder-avatar-1.png",
+    designation: "Computer Science Student",
+    src: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=3388&auto=format&fit=crop",
   },
   {
     quote:
       "I passed my professional certification thanks to the extensive question bank and the immersive mock exams.",
     name: "James Wong",
-    role: "Financial Analyst",
-    avatar: "/placeholder-avatar-2.png",
+    designation: "Financial Analyst",
+    src: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=3560&auto=format&fit=crop",
   },
   {
     quote:
       "The spaced repetition system actually works. I've retained far more information than using traditional methods.",
     name: "Elena Rodriguez",
-    role: "Medical Student",
-    avatar: "/placeholder-avatar-3.png",
+    designation: "Medical Student",
+    src: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=3387&auto=format&fit=crop",
   },
   {
     quote:
       "The interface is so clean and distraction-free. StudyPilot has transformed my late-night study sessions.",
     name: "David Kim",
-    role: "Law Student",
-    avatar: "/placeholder-avatar-4.png",
+    designation: "Law Student",
+    src: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=3560&auto=format&fit=crop",
   },
   {
     quote:
       "Tracking my progress with the analytics dashboard motivated me to study everyday. Seeing my accuracy grow is so satisfying.",
     name: "Maya Singh",
-    role: "Engineering Student",
-    avatar: "/placeholder-avatar-5.png",
+    designation: "Engineering Student",
+    src: "https://images.unsplash.com/photo-1628157588553-5eeea00af15c?q=80&w=3560&auto=format&fit=crop",
   },
   {
     quote:
       "The 'Smart Review' feature saved me hours. It identified exactly where my knowledge gaps were.",
     name: "Thomas Chen",
-    role: "Graduate Researcher",
-    avatar: "/placeholder-avatar-6.png",
-  },
-  {
-    quote:
-      "Best investment for my exam prep. The question quality matches the actual exam standards perfectly.",
-    name: "Michael Zhang",
-    role: "Medical Resident",
-    avatar: "/placeholder-avatar-7.png",
-  },
-  {
-    quote:
-      "I love the mobile experience. Being able to squeeze in a quick 10-minute quiz during my commute is a game changer.",
-    name: "Sophie Gupta",
-    role: "Business School Student",
-    avatar: "/placeholder-avatar-8.png",
-  },
-  {
-    quote:
-      "StudyPilot isn't just a question bank; it's a complete ecosystem. Truly the future of personalized learning.",
-    name: "Prof. Alan Richards",
-    role: "Educator & Researcher",
-    avatar: "/placeholder-avatar-9.png",
+    designation: "Graduate Researcher",
+    src: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=3387&auto=format&fit=crop",
   },
 ];
 
@@ -206,20 +133,56 @@ export function WholePageScroll({
   content,
   faqs,
 }: WholePageScrollProps) {
-  const [currentFeature, setCurrentFeature] = useState(0);
+  const router = useRouter();
 
-  // Auto-rotate feature carousel
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentFeature((prev) => (prev + 1) % features.length);
-    }, 4000);
-    return () => clearInterval(interval);
-  }, [currentFeature]);
+  const featureItems: FeatureItem[] = [
+    {
+      title: "Question Bank",
+      description: "Access 10,000+ real exam questions, meticulously categorized by topic and difficulty. Always updated to match the latest university curriculum.",
+      header: (
+        <FeatureSkeleton className="flex items-center justify-center bg-blue-50 dark:bg-blue-900/20">
+          <Database className="h-20 w-20 text-blue-500" />
+        </FeatureSkeleton>
+      ),
+      icon: <Database className="h-4 w-4 text-neutral-500" />,
+    },
+    {
+      title: "Practice Mode",
+      description: "Clean, distraction-free interface to focus on what matters — mastering each question with instant feedback.",
+      header: (
+        <FeatureSkeleton className="flex items-center justify-center bg-blue-50 dark:bg-blue-900/20">
+          <BookOpen className="h-20 w-20 text-blue-500" />
+        </FeatureSkeleton>
+      ),
+      icon: <BookOpen className="h-4 w-4 text-neutral-500" />,
+    },
+    {
+      title: "Smart Review",
+      description: "AI-powered mistake tracking helps you focus on areas that need improvement.",
+      header: (
+        <FeatureSkeleton className="flex items-center justify-center bg-purple-50 dark:bg-purple-900/20">
+          <Activity className="h-20 w-20 text-purple-500" />
+        </FeatureSkeleton>
+      ),
+      icon: <Activity className="h-4 w-4 text-neutral-500" />,
+    },
+    {
+      title: "Mock Exam",
+      description: "Simulate real exam conditions with timed practice sessions. Experience the pressure before the real day.",
+      header: (
+        <FeatureSkeleton className="flex items-center justify-center bg-purple-50 dark:bg-purple-900/20">
+          <GraduationCap className="h-20 w-20 text-purple-500" />
+        </FeatureSkeleton>
+      ),
+      icon: <GraduationCap className="h-4 w-4 text-neutral-500" />,
+    },
+  ];
 
-  const nextFeature = () =>
-    setCurrentFeature((prev) => (prev + 1) % features.length);
-  const prevFeature = () =>
-    setCurrentFeature((prev) => (prev - 1 + features.length) % features.length);
+  const handleStartPractice = async () => {
+    // Simulate async operation if needed, or just navigation delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+    router.push(user ? "/library" : "/login");
+  };
 
   return (
     <>
@@ -228,593 +191,29 @@ export function WholePageScroll({
         <SplashScreen user={user} />
 
         {/* Impact Stats Section */}
-        <section className="pt-24">
-          <ImpactStats />
-        </section>
+        <ImpactStats />
 
-        {/* Feature Carousel Section */}
-        <section className="py-24 bg-card">
-          <div className="max-w-6xl mx-auto px-6">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-center mb-16"
-            >
-              <p className="text-primary font-semibold text-sm uppercase tracking-wider mb-3">
-                {content.features.coreFeatures}
-              </p>
-              <h2 className="text-4xl font-bold text-foreground tracking-tight">
-                {content.features.title}
-              </h2>
-              <p className="mt-4 text-muted-foreground text-lg max-w-2xl mx-auto">
-                {content.features.subtitle}
-              </p>
-            </motion.div>
+        {/* Feature Section (Bento Grid) */}
+        <FeaturesSection 
+          title={content.features.title}
+          subtitle={content.features.subtitle}
+          overline={content.features.coreFeatures}
+          features={featureItems}
+        />
 
-            {/* Carousel */}
-            <div className="relative">
-              {/* Navigation Buttons */}
-              <button
-                onClick={prevFeature}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 size-12 rounded-full bg-card shadow-lg flex items-center justify-center hover:bg-muted transition-colors border border-border"
-              >
-                <ChevronLeft size={24} className="text-muted-foreground" />
-              </button>
-              <button
-                onClick={nextFeature}
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 size-12 rounded-full bg-card shadow-lg flex items-center justify-center hover:bg-muted transition-colors border border-border"
-              >
-                <ChevronRight size={24} className="text-muted-foreground" />
-              </button>
-
-              {/* Carousel Content */}
-              <div className="overflow-hidden rounded-3xl bg-card border border-border shadow-2xl shadow-gray-900/5">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={currentFeature}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    transition={{ duration: 0.4 }}
-                    className="grid md:grid-cols-2 gap-12 p-12 items-center"
-                  >
-                    {/* Feature Content */}
-                    <div>
-                      <div className="flex items-center gap-3 mb-6">
-                        <div
-                          className="size-10 rounded-lg flex items-center justify-center"
-                          style={{
-                            backgroundColor: features[currentFeature].bgColor,
-                            color: features[currentFeature].color,
-                          }}
-                        >
-                          {features[currentFeature].icon}
-                        </div>
-                        <span className="text-primary font-semibold tracking-wide text-sm uppercase">
-                          Feature Spotlight
-                        </span>
-                      </div>
-
-                      <h3 className="text-4xl font-bold text-foreground mb-4 leading-tight">
-                        {features[currentFeature].title}
-                      </h3>
-                      <p className="text-muted-foreground text-lg leading-relaxed mb-8">
-                        {features[currentFeature].description}
-                      </p>
-                    </div>
-
-                    {/* Feature Visual Placeholder */}
-                    <div className="bg-muted rounded-2xl border border-border min-h-[350px] flex flex-col relative overflow-hidden group">
-                      {features[currentFeature].title === "Mock Exam" ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-muted p-6 lg:p-8">
-                          {/* Exam Timer & Paper UI */}
-                          <div className="relative w-full max-w-sm flex flex-col gap-4">
-                            {/* Floating Timer */}
-                            <motion.div
-                              className="self-center bg-black text-white px-4 py-2 rounded-full font-mono font-bold text-lg shadow-lg flex items-center gap-2 z-20"
-                              initial={{ y: -20, opacity: 0 }}
-                              animate={{ y: 0, opacity: 1 }}
-                              transition={{ delay: 0.2 }}
-                            >
-                              <div className="size-2 rounded-full bg-red-500 animate-pulse" />
-                              01:59:34
-                            </motion.div>
-
-                            {/* Exam Paper Stack */}
-                            <div className="relative z-10">
-                              {/* Paper pages behind */}
-                              <div className="absolute top-2 left-2 right-[-8px] h-full bg-white rounded-lg border border-gray-200 shadow-sm rotate-1" />
-                              <div className="absolute top-1 left-1 right-[-4px] h-full bg-white rounded-lg border border-gray-200 shadow-sm -rotate-1" />
-
-                              {/* Main Paper */}
-                              <motion.div
-                                className="relative bg-white rounded-lg border border-gray-200 shadow-xl p-6 min-h-[220px] flex flex-col"
-                                initial={{ scale: 0.9, opacity: 0 }}
-                                animate={{ scale: 1, opacity: 1 }}
-                                transition={{ duration: 0.4 }}
-                              >
-                                <div className="border-b-2 border-gray-100 pb-4 mb-4 flex justify-between items-end">
-                                  <div>
-                                    <div className="text-[10px] uppercase font-bold text-gray-400">
-                                      Subject Code
-                                    </div>
-                                    <div className="font-bold text-gray-900">
-                                      CS-2024-FINAL
-                                    </div>
-                                  </div>
-                                  <div className="text-right">
-                                    <div className="text-[10px] uppercase font-bold text-gray-400">
-                                      Total Marks
-                                    </div>
-                                    <div className="font-bold text-gray-900">
-                                      100
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="space-y-3">
-                                  <div className="h-4 bg-gray-100 rounded w-3/4" />
-                                  <div className="h-4 bg-gray-100 rounded w-full" />
-                                  <div className="h-4 bg-gray-100 rounded w-5/6" />
-                                </div>
-                                <div className="mt-auto pt-4 flex gap-4">
-                                  <div className="h-8 w-8 rounded-full border-2 border-gray-200" />
-                                  <div className="h-8 w-8 rounded-full border-2 border-black bg-black text-white flex items-center justify-center font-bold text-xs">
-                                    A
-                                  </div>
-                                  <div className="h-8 w-8 rounded-full border-2 border-gray-200" />
-                                  <div className="h-8 w-8 rounded-full border-2 border-gray-200" />
-                                </div>
-                              </motion.div>
-                            </div>
-                          </div>
-                        </div>
-                      ) : features[currentFeature].title === "Practice Mode" ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-muted p-6 lg:p-8">
-                          {/* Main Question Card */}
-                          <motion.div
-                            className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden flex flex-col"
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.5 }}
-                          >
-                            <div className="p-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                              <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                Question 4/10
-                              </span>
-                              <div className="flex gap-1">
-                                <div className="size-2 rounded-full bg-blue-500" />
-                                <div className="size-2 rounded-full bg-gray-200" />
-                                <div className="size-2 rounded-full bg-gray-200" />
-                              </div>
-                            </div>
-                            <div className="p-6">
-                              <p className="font-serif text-lg leading-relaxed text-gray-800 mb-6">
-                                What is the time complexity of searching in a
-                                balanced Binary Search Tree?
-                              </p>
-                              <div className="space-y-3">
-                                <div className="p-3 rounded-lg border border-gray-200 text-sm text-gray-600 font-serif">
-                                  a) O(1)
-                                </div>
-                                <div className="p-3 rounded-lg border-2 border-green-500 bg-green-50 text-sm text-green-700 font-serif font-semibold flex justify-between items-center">
-                                  <span>b) O(log n)</span>
-                                  <motion.div
-                                    initial={{ scale: 0 }}
-                                    animate={{ scale: 1 }}
-                                    transition={{
-                                      delay: 0.5,
-                                      type: "spring",
-                                    }}
-                                  >
-                                    <div className="size-5 rounded-full bg-green-500 flex items-center justify-center text-white text-xs">
-                                      ✓
-                                    </div>
-                                  </motion.div>
-                                </div>
-                                <div className="p-3 rounded-lg border border-gray-200 text-sm text-gray-600 font-serif">
-                                  c) O(n)
-                                </div>
-                              </div>
-                            </div>
-                          </motion.div>
-                        </div>
-                      ) : features[currentFeature].title === "AI Tutor" ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-muted p-6 lg:p-8">
-                          <div className="relative w-full max-w-sm">
-                            {/* Question Context (Behind) */}
-                            <motion.div
-                              className="absolute top-[-20px] left-4 right-4 bg-white rounded-xl border border-gray-100 h-24 shadow-sm opacity-50 z-0"
-                              initial={{ y: 20, opacity: 0 }}
-                              animate={{ y: 0, opacity: 0.5 }}
-                            />
-                            {/* AI Chat Bubble */}
-                            <motion.div
-                              className="bg-white rounded-2xl shadow-[0_10px_40px_-10px_rgba(124,58,237,0.2)] border border-purple-100 overflow-hidden relative z-10"
-                              initial={{ y: 20, opacity: 0 }}
-                              animate={{ y: 0, opacity: 1 }}
-                              transition={{ delay: 0.1 }}
-                            >
-                              <div className="p-4 bg-violet-600 flex items-center gap-3">
-                                <div className="size-8 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center">
-                                  <Sparkles className="size-4 text-white" />
-                                </div>
-                                <span className="font-bold text-white text-sm">
-                                  AI Tutor Explanation
-                                </span>
-                              </div>
-                              <div className="p-5">
-                                <p className="text-gray-700 leading-relaxed text-sm mb-4">
-                                  <span className="font-semibold text-purple-600">
-                                    Why O(log n)?
-                                  </span>{" "}
-                                  In a balanced BST, each step cuts the search
-                                  space in half. This behaves like a binary
-                                  search algorithm.
-                                </p>
-                                <div className="flex gap-2">
-                                  <div className="px-2 py-1 bg-purple-50 text-purple-600 text-[10px] font-bold uppercase rounded">
-                                    Key Concept
-                                  </div>
-                                  <div className="px-2 py-1 bg-blue-50 text-blue-600 text-[10px] font-bold uppercase rounded">
-                                    Trees
-                                  </div>
-                                </div>
-                              </div>
-                            </motion.div>
-
-                            {/* Floating Sparkles */}
-                            <motion.div
-                              className="absolute -right-2 -top-2 text-yellow-400 z-20"
-                              animate={{
-                                scale: [1, 1.2, 1],
-                                rotate: [0, 15, -15, 0],
-                              }}
-                              transition={{ repeat: Infinity, duration: 2 }}
-                            >
-                              <Sparkles size={24} fill="currentColor" />
-                            </motion.div>
-                          </div>
-                        </div>
-                      ) : features[currentFeature].title === "Question Bank" ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-muted p-6 lg:p-8">
-                          {/* Folder/File UI Container */}
-                          <motion.div
-                            className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden flex flex-col"
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ duration: 0.5, type: "spring" }}
-                          >
-                            {/* Window Header */}
-                            <div className="px-5 py-4 border-b border-gray-100 flex items-center justify-between bg-white">
-                              <div className="flex gap-2">
-                                <div className="size-3 rounded-full bg-red-400/80" />
-                                <div className="size-3 rounded-full bg-yellow-400/80" />
-                                <div className="size-3 rounded-full bg-green-400/80" />
-                              </div>
-                              <div className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-                                Question Bank
-                              </div>
-                              <div className="w-8" /> {/* Spacer */}
-                            </div>
-
-                            {/* Content List */}
-                            <div className="p-2 space-y-1 bg-gray-50/50 flex-1">
-                              {[
-                                {
-                                  name: "Algorithms & Data Structs",
-                                  q: "1,240 Qs",
-                                  color: "bg-blue-100 text-blue-700",
-                                },
-                                {
-                                  name: "Operating Systems",
-                                  q: "850 Qs",
-                                  color: "bg-indigo-100 text-indigo-700",
-                                },
-                                {
-                                  name: "Computer Networks",
-                                  q: "620 Qs",
-                                  color: "bg-purple-100 text-purple-700",
-                                },
-                                {
-                                  name: "Database Systems",
-                                  q: "980 Qs",
-                                  color: "bg-teal-100 text-teal-700",
-                                },
-                              ].map((item, i) => (
-                                <motion.div
-                                  key={item.name}
-                                  initial={{ x: -10, opacity: 0 }}
-                                  animate={{ x: 0, opacity: 1 }}
-                                  transition={{ delay: 0.2 + i * 0.1 }}
-                                  className="flex items-center justify-between p-3 rounded-xl bg-white border border-gray-100 hover:shadow-md transition-shadow cursor-default group"
-                                >
-                                  <div className="flex items-center gap-3">
-                                    <div
-                                      className={`size-8 rounded-lg ${item.color} flex items-center justify-center`}
-                                    >
-                                      <Database size={14} />
-                                    </div>
-                                    <span className="font-semibold text-sm text-gray-700 group-hover:text-blue-600 transition-colors">
-                                      {item.name}
-                                    </span>
-                                  </div>
-                                  <span className="text-xs font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded-md">
-                                    {item.q}
-                                  </span>
-                                </motion.div>
-                              ))}
-                            </div>
-
-                            {/* Footer Stats */}
-                            <div className="px-5 py-3 bg-white border-t border-gray-100 flex justify-between items-center text-xs text-gray-500 font-medium">
-                              <span>Total Questions</span>
-                              <span className="font-bold text-blue-600">
-                                10,000+
-                              </span>
-                            </div>
-                          </motion.div>
-
-                          {/* Decorative Floating Elements */}
-                          <motion.div
-                            animate={{ y: [0, -10, 0] }}
-                            transition={{
-                              repeat: Infinity,
-                              duration: 4,
-                              ease: "easeInOut",
-                            }}
-                            className="absolute -right-4 top-10 bg-white p-3 rounded-xl shadow-lg border border-gray-100 hidden lg:block"
-                          >
-                            <div className="flex items-center gap-2">
-                              <div className="flex -space-x-2">
-                                <div className="size-6 rounded-full bg-blue-500 border-2 border-white" />
-                                <div className="size-6 rounded-full bg-green-500 border-2 border-white" />
-                              </div>
-                              <span className="text-xs font-bold text-gray-600">
-                                2k+ Users
-                              </span>
-                            </div>
-                          </motion.div>
-                        </div>
-                      ) : features[currentFeature].title === "Smart Review" ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-muted p-6 lg:p-8">
-                          <motion.div
-                            className="w-full max-w-sm bg-white rounded-2xl shadow-xl border border-purple-100 p-6"
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            transition={{ duration: 0.5 }}
-                          >
-                            <div className="flex items-center justify-between mb-6">
-                              <h4 className="font-bold text-gray-800">
-                                Weakness Analysis
-                              </h4>
-                              <div className="px-2 py-1 bg-red-50 text-red-600 text-xs font-bold rounded">
-                                Needs Focus
-                              </div>
-                            </div>
-
-                            <div className="space-y-4">
-                              <div>
-                                <div className="flex justify-between text-sm mb-1">
-                                  <span className="text-gray-600">
-                                    Dynamic Programming
-                                  </span>
-                                  <span className="text-red-500 font-bold">
-                                    42%
-                                  </span>
-                                </div>
-                                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                  <motion.div
-                                    className="h-full bg-red-500 rounded-full"
-                                    initial={{ width: 0 }}
-                                    animate={{ width: "42%" }}
-                                    transition={{ delay: 0.4, duration: 1 }}
-                                  />
-                                </div>
-                              </div>
-                              <div>
-                                <div className="flex justify-between text-sm mb-1">
-                                  <span className="text-gray-600">
-                                    Graph Theory
-                                  </span>
-                                  <span className="text-yellow-500 font-bold">
-                                    65%
-                                  </span>
-                                </div>
-                                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                  <motion.div
-                                    className="h-full bg-yellow-500 rounded-full"
-                                    initial={{ width: 0 }}
-                                    animate={{ width: "65%" }}
-                                    transition={{ delay: 0.6, duration: 1 }}
-                                  />
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="mt-6 pt-4 border-t border-gray-100">
-                              <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-xl">
-                                <div className="size-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
-                                  <Activity size={16} />
-                                </div>
-                                <div>
-                                  <div className="text-xs text-gray-500">
-                                    Recommended Action
-                                  </div>
-                                  <div className="text-sm font-bold text-purple-700">
-                                    Review 12 Mistakes
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </motion.div>
-                        </div>
-                      ) : features[currentFeature].title ===
-                        "Spaced Repetition" ? (
-                        <div className="absolute inset-0 flex items-center justify-center bg-muted p-6 lg:p-8">
-                          <div className="relative w-full max-w-sm h-64 flex items-center justify-center">
-                            {/* Cards Stack */}
-                            <motion.div
-                              className="absolute w-64 h-40 bg-white rounded-xl shadow-sm border border-green-100 rotate-6"
-                              initial={{ opacity: 0, x: 20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.3 }}
-                            />
-                            <motion.div
-                              className="absolute w-64 h-40 bg-white rounded-xl shadow-sm border border-green-200 rotate-3"
-                              initial={{ opacity: 0, x: 20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ delay: 0.2 }}
-                            />
-
-                            {/* Front Card */}
-                            <motion.div
-                              className="absolute w-64 h-40 bg-white rounded-xl shadow-xl border border-green-100 p-6 flex flex-col items-center justify-center text-center z-10"
-                              initial={{ scale: 0.8, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              transition={{ type: "spring" }}
-                              style={{ transformOrigin: "bottom center" }}
-                            >
-                              <div className="text-xs uppercase font-bold text-green-500 mb-2">
-                                Flashcard
-                              </div>
-                              <h4 className="font-serif text-lg text-gray-800">
-                                HTTP Status 418?
-                              </h4>
-                              <motion.div
-                                className="mt-4 px-4 py-1 bg-gray-100 text-gray-500 text-xs rounded-full"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ delay: 1 }}
-                              >
-                                Tap to flip
-                              </motion.div>
-                            </motion.div>
-
-                            {/* Success Indicator */}
-                            <motion.div
-                              className="absolute -right-4 top-0 bg-green-500 text-white size-10 rounded-full flex items-center justify-center shadow-lg z-20"
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={{ delay: 1.2, type: "spring" }}
-                            >
-                              <Zap size={20} fill="currentColor" />
-                            </motion.div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="p-8 flex flex-col h-full relative">
-                          <div className="absolute top-4 left-4 flex gap-2">
-                            <div className="size-3 rounded-full bg-red-400/20" />
-                            <div className="size-3 rounded-full bg-yellow-400/20" />
-                            <div className="size-3 rounded-full bg-green-400/20" />
-                          </div>
-                          <div className="mt-8 flex-1 bg-card rounded-xl shadow-sm border border-border/50 p-6 flex items-center justify-center relative overflow-hidden">
-                            <motion.div
-                              key={currentFeature}
-                              initial={{ scale: 0.8, opacity: 0 }}
-                              animate={{ scale: 1, opacity: 1 }}
-                              transition={{
-                                type: "spring",
-                                stiffness: 200,
-                                damping: 15,
-                                delay: 0.1,
-                              }}
-                              className="size-24 rounded-2xl flex items-center justify-center transform hover:scale-110 transition-transform duration-500 relative z-10"
-                              style={{
-                                backgroundColor:
-                                  features[currentFeature].bgColor,
-                                color: features[currentFeature].color,
-                              }}
-                            >
-                              {features[currentFeature].icon}
-                            </motion.div>
-
-                            {/* Decorative background circle */}
-                            <div
-                              className="absolute inset-0 opacity-20"
-                              style={{
-                                background: `radial-gradient(circle at center, ${features[currentFeature].color}, transparent 70%)`,
-                              }}
-                            />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-
-              {/* Segmented Progress Indicators - Below Carousel */}
-              <div className="flex justify-center mt-6">
-                <div className="flex gap-2 w-full max-w-md items-center">
-                  {features.map((_, index) => (
-                    <motion.button
-                      key={index}
-                      onClick={() => setCurrentFeature(index)}
-                      className="h-1.5 bg-muted rounded-full overflow-hidden relative cursor-pointer transition-colors hover:bg-muted-foreground/20"
-                      aria-label={`Go to feature ${index + 1}`}
-                      animate={{
-                        flex: index === currentFeature ? 3 : 1,
-                      }}
-                      transition={{ duration: 0.3, ease: "easeOut" }}
-                    >
-                      {/* Active State (Animating) - Only current segment has primary color */}
-                      {index === currentFeature && (
-                        <motion.div
-                          key={currentFeature}
-                          initial={{ width: "0%" }}
-                          animate={{ width: "100%" }}
-                          transition={{ duration: 4, ease: "linear" }}
-                          className="absolute inset-0 bg-primary h-full"
-                        />
-                      )}
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Vertical Scrolling Testimonials Section */}
-        <section className="py-24 bg-card relative overflow-hidden">
-          <div className="max-w-6xl mx-auto px-6 mb-12 text-center">
-            <h2 className="text-5xl font-bold text-foreground tracking-tight mb-4">
+        {/* Testimonials Section */}
+        <section className="py-24 bg-neutral-50 dark:bg-black relative flex flex-col items-center justify-center antialiased overflow-hidden">
+          <div className="max-w-6xl mx-auto px-6 mb-12 text-center relative z-10">
+            <h2 className="text-5xl font-bold text-neutral-800 dark:text-white tracking-tight mb-4">
               What our users say
             </h2>
-            <p className="text-muted-foreground text-lg">
+            <p className="text-neutral-500 dark:text-neutral-400 text-lg">
               See what our customers have to say about us.
             </p>
           </div>
 
-          <div className="relative h-[800px] overflow-hidden">
-            {/* Gradients to fade in/out */}
-            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-card to-transparent z-20 pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-card to-transparent z-20 pointer-events-none" />
-
-            <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-6 h-full">
-              {/* Column 1 - Slow speed */}
-              <div className="flex flex-col gap-6 animate-scroll-y-slow">
-                {[...testimonials, ...testimonials].map((t, i) => (
-                  <TestimonialCard key={`col1-${i}`} data={t} />
-                ))}
-              </div>
-
-              {/* Column 2 - Medium speed, reverse offset */}
-              <div className="hidden md:flex flex-col gap-6 animate-scroll-y-medium mt-[-100px]">
-                {[...testimonials, ...testimonials].map((t, i) => (
-                  <TestimonialCard key={`col2-${i}`} data={t} />
-                ))}
-              </div>
-
-              {/* Column 3 - Fast speed */}
-              <div className="hidden md:flex flex-col gap-6 animate-scroll-y-fast">
-                {[...testimonials, ...testimonials].map((t, i) => (
-                  <TestimonialCard key={`col3-${i}`} data={t} />
-                ))}
-              </div>
-            </div>
+          <div className="relative z-10 w-full overflow-hidden">
+            <AnimatedTestimonials testimonials={testimonials} autoplay={true} />
           </div>
         </section>
 
@@ -822,27 +221,29 @@ export function WholePageScroll({
         <FAQSection items={faqs} className="bg-background" />
 
         {/* CTA Section */}
-        <section className="py-32 bg-background text-foreground">
-          <div className="max-w-4xl mx-auto px-6 text-center">
+        <section className="py-32 bg-background text-foreground relative overflow-hidden">
+          <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <h2 className="text-5xl md:text-6xl font-black tracking-tighter mb-8">
-                Ready to Ace Your Exams?
+              <h2 className="text-5xl md:text-6xl font-black tracking-tighter mb-8 flex flex-col md:block items-center justify-center gap-2">
+                <span>Ready to</span>
+                <FlipWords words={["Ace", "Master", "Dominate"]} />
+                <span>Your Exams?</span>
               </h2>
               <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed">
                 Join thousands of students who are already studying smarter, not
                 harder. Start your free trial today.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  href={user ? "/library" : "/login"}
-                  className="inline-flex h-14 px-8 items-center justify-center rounded-full bg-primary text-white font-bold text-lg hover:bg-blue-600 transition-all"
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                <StatefulButton 
+                  onClick={handleStartPractice}
+                  className="rounded-full bg-primary text-white font-bold text-lg px-8 py-4 h-14 min-w-[200px]"
                 >
-                  {user ? "Start to Practice" : "Create Free Account"}
-                </Link>
+                   {user ? "Start to Practice" : "Create Free Account"}
+                </StatefulButton>
               </div>
             </motion.div>
           </div>
@@ -888,6 +289,11 @@ export function WholePageScroll({
                       FAQ
                     </Link>
                   </li>
+                  <li>
+                    <Link href="/blog" className="hover:text-primary">
+                      Blog
+                    </Link>
+                  </li>
                 </ul>
               </div>
               <div>
@@ -923,51 +329,6 @@ export function WholePageScroll({
           </div>
         </footer>
       </div>
-
-      {/* Global Styles for Scrolling Animation */}
-      <style jsx global>{`
-        @keyframes scroll-y {
-          0% {
-            transform: translateY(0);
-          }
-          100% {
-            transform: translateY(-50%);
-          }
-        }
-        .animate-scroll-y-slow {
-          animation: scroll-y 45s linear infinite;
-        }
-        .animate-scroll-y-medium {
-          animation: scroll-y 35s linear infinite;
-        }
-        .animate-scroll-y-fast {
-          animation: scroll-y 40s linear infinite;
-        }
-        .animate-scroll-y-slow:hover,
-        .animate-scroll-y-medium:hover,
-        .animate-scroll-y-fast:hover {
-          animation-play-state: paused;
-        }
-      `}</style>
     </>
-  );
-}
-
-function TestimonialCard({ data }: { data: any }) {
-  return (
-    <div className="p-8 bg-card border border-border rounded-3xl shadow-[0_2px_20px_rgba(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-shadow">
-      <p className="text-muted-foreground mb-6 leading-relaxed">{data.quote}</p>
-      <div className="flex items-center gap-4">
-        <div className="size-10 rounded-full bg-muted overflow-hidden relative">
-          <div className="absolute inset-0 flex items-center justify-center bg-primary/10 text-primary font-bold text-sm">
-            {data.name.charAt(0)}
-          </div>
-        </div>
-        <div>
-          <h4 className="font-bold text-sm text-foreground">{data.name}</h4>
-          <p className="text-xs text-muted-foreground">{data.role}</p>
-        </div>
-      </div>
-    </div>
   );
 }

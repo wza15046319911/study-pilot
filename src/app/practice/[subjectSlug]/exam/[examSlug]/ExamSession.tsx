@@ -260,7 +260,7 @@ export default function ExamSession({
     >
       {/* Left Sidebar - Progress (Matching PracticeSession exactly) */}
       {!isFocusMode && (
-        <aside className="w-full lg:w-72 flex flex-col gap-4 shrink-0 order-2 lg:order-1 lg:sticky lg:top-24 lg:self-start">
+        <aside className="w-full lg:w-72 flex flex-col gap-4 shrink-0 order-2 lg:order-1 lg:sticky lg:top-0 lg:self-start lg:pt-16">
           {/* Timer Card */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
             <div className="flex items-center justify-between mb-2">
@@ -403,7 +403,7 @@ export default function ExamSession({
                               }`}
                             >
                               <span
-                                className={`font-serif font-medium text-lg min-w-[32px] pt-0.5 ${
+                                className={`font-serif font-medium text-lg min-w-[32px] pt-1 ${
                                   isSelected
                                     ? "font-bold text-blue-600"
                                     : "text-gray-700 dark:text-gray-300"

@@ -135,3 +135,22 @@ export async function updateQuestionBank(data: {
   revalidatePath(`/admin/question-banks/${data.bankId}`);
   return { success: true };
 }
+
+export async function deleteQuestionBank(bankId: number) {
+  const supabase = await createClient();
+
+  // Delete the question bank
+  // Note: question_bank_items and user_bank_unlocks will be automatically deleted
+  // due to ON DELETE CASCADE constraints
+  const { error } = await supabase
+    .from("question_banks")
+    .delete()
+    .eq("id", bankId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/question-banks");
+  return { success: true };
+}

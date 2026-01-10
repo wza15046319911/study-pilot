@@ -482,11 +482,34 @@ export default function ImmersiveSession({
                             li: ({ children }) => (
                               <li className="pl-1">{children}</li>
                             ),
-                            code: ({ children }) => (
-                              <code className="bg-blue-100 px-1 py-0.5 rounded font-mono text-xs">
-                                {children}
-                              </code>
-                            ),
+                            pre: ({ children }) => <>{children}</>,
+                            code: ({ className, children, ...props }: any) => {
+                              const match = /language-(\w+)/.exec(
+                                className || ""
+                              );
+                              const isInline =
+                                !match && !String(children).includes("\n");
+
+                              if (!isInline) {
+                                return (
+                                  <div className="not-prose my-2">
+                                    <CodeBlock
+                                      code={String(children).replace(/\n$/, "")}
+                                      language={match ? match[1] : "plaintext"}
+                                    />
+                                  </div>
+                                );
+                              }
+
+                              return (
+                                <code
+                                  className="bg-blue-100 px-1 py-0.5 rounded font-mono text-xs"
+                                  {...props}
+                                >
+                                  {children}
+                                </code>
+                              );
+                            },
                           }}
                         >
                           {aiExplanation}

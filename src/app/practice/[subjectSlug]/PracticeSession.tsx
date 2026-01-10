@@ -342,9 +342,9 @@ export function PracticeSession({
     >
       {/* Left Sidebar - Progress (Only in Practice Mode and NOT in Focus Mode) */}
       {mode === "practice" && !isFocusMode && (
-        <aside className="w-full lg:w-72 flex flex-col gap-8 shrink-0 order-2 lg:order-1 lg:sticky lg:top-24 lg:self-start font-serif">
+        <aside className="w-full lg:w-72 flex flex-col gap-8 shrink-0 order-2 lg:order-1 lg:sticky lg:top-0 lg:self-start font-serif">
           {/* Progress Card */}
-          <div className="bg-white dark:bg-slate-900 rounded-none border border-black dark:border-white p-6 shadow-none">
+          <div className="bg-white dark:bg-slate-900 rounded-none border border-black dark:border-white p-6 shadow-none box-content">
             <div className="flex justify-between items-center mb-4 border-b border-black dark:border-white pb-2">
               <p className="text-sm font-bold text-black dark:text-white uppercase tracking-widest">
                 Progress
@@ -591,7 +591,7 @@ export function PracticeSession({
                               }`}
                             >
                               <span
-                                className={`font-serif font-medium text-lg min-w-[32px] pt-0.5 ${
+                                className={`font-serif font-medium text-lg min-w-[32px] pt-1 ${
                                   isSelected || shouldShowCorrect
                                     ? "font-bold"
                                     : ""
@@ -772,11 +772,43 @@ export function PracticeSession({
                                 li: ({ children }) => (
                                   <li className="pl-1 text-lg">{children}</li>
                                 ),
-                                code: ({ children }) => (
-                                  <code className="bg-blue-100 dark:bg-blue-900/40 px-1 py-0.5 rounded font-mono text-xs">
-                                    {children}
-                                  </code>
-                                ),
+                                pre: ({ children }) => <>{children}</>,
+                                code: ({
+                                  className,
+                                  children,
+                                  ...props
+                                }: any) => {
+                                  const match = /language-(\w+)/.exec(
+                                    className || ""
+                                  );
+                                  const isInline =
+                                    !match && !String(children).includes("\n");
+
+                                  if (!isInline) {
+                                    return (
+                                      <div className="not-prose my-4">
+                                        <CodeBlock
+                                          code={String(children).replace(
+                                            /\n$/,
+                                            ""
+                                          )}
+                                          language={
+                                            match ? match[1] : "plaintext"
+                                          }
+                                        />
+                                      </div>
+                                    );
+                                  }
+
+                                  return (
+                                    <code
+                                      className="bg-blue-100 dark:bg-blue-900/40 px-1 py-0.5 rounded font-mono text-xs"
+                                      {...props}
+                                    >
+                                      {children}
+                                    </code>
+                                  );
+                                },
                               }}
                             >
                               {aiExplanation}

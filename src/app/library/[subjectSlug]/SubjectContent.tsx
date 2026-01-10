@@ -1,18 +1,19 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { QuestionBankItem } from "@/components/question-bank/QuestionBankItem";
 import { PremiumModal } from "@/components/ui/PremiumModal";
+import { GlareCard } from "@/components/aceternity/glare-card";
+import Link from "next/link";
 import {
   Play,
   Settings2,
   Lock,
   Layers,
   GraduationCap,
-  ChevronRight,
   BookOpen,
+  ChevronRight,
 } from "lucide-react";
 
 interface SubjectContentProps {
@@ -40,12 +41,37 @@ export function SubjectContent({
   const router = useRouter();
   const [showPremiumModal, setShowPremiumModal] = useState(false);
 
-  const handleSetupClick = (e: React.MouseEvent) => {
+  const handleSetupClick = () => {
     if (!isVip) {
-      e.preventDefault();
       setShowPremiumModal(true);
+    } else {
+        router.push(`/library/${subject.slug}/setup`);
     }
   };
+
+  const practiceCards = [
+    {
+      title: "Quick Practice",
+      icon: <Play className="size-16 text-blue-600 dark:text-blue-400" />,
+      href: `/library/${subject.slug}/practice`,
+    },
+    {
+      title: "Immersive Mode",
+      icon: <Layers className="size-16 text-purple-600 dark:text-purple-400" />,
+      href: `/library/${subject.slug}/immersive`,
+    },
+    // {
+    //   title: isVip ? "Custom Setup" : "Custom Setup (Premium)",
+    //   icon: isVip ? (
+    //     <Settings2 className="size-16 text-emerald-600 dark:text-emerald-400" />
+    //   ) : (
+    //     <Lock className="size-16 text-slate-400" />
+    //   ),
+    //   onClick: handleSetupClick,
+    //   // Only provide href if VIP, otherwise onClick handles modal
+    //   href: isVip ? `/library/${subject.slug}/setup` : undefined, 
+    // },
+  ];
 
   return (
     <div className="py-12 space-y-24">
@@ -86,83 +112,30 @@ export function SubjectContent({
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* A. Quick Practice */}
-          <Link
-            href={`/library/${subject.slug}/practice`}
-            className="group relative bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-          >
-            <div className="size-12 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-6 group-hover:bg-blue-600 group-hover:text-white transition-colors">
-              <Play className="size-6 ml-1" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-              Quick Practice
-            </h3>
-            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-6">
-              Jump straight into a session with 10 random questions. Best for
-              daily consistency.
-            </p>
-            <div className="flex items-center text-blue-600 dark:text-blue-400 font-bold text-sm group-hover:gap-2 transition-all">
-              Start Session <ChevronRight className="size-4" />
-            </div>
-          </Link>
-
-          {/* B. Immersive Mode */}
-          <Link
-            href={`/library/${subject.slug}/immersive`}
-            className="group relative bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-          >
-            <div className="size-12 rounded-2xl bg-purple-50 dark:bg-purple-900/20 flex items-center justify-center text-purple-600 dark:text-purple-400 mb-6 group-hover:bg-purple-600 group-hover:text-white transition-colors">
-              <Layers className="size-6" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-              Immersive
-            </h3>
-            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-6">
-              Distraction-free, infinite flow of questions. Focus purely on
-              problem solving.
-            </p>
-            <div className="flex items-center text-purple-600 dark:text-purple-400 font-bold text-sm group-hover:gap-2 transition-all">
-              Enter Flow <ChevronRight className="size-4" />
-            </div>
-          </Link>
-
-          {/* C. Configure (Premium) */}
-          <Link
-            href={isVip ? `/library/${subject.slug}/setup` : "#"}
-            onClick={handleSetupClick}
-            className={`group relative bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden`}
-          >
-            {/* Premium Indicator if locked */}
-            {!isVip && (
-              <div className="absolute top-4 right-4">
-                <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-full">
-                  <Lock className="size-4 text-slate-400" />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {practiceCards.map((card) => (
+            <Link key={card.href} href={card.href}>
+              <GlareCard className="h-full cursor-pointer p-8 hover:shadow-xl transition-shadow">
+                <div className="flex flex-col h-full">
+                  <div className="size-16 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mb-6">
+                    {card.icon}
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                    {card.title}
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400 mb-6 flex-grow">
+                    {card.title === "Quick Practice"
+                      ? "Jump straight into a session with 10 random questions. Best for daily consistency."
+                      : "Distraction-free, infinite flow of questions. Focus purely on problem solving."}
+                  </p>
+                  <div className="flex items-center text-blue-600 dark:text-blue-400 font-bold text-sm group-hover:gap-2 transition-all">
+                    {card.title === "Quick Practice" ? "Start Session" : "Enter Flow"}{" "}
+                    <ChevronRight className="size-4 ml-2" />
+                  </div>
                 </div>
-              </div>
-            )}
-
-            <div className="size-12 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-6 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
-              <Settings2 className="size-6" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-              Custom Setup
-            </h3>
-            <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-6">
-              Create a tailored exam with specific topics, difficulty levels,
-              and timing.
-            </p>
-            <div
-              className={`flex items-center ${
-                isVip
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : "text-slate-400"
-              } font-bold text-sm group-hover:gap-2 transition-all`}
-            >
-              {isVip ? "Configure" : "Premium Only"}{" "}
-              <ChevronRight className="size-4" />
-            </div>
-          </Link>
+              </GlareCard>
+            </Link>
+          ))}
         </div>
       </section>
 
