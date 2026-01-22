@@ -363,7 +363,7 @@ export default function EditQuestionModal({
                   >
                     {draftStatus === "saving" ? (
                       <>
-                        <CloudOff className="size-3" /> Saving...
+                        <CloudOff className="size-3" /> Saving…
                       </>
                     ) : (
                       <>
@@ -555,7 +555,7 @@ export default function EditQuestionModal({
                         <button
                           type="button"
                           onClick={() => setCodeEditorMode("code")}
-                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all ${
+                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-[color,background-color,box-shadow] ${
                             codeEditorMode === "code"
                               ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
                               : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
@@ -567,7 +567,7 @@ export default function EditQuestionModal({
                         <button
                           type="button"
                           onClick={() => setCodeEditorMode("text")}
-                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all ${
+                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-[color,background-color,box-shadow] ${
                             codeEditorMode === "text"
                               ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
                               : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
@@ -710,7 +710,7 @@ export default function EditQuestionModal({
                 </Button>
                 <Button onClick={handleSubmit} disabled={saving}>
                   <Save className="size-4 mr-2" />
-                  {saving ? "Saving..." : "Save Changes"}
+                  {saving ? "Saving…" : "Save Changes"}
                 </Button>
               </div>
             </div>

@@ -154,7 +154,7 @@ export default function QuestionPreviewModal({
                     {question.options.map((opt, idx) => (
                       <div
                         key={idx}
-                        className={`flex items-start gap-4 p-4 rounded-xl border transition-all ${
+                        className={`flex items-start gap-4 p-4 rounded-xl border transition-[background-color,border-color,box-shadow] ${
                           opt.label === question.answer
                             ? "bg-blue-50 dark:bg-blue-900/10 border-blue-200 dark:border-blue-800 shadow-sm"
                             : "bg-white dark:bg-slate-800 border-gray-100 dark:border-gray-700"

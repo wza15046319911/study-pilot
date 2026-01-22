@@ -100,7 +100,7 @@ export default async function PaymentSuccessPage() {
           {/* CTA */}
           <Link
             href="/library"
-            className="inline-flex items-center gap-2 w-full justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-xl"
+            className="inline-flex items-center gap-2 w-full justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-[background-color,box-shadow] duration-200 shadow-lg shadow-blue-500/25 hover:shadow-xl"
           >
             Start Learning
             <ArrowRight className="size-5" />

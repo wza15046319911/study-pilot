@@ -158,11 +158,11 @@ interface MistakesPDFProps {
 
 export function MistakesPDF({ mistakes, username }: MistakesPDFProps) {
   const totalErrors = mistakes.reduce((acc, m) => acc + m.error_count, 0);
-  const generatedDate = new Date().toLocaleDateString("zh-CN", {
+  const generatedDate = new Intl.DateTimeFormat("zh-CN", {
     year: "numeric",
     month: "long",
     day: "numeric",
-  });
+  }).format(new Date());
 
   return (
     <Document>

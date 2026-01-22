@@ -151,8 +151,9 @@ export function ExamsClient({ groupedExams }: ExamsClientProps) {
                         e.stopPropagation();
                         setExamToDelete(exam);
                       }}
-                      className="absolute bottom-4 right-4 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-all z-10"
+                      className="absolute bottom-4 right-4 p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors z-10"
                       title="Delete Exam"
+                      aria-label="Delete Exam"
                     >
                       <Trash2 className="size-4" />
                     </button>

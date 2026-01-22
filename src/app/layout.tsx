@@ -33,13 +33,13 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://studypilot.com";
 export const metadata: Metadata = {
   // Title Configuration
   title: {
-    default: "StudyPilot - AI-Powered Exam Practice Platform",
+    default: "StudyPilot - Exam Practice Platform",
     template: "%s | StudyPilot",
   },
 
   // Core SEO
   description:
-    "Master your exams with AI-powered question banks, spaced repetition flashcards, and smart mistake tracking. Practice smarter for midterms and finals with 10,000+ curated questions.",
+    "Master your exams with curated question banks, spaced repetition flashcards, and smart mistake tracking. Practice smarter for midterms and finals with 10,000+ curated questions.",
   keywords: [
     "exam practice",
     "question bank",
@@ -49,7 +49,6 @@ export const metadata: Metadata = {
     "university exam prep",
     "midterm practice",
     "finals preparation",
-    "AI tutor",
     "CSSE1001",
     "CSSE7030",
     "COMP3506",
@@ -83,9 +82,9 @@ export const metadata: Metadata = {
     alternateLocale: ["zh_CN"],
     url: siteUrl,
     siteName: "StudyPilot",
-    title: "StudyPilot - AI-Powered Exam Practice Platform",
+    title: "StudyPilot - Exam Practice Platform",
     description:
-      "Master your exams with AI-powered question banks and smart learning. Join thousands of students studying smarter.",
+      "Master your exams with curated question banks and smart learning. Join thousands of students studying smarter.",
     images: [
       {
         url: "/og-image.png",
@@ -99,9 +98,9 @@ export const metadata: Metadata = {
   // Twitter Card
   twitter: {
     card: "summary_large_image",
-    title: "StudyPilot - AI-Powered Exam Practice",
+    title: "StudyPilot - Exam Practice",
     description:
-      "Master your exams with AI-powered question banks and smart learning.",
+      "Master your exams with curated question banks and smart learning.",
     images: ["/og-image.png"],
     creator: "@studypilot",
   },
@@ -138,13 +137,16 @@ export default async function RootLayout({
   const messages = await getMessages();
 
   return (
-    <html lang={locale} suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning className="dark">
       <head>
+        <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+        <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
         <WebsiteJsonLd />
         <OrganizationJsonLd />
       </head>
       <body
         className={`${lexend.variable} ${notoSansSC.variable} ${firaCode.variable} font-sans antialiased bg-white dark:bg-[#0f172a] text-slate-900 dark:text-white min-h-screen transition-colors duration-300`}
+        style={{ overscrollBehavior: "contain" }}
       >
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>

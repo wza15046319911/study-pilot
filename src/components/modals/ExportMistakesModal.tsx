@@ -81,7 +81,11 @@ export function ExportMistakesModal({
 
   const generateMarkdown = () => {
     let md = `# Mistake Book\n\n`;
-    md += `Generated: ${new Date().toLocaleDateString()}\n\n`;
+    md += `Generated: ${new Intl.DateTimeFormat(undefined, {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }).format(new Date())}\n\n`;
     md += `Total Mistakes: ${filteredMistakes.length}\n\n---\n\n`;
 
     filteredMistakes.forEach((m, idx) => {
@@ -137,7 +141,15 @@ export function ExportMistakesModal({
     y += 15;
 
     doc.setFontSize(10);
-    doc.text(`Generated: ${new Date().toLocaleDateString()}`, margin, y);
+    doc.text(
+      `Generated: ${new Intl.DateTimeFormat(undefined, {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }).format(new Date())}`,
+      margin,
+      y
+    );
     y += 8;
     doc.text(`Total Mistakes: ${filteredMistakes.length}`, margin, y);
     y += 15;

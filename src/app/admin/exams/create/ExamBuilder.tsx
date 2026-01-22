@@ -475,7 +475,7 @@ export default function ExamBuilder({
                 Select a subject first
               </p>
             ) : loading ? (
-              <p className="text-gray-400 text-center py-8">Loading...</p>
+              <p className="text-gray-400 text-center py-8">Loading…</p>
             ) : filteredQuestions.length === 0 ? (
               <p className="text-gray-400 italic text-center py-8">
                 No questions match your search
@@ -628,7 +628,7 @@ export default function ExamBuilder({
                       {/* Delete Action */}
                       <button
                         onClick={() => removeQuestion(q.id)}
-                        className="absolute top-4 right-4 p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-all"
+                        className="absolute top-4 right-4 p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-[color,background-color,opacity]"
                         title="Remove question"
                       >
                         <Trash2 className="size-4" />

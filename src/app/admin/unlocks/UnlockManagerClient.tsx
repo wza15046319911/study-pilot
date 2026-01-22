@@ -321,7 +321,11 @@ export default function UnlockManagerClient() {
                           {unlock.unlock_type}
                         </span>
                         <span>
-                          {new Date(unlock.created_at).toLocaleDateString()}
+                          {new Intl.DateTimeFormat(undefined, {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          }).format(new Date(unlock.created_at))}
                         </span>
                       </div>
                     </div>

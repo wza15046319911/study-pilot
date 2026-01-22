@@ -107,6 +107,7 @@ export function UnlockBankModal({
           <button
             onClick={onClose}
             className="p-2 -mr-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
+            aria-label="Close modal"
           >
             <svg
               className="size-5"
@@ -161,7 +162,7 @@ export function UnlockBankModal({
                   <div
                     key={bank.id}
                     className={`
-                      relative flex items-center gap-4 p-4 rounded-xl border transition-all duration-200 group/card
+                      relative flex items-center gap-4 p-4 rounded-xl border transition-[background-color,border-color,box-shadow] duration-200 group/card
                       ${
                         isSuccess
                           ? "bg-slate-50 border-slate-200 dark:bg-slate-900 dark:border-slate-800"
@@ -211,7 +212,7 @@ export function UnlockBankModal({
                       disabled={loading !== null || credits <= 0 || isSuccess}
                       size="sm"
                       className={`
-                        h-9 px-4 shrink-0 transition-all font-medium rounded-lg text-xs
+                        h-9 px-4 shrink-0 transition-[background-color,border-color,box-shadow,color] font-medium rounded-lg text-xs
                         ${
                           isSuccess
                             ? "bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200 cursor-default"

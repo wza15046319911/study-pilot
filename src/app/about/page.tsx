@@ -64,7 +64,7 @@ export default function AboutPage() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm p-10 rounded-3xl border border-gray-100 dark:border-gray-800 hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+              className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm p-10 rounded-3xl border border-gray-100 dark:border-gray-800 hover:shadow-xl hover:-translate-y-1 transition-[box-shadow,transform] duration-300"
             >
               <div className="bg-white dark:bg-slate-800 w-12 h-12 rounded-xl flex items-center justify-center shadow-sm mb-4">
                 {feature.icon}

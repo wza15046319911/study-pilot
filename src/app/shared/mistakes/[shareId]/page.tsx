@@ -90,7 +90,12 @@ export default async function SharedMistakesPage(props: PageProps) {
           </h1>
           <p className="text-[#4c669a] mt-1">
             {mistakes.length} question{mistakes.length !== 1 ? "s" : ""} •
-            Shared on {new Date(shared.created_at).toLocaleDateString()}
+            Shared on{" "}
+            {new Intl.DateTimeFormat(undefined, {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            }).format(new Date(shared.created_at))}
           </p>
         </div>
 

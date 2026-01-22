@@ -103,7 +103,7 @@ export default function FeedbackClient({ feedback }: FeedbackClientProps) {
           <button
             key={status}
             onClick={() => setFilter(filter === status ? "all" : status)}
-            className={`p-4 rounded-xl border-2 transition-all ${
+            className={`p-4 rounded-xl border-2 transition-colors ${
               filter === status
                 ? "border-blue-500 bg-blue-50"
                 : "border-gray-200 hover:border-gray-300"
@@ -125,7 +125,7 @@ export default function FeedbackClient({ feedback }: FeedbackClientProps) {
           <button
             key={type}
             onClick={() => setTypeFilter(type)}
-            className={`px-3 py-1 rounded-full text-sm transition-all ${
+            className={`px-3 py-1 rounded-full text-sm transition-colors ${
               typeFilter === type
                 ? "bg-blue-600 text-white"
                 : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -168,7 +168,11 @@ export default function FeedbackClient({ feedback }: FeedbackClientProps) {
                     <span>{item.questions.subjects.name}</span>
                     <span>•</span>
                     <span>
-                      {new Date(item.created_at).toLocaleDateString()}
+                      {new Intl.DateTimeFormat(undefined, {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      }).format(new Date(item.created_at))}
                     </span>
                   </div>
                 </div>

@@ -196,7 +196,7 @@ export function Select({
           className
         )}
       >
-        {placeholder || "Loading..."}
+        {placeholder || "Loading…"}
       </div>
     );
   }

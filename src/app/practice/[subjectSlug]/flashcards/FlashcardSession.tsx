@@ -130,7 +130,7 @@ export default function FlashcardSession({
       {/* Progress Bar */}
       <div className="w-full h-1.5 bg-gray-200 rounded-full mb-8">
         <div
-          className="h-full bg-[#135bec] rounded-full transition-all duration-300"
+          className="h-full bg-[#135bec] rounded-full transition-[width] duration-300"
           style={{ width: `${progress}%` }}
         />
       </div>

@@ -314,7 +314,7 @@ function MistakeCard({
   onRemove: (id: number) => void;
 }) {
   return (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-red-200 dark:hover:border-red-900/40 transition-all flex flex-col md:flex-row gap-6 relative group">
+    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-red-200 dark:hover:border-red-900/40 transition-colors flex flex-col md:flex-row gap-6 relative group">
       <button
         onClick={() => onRemove(mistake.id)}
         className="absolute top-4 right-4 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"

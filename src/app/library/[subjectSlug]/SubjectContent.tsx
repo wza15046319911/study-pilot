@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { QuestionBankItem } from "@/components/question-bank/QuestionBankItem";
 import { PremiumModal } from "@/components/ui/PremiumModal";
-import { GlareCard } from "@/components/aceternity/glare-card";
+
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Link from "next/link";
 import {
@@ -46,7 +46,7 @@ export function SubjectContent({
     if (!isVip) {
       setShowPremiumModal(true);
     } else {
-        router.push(`/library/${subject.slug}/setup`);
+      router.push(`/library/${subject.slug}/setup`);
     }
   };
 
@@ -70,7 +70,7 @@ export function SubjectContent({
     //   ),
     //   onClick: handleSetupClick,
     //   // Only provide href if VIP, otherwise onClick handles modal
-    //   href: isVip ? `/library/${subject.slug}/setup` : undefined, 
+    //   href: isVip ? `/library/${subject.slug}/setup` : undefined,
     // },
   ];
 
@@ -154,25 +154,27 @@ export function SubjectContent({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 {practiceCards.map((card) => (
                   <Link key={card.href} href={card.href}>
-                    <GlareCard className="h-full cursor-pointer p-8 hover:shadow-xl transition-shadow">
+                    <div className="group h-full cursor-pointer p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:shadow-xl hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300">
                       <div className="flex flex-col h-full">
-                        <div className="size-16 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mb-6">
+                        <div className="size-16 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
                           {card.icon}
                         </div>
                         <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
                           {card.title}
                         </h3>
-                        <p className="text-slate-600 dark:text-slate-400 mb-6 flex-grow">
+                        <p className="text-slate-600 dark:text-slate-400 mb-6 flex-grow leading-relaxed">
                           {card.title === "Quick Practice"
                             ? "Jump straight into a session with 10 random questions. Best for daily consistency."
                             : "Distraction-free, infinite flow of questions. Focus purely on problem solving."}
                         </p>
-                        <div className="flex items-center text-blue-600 dark:text-blue-400 font-bold text-sm group-hover:gap-2 transition-all">
-                          {card.title === "Quick Practice" ? "Start Session" : "Enter Flow"}{" "}
+                        <div className="flex items-center text-blue-600 dark:text-blue-400 font-bold text-sm group-hover:gap-2 transition-[gap]">
+                          {card.title === "Quick Practice"
+                            ? "Start Session"
+                            : "Enter Flow"}{" "}
                           <ChevronRight className="size-4 ml-2" />
                         </div>
                       </div>
-                    </GlareCard>
+                    </div>
                   </Link>
                 ))}
               </div>
@@ -200,7 +202,7 @@ export function SubjectContent({
                         questionCount={bank.items?.[0]?.count || 0}
                         onClickOverride={() => {
                           router.push(
-                            `/library/${subject.slug}/question-banks/${bank.slug}`
+                            `/library/${subject.slug}/question-banks/${bank.slug}`,
                           );
                         }}
                       />
@@ -214,7 +216,8 @@ export function SubjectContent({
                     No Question Banks Yet
                   </h3>
                   <p className="text-slate-500">
-                    We're still adding question banks for this subject. Check back soon!
+                    We're still adding question banks for this subject. Check
+                    back soon!
                   </p>
                 </div>
               )}
@@ -242,7 +245,9 @@ export function SubjectContent({
                         variant="exam"
                         isUnlocked={true}
                         onClickOverride={() => {
-                          router.push(`/library/${subject.slug}/exams/${exam.slug}`);
+                          router.push(
+                            `/library/${subject.slug}/exams/${exam.slug}`,
+                          );
                         }}
                       />
                     ))}
@@ -255,7 +260,8 @@ export function SubjectContent({
                     No Mock Exams Yet
                   </h3>
                   <p className="text-slate-500">
-                    We're still adding mock exams for this subject. Check back soon!
+                    We're still adding mock exams for this subject. Check back
+                    soon!
                   </p>
                 </div>
               )}

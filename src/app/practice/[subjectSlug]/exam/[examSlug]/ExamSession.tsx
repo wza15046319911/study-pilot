@@ -294,12 +294,12 @@ export default function ExamSession({
               className="w-full"
             >
               <Send className="size-5 mr-2" />
-              {isSubmitting ? "Submitting..." : "Submit Exam"}
+              {isSubmitting ? "Submitting…" : "Submit Exam"}
             </Button>
 
             <Button
               variant="ghost"
-              className="w-full justify-center text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 group transform transition-all duration-200"
+              className="w-full justify-center text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 group transform transition-[transform,color,background-color] duration-200"
               onClick={handleExit}
             >
               <LogOut className="mr-2 size-4 group-hover:-translate-x-1 transition-transform" />
@@ -313,7 +313,7 @@ export default function ExamSession({
       <div
         className={`flex-1 flex flex-col gap-6 order-1 lg:order-2 ${
           isFocusMode
-            ? "w-full max-w-5xl mx-auto transition-all duration-500"
+            ? "w-full max-w-5xl mx-auto transition-[width,margin] duration-500"
             : ""
         }`}
       >
@@ -334,7 +334,7 @@ export default function ExamSession({
             >
               <button
                 onClick={toggleFocusMode}
-                className="p-2 rounded-full transition-all text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-800 dark:hover:text-gray-300"
+                className="p-2 rounded-full transition-colors text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-800 dark:hover:text-gray-300"
                 title={isFocusMode ? "Exit Focus Mode" : "Enter Focus Mode"}
               >
                 {isFocusMode ? (

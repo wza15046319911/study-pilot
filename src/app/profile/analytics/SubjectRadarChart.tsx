@@ -48,8 +48,13 @@ export function SubjectRadarChart({ progress }: SubjectRadarChartProps) {
   }
 
   return (
-    <div className="w-full h-[300px]">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full h-[300px] min-h-[300px] min-w-0">
+      <ResponsiveContainer
+        width="100%"
+        height="100%"
+        minHeight={300}
+        minWidth={0}
+      >
         <RadarChart cx="50%" cy="50%" outerRadius="70%" data={data}>
           <PolarGrid stroke="#e5e7eb" />
           <PolarAngleAxis

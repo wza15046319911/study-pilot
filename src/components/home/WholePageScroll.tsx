@@ -84,7 +84,7 @@ interface WholePageScrollProps {
 const testimonials = [
   {
     quote:
-      "The AI Tutor's explanations are incredibly clear. It's like having a private tutor available 24/7.",
+      "The explanations are incredibly clear. It's like having a private tutor available 24/7.",
     name: "Sarah Lin",
     designation: "Computer Science Student",
     src: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=3388&auto=format&fit=crop",

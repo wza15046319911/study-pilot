@@ -2,19 +2,29 @@
 
 import { cn } from "@/lib/utils";
 import { ButtonHTMLAttributes, forwardRef } from "react";
+import { Loader2 } from "lucide-react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary" | "ghost" | "outline";
   size?: "sm" | "md" | "lg";
+  isLoading?: boolean;
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
-    { className, variant = "primary", size = "md", children, ...props },
+    {
+      className,
+      variant = "primary",
+      size = "md",
+      isLoading = false,
+      children,
+      disabled,
+      ...props
+    },
     ref
   ) => {
     const baseStyles =
-      "inline-flex items-center justify-center font-semibold transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none";
+      "inline-flex items-center justify-center font-semibold transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500 rounded-lg";
 
     const variants = {
       primary:
@@ -28,17 +38,19 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     };
 
     const sizes = {
-      sm: "h-8 px-3 text-sm rounded-lg gap-1.5",
-      md: "h-11 px-5 text-sm rounded-lg gap-2",
-      lg: "h-12 px-6 text-base rounded-xl gap-2",
+      sm: "h-9 px-3 text-sm gap-1.5 min-w-[2.25rem]",
+      md: "h-11 px-5 text-sm gap-2 min-w-[2.75rem]",
+      lg: "h-12 px-6 text-base gap-2 min-w-[3rem]",
     };
 
     return (
       <button
         ref={ref}
         className={cn(baseStyles, variants[variant], sizes[size], className)}
+        disabled={disabled || isLoading}
         {...props}
       >
+        {isLoading && <Loader2 className="animate-spin size-4 mr-2" />}
         {children}
       </button>
     );

@@ -77,7 +77,7 @@ export function PDFExportButton({ mistakes, username }: PDFExportButtonProps) {
       ) : (
         <Download className="size-4 mr-2" />
       )}
-      {isGenerating ? "Generating..." : "Export PDF"}
+      {isGenerating ? "Generating…" : "Export PDF"}
     </Button>
   );
 }

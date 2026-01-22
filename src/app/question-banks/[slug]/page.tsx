@@ -33,7 +33,7 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
       `
       *,
       subject:subjects(name, icon)
-    `
+    `,
     )
     .eq("slug", slug)
     .maybeSingle();
@@ -96,7 +96,7 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
         difficulty,
         topic_id
       )
-    `
+    `,
     )
     .eq("bank_id", bank.id);
 
@@ -111,13 +111,23 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
 
   const topicMap = new Map(topics?.map((t: any) => [t.id, t.name]) || []);
 
+  // Check if collected
+  const { data: collectionEntry } = await supabase
+    .from("user_question_bank_collections")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("bank_id", bank.id)
+    .maybeSingle();
+
+  const isCollected = !!collectionEntry;
+
   // Calculate Stats
   const difficultyCounts = questions.reduce(
     (acc: any, q: any) => {
       acc[q.difficulty] = (acc[q.difficulty] || 0) + 1;
       return acc;
     },
-    { easy: 0, medium: 0, hard: 0 }
+    { easy: 0, medium: 0, hard: 0 },
   );
 
   const topicCounts = questions.reduce((acc: any, q: any) => {
@@ -148,6 +158,7 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
       totalQuestions={totalQuestions}
       isUnlocked={isUnlocked}
       unlockReason={unlockReason}
+      isCollected={isCollected}
     />
   );
 }

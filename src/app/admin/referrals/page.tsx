@@ -248,7 +248,11 @@ export default async function AdminReferralsPage() {
                       )}
                     </td>
                     <td className="py-3 px-4 text-slate-500">
-                      {new Date(ref.created_at).toLocaleDateString()}
+                      {new Intl.DateTimeFormat(undefined, {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      }).format(new Date(ref.created_at))}
                     </td>
                   </tr>
                 ))}

@@ -83,13 +83,13 @@ export default async function PaymentCancelPage() {
           <div className="space-y-3">
             <Link
               href="/pricing"
-              className="inline-flex items-center gap-2 w-full justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-xl"
+              className="inline-flex items-center gap-2 w-full justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-xl transition-[background-color,box-shadow] duration-200 shadow-lg shadow-blue-500/25 hover:shadow-xl"
             >
               Try Again
             </Link>
             <Link
               href="/library"
-              className="inline-flex items-center gap-2 w-full justify-center px-6 py-3 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition-all duration-200"
+              className="inline-flex items-center gap-2 w-full justify-center px-6 py-3 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition-[background-color,border-color,color] duration-200"
             >
               <ArrowLeft className="size-5" />
               Continue with Free Plan

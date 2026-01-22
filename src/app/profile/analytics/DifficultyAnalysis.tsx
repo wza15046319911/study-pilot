@@ -54,7 +54,7 @@ export function DifficultyAnalysis({ stats }: DifficultyAnalysisProps) {
             <div
               className={`h-full ${getLevelColor(
                 stat.level
-              )} rounded-full transition-all duration-500`}
+              )} rounded-full transition-[width] duration-500`}
               style={{ width: `${stat.accuracy}%` }}
             />
           </div>

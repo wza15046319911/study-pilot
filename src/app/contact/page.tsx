@@ -97,7 +97,7 @@ export default async function ContactPage() {
         {/* Support Channels Grid */}
         <div className="grid md:grid-cols-2 gap-12 mb-32">
           {/* Email Support */}
-          <div className="group bg-white dark:bg-slate-900 rounded-3xl p-10 border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div className="group bg-white dark:bg-slate-900 rounded-3xl p-10 border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-[box-shadow,transform] duration-300 hover:-translate-y-1">
             <div className="size-14 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-8 group-hover:bg-blue-600 group-hover:text-white transition-colors">
               <Mail className="size-7" />
             </div>
@@ -119,7 +119,7 @@ export default async function ContactPage() {
           </div>
 
           {/* WeChat Support */}
-          <div className="group bg-white dark:bg-slate-900 rounded-3xl p-10 border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+          <div className="group bg-white dark:bg-slate-900 rounded-3xl p-10 border border-slate-200 dark:border-slate-800 hover:shadow-xl transition-[box-shadow,transform] duration-300 hover:-translate-y-1">
             <div className="size-14 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 mb-8 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
               <MessageCircle className="size-7" />
             </div>
@@ -135,6 +135,8 @@ export default async function ContactPage() {
                 <img
                   src="/qrcode.png"
                   alt="WeChat QR"
+                  width={128}
+                  height={128}
                   className="w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal"
                 />
               </div>

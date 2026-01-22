@@ -1,30 +1,37 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Profile, Subject, Mistake, Question } from "@/types/database";
 import {
   Check,
-  Edit2,
   AlertCircle,
-  RotateCw,
-  Clock,
-  BookMarked,
-  ChevronRight,
   TrendingUp,
   Users,
   Flame,
   FileText,
   Target,
   Layers,
+  BookMarked,
+  Settings,
+  LogOut,
+  User,
+  LayoutDashboard,
+  Library,
+  GraduationCap,
+  Clock,
+  Trophy,
+  ChevronRight,
 } from "lucide-react";
 
+import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
 import { DailyTrendChart } from "./analytics/DailyTrendChart";
 import { DifficultyAnalysis } from "./analytics/DifficultyAnalysis";
 import { SubjectRadarChart } from "./analytics/SubjectRadarChart";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 
-// Combined types for props
 // Combined types for props
 interface ProgressWithSubject {
   subjects: Subject;
@@ -79,6 +86,35 @@ interface ProfileContentProps {
     unlock_type: "free" | "premium" | "referral" | "paid";
     access_status: "Free" | "Unlocked" | "Premium";
   }>;
+  userQuestionBanks: Array<{
+    id: number;
+    bank_id: number;
+    added_at: string;
+    completion_count: number;
+    last_completed_at: string | null;
+    question_banks: {
+      id: number;
+      title: string;
+      slug: string | null;
+      subjects: Subject;
+    };
+  }>;
+  userExams: Array<{
+    id: number;
+    exam_id: number;
+    added_at: string;
+    completion_count: number;
+    best_score: number | null;
+    best_time_seconds: number | null;
+    last_attempted_at: string | null;
+    exams: {
+      id: number;
+      title: string;
+      slug: string | null;
+      duration_minutes: number;
+      subjects: Subject;
+    };
+  }>;
   isAdmin?: boolean;
 }
 
@@ -92,26 +128,11 @@ export function ProfileContent({
   difficultyStats,
   referralStats,
   accessibleBanks,
+  userQuestionBanks,
+  userExams,
   isAdmin = false,
 }: ProfileContentProps) {
-  // Calculate stats
-  // unused for now: const totalCompleted = progress.reduce((acc, curr) => acc + (curr.unique_completed || 0), 0);
-
-  // Format progress data for display
-  const progressDisplay = progress.map((p) => {
-    const total = p.subjects.question_count || 0;
-    const completed = p.unique_completed || 0;
-    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
-
-    return {
-      subject: p.subjects.name,
-      slug: p.subjects.slug,
-      completed,
-      total,
-      percentage,
-      color: p.subjects.category === "STEM" ? "blue" : "emerald",
-    };
-  });
+  const [open, setOpen] = useState(false);
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
@@ -125,413 +146,410 @@ export function ProfileContent({
     return `${Math.floor(diffInSeconds / 86400)}d ago`;
   };
 
+  const links = [
+    {
+      label: "Dashboard",
+      href: "/profile",
+      icon: (
+        <LayoutDashboard className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
+      ),
+    },
+    {
+      label: "Mistakes",
+      href: "/profile/mistakes",
+      icon: (
+        <AlertCircle className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
+      ),
+    },
+    {
+      label: "Bookmarks",
+      href: "/profile/bookmarks",
+      icon: (
+        <BookMarked className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
+      ),
+    },
+    {
+      label: "Referrals",
+      href: "/profile/referrals",
+      icon: (
+        <Users className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
+      ),
+    },
+    {
+      label: "Settings",
+      href: "/settings",
+      icon: (
+        <Settings className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
+      ),
+    },
+  ];
+
+  if (isAdmin) {
+    links.push({
+      label: "Admin Panel",
+      href: "/admin",
+      icon: (
+        <Layers className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
+      ),
+    });
+  }
+
   return (
-    <div className="max-w-6xl mx-auto space-y-8">
-      {/* Header / Breadcrumb - consistent with other pages */}
-      <div className="flex items-center gap-2 text-sm text-gray-500 mb-8">
-        <Link href="/" className="hover:text-blue-600 transition-colors">
-          Home
-        </Link>
-        <ChevronRight className="size-4" />
-        <span className="text-gray-900 dark:text-white font-medium">
-          Profile
-        </span>
-      </div>
-
-      {/* Empty State for New Users */}
-      {answerStats.total === 0 && (
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-3xl p-8 mb-8 border border-blue-100 dark:border-blue-800 text-center">
-          <div className="max-w-xl mx-auto">
-            <div className="size-16 bg-blue-100 dark:bg-blue-800 rounded-2xl flex items-center justify-center mx-auto mb-4 text-blue-600 dark:text-blue-300">
-              <TrendingUp className="size-8" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Start Your First Practice Session
-            </h2>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              You haven't answered any questions yet. Pick a subject and start
-              practicing to see your personalized analytics here!
-            </p>
-            <Link href="/library">
-              <Button size="lg" className="rounded-full px-8">
-                Explore Subjects
-              </Button>
-            </Link>
-          </div>
-        </div>
+    <div
+      className={cn(
+        "rounded-md flex flex-col md:flex-row bg-gray-100 dark:bg-neutral-800 w-full flex-1 max-w-7xl mx-auto border border-neutral-200 dark:border-neutral-700 overflow-hidden",
+        "h-auto min-h-[85vh]", // Fixed height container for sidebar
       )}
-
-      <div className="grid lg:grid-cols-12 gap-8">
-        {/* Left Column - Profile Card */}
-        <div className="lg:col-span-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm">
-            <div className="flex flex-col items-center text-center">
-              <div className="relative mb-6">
-                <div className="size-32 rounded-full p-1 bg-white dark:bg-slate-800 ring-2 ring-gray-100 dark:ring-gray-700">
-                  <div
-                    className="size-full rounded-full bg-gray-100 dark:bg-gray-800 bg-cover bg-center"
-                    style={
-                      user.avatar_url
-                        ? { backgroundImage: `url(${user.avatar_url})` }
-                        : undefined
-                    }
-                  >
-                    {!user.avatar_url && (
-                      <span className="flex items-center justify-center h-full text-4xl font-bold text-gray-300">
-                        {user.username?.[0]?.toUpperCase() || "U"}
-                      </span>
-                    )}
+    >
+      <Sidebar open={open} setOpen={setOpen}>
+        <SidebarBody className="justify-between gap-10">
+          <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+            <div className="flex flex-col items-center justify-center mb-8 mt-2">
+              <div
+                className={cn(
+                  "rounded-full bg-cover bg-center ring-2 ring-gray-100 dark:ring-gray-700 mb-2 transition-all duration-300",
+                  open ? "size-16" : "size-9 mt-1",
+                )}
+                style={
+                  user.avatar_url
+                    ? { backgroundImage: `url(${user.avatar_url})` }
+                    : undefined
+                }
+              >
+                {!user.avatar_url && (
+                  <div className="w-full h-full flex items-center justify-center bg-blue-100 dark:bg-blue-900 rounded-full text-blue-600 font-bold text-xl">
+                    {user.username?.[0]?.toUpperCase()}
                   </div>
-                </div>
-                {/* Status Indicator */}
-                <div className="absolute bottom-2 right-2 p-1.5 bg-white dark:bg-slate-900 rounded-full">
-                  <div className="size-4 bg-green-500 rounded-full ring-2 ring-white dark:ring-slate-900" />
-                </div>
+                )}
               </div>
-
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                {user.username || "User"}
-              </h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
-                Level {user.level || 1} • Member since{" "}
-                {new Date(user.created_at).getFullYear()}
-              </p>
-
-              <div className="w-full mb-8 py-4 border-t border-b border-gray-100 dark:border-gray-800">
-                <div className="flex items-center justify-around text-center">
-                  <div className="flex flex-col items-center">
-                    <div className="flex items-center gap-1.5 mb-1 text-orange-500">
-                      <Flame className="size-4 fill-orange-500" />
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none mb-1">
-                      {user.streak_days || 0}
-                    </div>
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                      Day Streak
-                    </div>
-                  </div>
-
-                  <div className="w-px h-8 bg-gray-100 dark:bg-gray-800" />
-
-                  <div className="flex flex-col items-center">
-                    <div className="flex items-center gap-1.5 mb-1 text-blue-500">
-                      <FileText className="size-4" />
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none mb-1">
-                      {answerStats.total}
-                    </div>
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                      Questions
-                    </div>
-                  </div>
-
-                  <div className="w-px h-8 bg-gray-100 dark:bg-gray-800" />
-
-                  <div className="flex flex-col items-center">
-                    <div className="flex items-center gap-1.5 mb-1 text-green-500">
-                      <Target className="size-4" />
-                    </div>
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none mb-1">
-                      {answerStats.accuracy}%
-                    </div>
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                      Accuracy
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {isAdmin && (
-                <div className="w-full">
-                  <Link href="/admin">
-                    <Button
-                      variant="primary"
-                      className="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-900/20 dark:bg-slate-800 dark:hover:bg-slate-700 dark:border dark:border-slate-700"
-                    >
-                      <Layers className="mr-2 size-4" />
-                      Admin Dashboard
-                    </Button>
-                  </Link>
-                </div>
+              {open && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center"
+                >
+                  <p className="font-bold text-neutral-800 dark:text-white truncate">
+                    {user.username}
+                  </p>
+                  <p className="text-xs text-neutral-500">
+                    Level {user.level || 1}
+                  </p>
+                </motion.div>
               )}
+            </div>
 
-              {/* Referrals Section */}
-              <div className="w-full mt-8 pt-8 border-t border-gray-100 dark:border-gray-800">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">
-                    Referrals
-                  </h3>
-                  <Link
-                    href="/profile/referrals"
-                    className="text-sm text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
-                  >
-                    View Details
-                  </Link>
+            <div className="flex flex-col gap-2">
+              {links.map((link, idx) => (
+                <SidebarLink key={idx} link={link} />
+              ))}
+            </div>
+          </div>
+          <div>
+            <SidebarLink
+              link={{
+                label: "Logout",
+                href: "/login",
+                icon: (
+                  <LogOut className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
+                ),
+              }}
+            />
+          </div>
+        </SidebarBody>
+      </Sidebar>
+
+      <div className="flex flex-col flex-1 bg-white dark:bg-slate-950 p-4 md:p-8 overflow-y-auto">
+        {/* Main Content Area */}
+        <div className="max-w-4xl mx-auto w-full space-y-12">
+          {/* 1. MISTAKES SECTION */}
+          <section>
+            <div className="flex items-center justify-between mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg text-red-600 dark:text-red-400">
+                  <AlertCircle className="size-5" />
                 </div>
-                <div className="bg-blue-50 dark:bg-blue-900/10 rounded-2xl p-4 text-left">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="p-2 bg-white dark:bg-slate-800 rounded-lg text-blue-600 dark:text-blue-400 shadow-sm">
-                      <Users className="size-5" />
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Mistakes
+                </h2>
+              </div>
+              <Link
+                href="/profile/mistakes"
+                className="text-sm font-medium text-blue-600 hover:text-blue-700"
+              >
+                View All
+              </Link>
+            </div>
+
+            <div className="space-y-4">
+              {mistakes.length > 0 ? (
+                mistakes.slice(0, 3).map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors group cursor-pointer border border-transparent hover:border-red-100 dark:hover:border-red-900/30"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="text-xs font-bold text-red-600 bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-md">
+                        {item.error_count} Errors
+                      </span>
+                      <span className="text-[10px] text-gray-400">
+                        {formatTimeAgo(item.last_error_at)}
+                      </span>
                     </div>
-                    <div>
-                      <div className="text-2xl font-bold text-gray-900 dark:text-white leading-none">
-                        {referralStats.totalReferrals}
-                      </div>
-                      <div className="text-[10px] text-blue-600/80 dark:text-blue-400/80 font-bold uppercase tracking-wider mt-1">
-                        Friends Invited
-                      </div>
-                    </div>
+                    <h3 className="text-base font-medium text-gray-900 dark:text-white line-clamp-2 leading-relaxed">
+                      {item.questions.title}
+                    </h3>
                   </div>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
-                    You have{" "}
-                    <span className="font-bold text-gray-900 dark:text-white">
-                      {referralStats.unusedReferrals}
-                    </span>{" "}
-                    unlocks available. Invite more friends to unlock premium
-                    Question Banks!
+                ))
+              ) : (
+                <div className="p-8 rounded-2xl bg-gray-50 dark:bg-gray-800/20 text-center border border-dashed border-gray-200 dark:border-gray-700">
+                  <p className="text-gray-500 font-medium">
+                    No mistakes recorded yet. Great job!
                   </p>
                 </div>
-              </div>
+              )}
             </div>
-          </div>
-        </div>
+          </section>
 
-        {/* Right Column - Stats & Content */}
-        <div className="lg:col-span-8 space-y-8">
-          {/* Analytics Dashboard */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm">
-            <div className="flex items-center gap-3 mb-8">
+          {/* 2. BOOKMARKS SECTION */}
+          <section>
+            <div className="flex items-center justify-between mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-600 dark:text-amber-400">
+                  <BookMarked className="size-5" />
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  Bookmarks
+                </h2>
+              </div>
+              <Link
+                href="/profile/bookmarks"
+                className="text-sm font-medium text-blue-600 hover:text-blue-700"
+              >
+                View All
+              </Link>
+            </div>
+
+            <div className="space-y-4">
+              {bookmarks.length > 0 ? (
+                bookmarks.slice(0, 3).map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors group cursor-pointer border border-transparent hover:border-amber-100 dark:hover:border-amber-900/30"
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
+                          item.questions.difficulty === "hard"
+                            ? "bg-red-100 text-red-700"
+                            : item.questions.difficulty === "medium"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-green-100 text-green-700"
+                        }`}
+                      >
+                        {item.questions.difficulty}
+                      </span>
+                      <span className="text-[10px] text-gray-400">
+                        {formatTimeAgo(item.created_at)}
+                      </span>
+                    </div>
+                    <h3 className="text-base font-medium text-gray-900 dark:text-white line-clamp-2 leading-relaxed">
+                      {item.questions.title}
+                    </h3>
+                  </div>
+                ))
+              ) : (
+                <div className="p-8 rounded-2xl bg-gray-50 dark:bg-gray-800/20 text-center border border-dashed border-gray-200 dark:border-gray-700">
+                  <p className="text-gray-500 font-medium">
+                    No bookmarks saved yet.
+                  </p>
+                </div>
+              )}
+            </div>
+          </section>
+
+          {/* 3. ANALYTICS & STATS (Pushed below) */}
+          <section>
+            <div className="flex items-center gap-3 mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
               <div className="p-2 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600 dark:text-blue-400">
                 <TrendingUp className="size-5" />
               </div>
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                Analytics Dashboard
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Analytics
               </h2>
             </div>
 
-            {/* Stacked Layout */}
-            <div className="flex flex-col gap-8">
-              {/* Daily Activity */}
-              <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-6">
+            <div className="grid grid-cols-1 gap-8 mb-8">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
                 <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                  Daily Activity (Last 30 Days)
+                  Daily Activity
                 </h3>
                 <DailyTrendChart data={dailyActivity} />
               </div>
+            </div>
 
-              {/* Difficulty Analysis */}
-              <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                  Difficulty Analysis
-                </h3>
-                <DifficultyAnalysis stats={difficultyStats} />
+            {/* Quick Stat Cards */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-blue-50 dark:bg-blue-900/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                <FileText className="size-6 text-blue-500 mb-2" />
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {answerStats.total}
+                </span>
+                <span className="text-xs text-gray-500 uppercase font-bold">
+                  Questions
+                </span>
               </div>
-
-              {/* Subject Radar */}
-              <div className="bg-gray-50 dark:bg-slate-800/50 rounded-2xl p-6">
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                  Subject Mastery
-                </h3>
-                <SubjectRadarChart progress={progress} />
+              <div className="bg-green-50 dark:bg-green-900/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
+                <Target className="size-6 text-green-500 mb-2" />
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {answerStats.accuracy}%
+                </span>
+                <span className="text-xs text-gray-500 uppercase font-bold">
+                  Accuracy
+                </span>
               </div>
             </div>
-          </div>
+          </section>
 
-          <div className="grid sm:grid-cols-2 gap-8">
-            {/* Mistake Book */}
-            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm flex flex-col">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg text-red-600 dark:text-red-400">
-                    <AlertCircle className="size-5" />
-                  </div>
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                    Mistakes
-                  </h2>
+          {/* 4. MY QUESTION BANKS */}
+          <section>
+            <div className="flex items-center justify-between mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-violet-100 dark:bg-violet-900/30 rounded-lg text-violet-600 dark:text-violet-400">
+                  <Library className="size-5" />
                 </div>
-                <Link
-                  href="/profile/mistakes"
-                  className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Manage
-                </Link>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  My Question Banks
+                </h2>
               </div>
+              <Link
+                href="/question-banks"
+                className="text-sm font-medium text-blue-600 hover:text-blue-700"
+              >
+                Browse All
+              </Link>
+            </div>
 
-              <div className="flex-1 space-y-4">
-                {mistakes.length > 0 ? (
-                  mistakes.slice(0, 3).map((item) => (
-                    <div
-                      key={item.id}
-                      className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors group cursor-pointer border border-transparent hover:border-red-100 dark:hover:border-red-900/30"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="text-xs font-bold text-red-600 bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-md">
-                          {item.error_count} Errors
-                        </span>
-                        <span className="text-[10px] text-gray-400">
-                          {formatTimeAgo(item.last_error_at)}
-                        </span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {userQuestionBanks && userQuestionBanks.length > 0 ? (
+                userQuestionBanks.slice(0, 4).map((item) => (
+                  <Link
+                    key={item.id}
+                    href={`/question-banks/${item.question_banks.slug || item.bank_id}`}
+                    className="group p-5 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 hover:from-violet-100 hover:to-purple-100 dark:hover:from-violet-900/30 dark:hover:to-purple-900/30 transition-all duration-300 border border-violet-100 dark:border-violet-800/50 hover:border-violet-200 dark:hover:border-violet-700"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <span className="text-[10px] font-bold px-2 py-1 rounded-md bg-violet-200/50 dark:bg-violet-800/50 text-violet-700 dark:text-violet-300 uppercase tracking-wider">
+                        {item.question_banks.subjects?.name || "General"}
+                      </span>
+                      <ChevronRight className="size-4 text-gray-400 group-hover:text-violet-500 group-hover:translate-x-1 transition-all" />
+                    </div>
+                    <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-violet-700 dark:group-hover:text-violet-300 transition-colors">
+                      {item.question_banks.title}
+                    </h3>
+                    <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center gap-1">
+                        <Trophy className="size-3.5 text-amber-500" />
+                        <span>{item.completion_count} completed</span>
                       </div>
-                      <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 leading-relaxed">
-                        {item.questions.title}
-                      </h3>
+                      {item.last_completed_at && (
+                        <span className="text-gray-400">
+                          Last: {formatTimeAgo(item.last_completed_at)}
+                        </span>
+                      )}
                     </div>
-                  ))
-                ) : (
-                  <div className="flex flex-col items-center justify-center flex-1 py-8 text-center">
-                    <div className="size-12 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-3">
-                      <Check className="size-6" />
-                    </div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      Clean Sheet!
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      No mistakes to review.
-                    </p>
-                  </div>
-                )}
-              </div>
-              {mistakes.length > 3 && (
-                <Link
-                  href="/profile/mistakes"
-                  className="mt-6 block text-center text-sm font-semibold text-blue-600 hover:text-blue-700"
-                >
-                  View {mistakes.length - 3} more
-                </Link>
+                  </Link>
+                ))
+              ) : (
+                <div className="md:col-span-2 p-8 rounded-2xl bg-gray-50 dark:bg-gray-800/20 text-center border border-dashed border-gray-200 dark:border-gray-700">
+                  <Library className="size-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium mb-2">
+                    No question banks added yet
+                  </p>
+                  <Link
+                    href="/library"
+                    className="text-sm text-violet-600 hover:text-violet-700 font-medium"
+                  >
+                    Browse question banks →
+                  </Link>
+                </div>
               )}
             </div>
+          </section>
 
-            {/* Bookmarks */}
-            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm flex flex-col">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-600 dark:text-amber-400">
-                    <BookMarked className="size-5" />
-                  </div>
-                  <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                    Bookmarks
-                  </h2>
+          {/* 5. MY MOCK EXAMS */}
+          <section>
+            <div className="flex items-center justify-between mb-6 border-b border-gray-100 dark:border-gray-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg text-emerald-600 dark:text-emerald-400">
+                  <GraduationCap className="size-5" />
                 </div>
-                <Link
-                  href="/profile/bookmarks"
-                  className="text-sm font-medium text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
-                >
-                  Manage
-                </Link>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                  My Mock Exams
+                </h2>
               </div>
-
-              <div className="flex-1 space-y-4">
-                {bookmarks.length > 0 ? (
-                  bookmarks.slice(0, 3).map((item) => (
-                    <div
-                      key={item.id}
-                      className="p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors group cursor-pointer border border-transparent hover:border-amber-100 dark:hover:border-amber-900/30"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        {/* Difficulty Badge */}
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
-                            item.questions.difficulty === "hard"
-                              ? "bg-red-100 text-red-700"
-                              : item.questions.difficulty === "medium"
-                              ? "bg-yellow-100 text-yellow-700"
-                              : "bg-green-100 text-green-700"
-                          }`}
-                        >
-                          {item.questions.difficulty}
-                        </span>
-                        <span className="text-[10px] text-gray-400">
-                          {formatTimeAgo(item.created_at)}
-                        </span>
-                      </div>
-                      <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 leading-relaxed">
-                        {item.questions.title}
-                      </h3>
-                    </div>
-                  ))
-                ) : (
-                  <div className="flex flex-col items-center justify-center flex-1 py-8 text-center space-y-3">
-                    <BookMarked className="size-10 text-gray-200 dark:text-gray-700" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-gray-900 dark:text-white">
-                        No bookmarks
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Save questions to review later.
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-              {bookmarks.length > 3 && (
-                <Link
-                  href="/profile/bookmarks"
-                  className="mt-6 block text-center text-sm font-semibold text-blue-600 hover:text-blue-700"
-                >
-                  View {bookmarks.length - 3} more
-                </Link>
-              )}
-            </div>
-          </div>
-
-          {/* My Question Banks */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-gray-200 dark:border-gray-800 p-8 shadow-sm">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-white">
-                My Question Banks
-              </h2>
               <Link
                 href="/library"
                 className="text-sm font-medium text-blue-600 hover:text-blue-700"
               >
-                Explore More
+                Browse All
               </Link>
             </div>
 
-            {accessibleBanks.length > 0 ? (
-              <div className="grid sm:grid-cols-2 gap-4">
-                {accessibleBanks.map((bank) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {userExams && userExams.length > 0 ? (
+                userExams.slice(0, 4).map((item) => (
                   <Link
-                    href={`/library/${bank.subjects?.slug}/question-banks/${bank.slug}`}
-                    key={bank.id}
-                    className="block p-4 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-white dark:hover:bg-gray-800 border border-transparent hover:border-blue-200 dark:hover:border-blue-900/50 hover:shadow-md transition-all group"
+                    key={item.id}
+                    href={`/practice/${item.exams.subjects?.slug || "unknown"}/exam/${item.exams.slug || item.exam_id}`}
+                    className="group p-5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 hover:from-emerald-100 hover:to-teal-100 dark:hover:from-emerald-900/30 dark:hover:to-teal-900/30 transition-all duration-300 border border-emerald-100 dark:border-emerald-800/50 hover:border-emerald-200 dark:hover:border-emerald-700"
                   >
-                    <div className="flex justify-between items-start gap-4">
-                      <div>
-                        <h3 className="font-bold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 transition-colors line-clamp-1">
-                          {bank.title}
-                        </h3>
-                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
-                          <span>{bank.subjects?.name || "Subject"}</span>
-                        </div>
-                      </div>
-
-                      <span
-                        className={`
-                         text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider
-                         ${
-                           bank.access_status === "Free"
-                             ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                             : bank.access_status === "Premium"
-                             ? "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
-                             : "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-                         }
-                       `}
-                      >
-                        {bank.access_status === "Premium" && user.is_vip
-                          ? "VIP Access"
-                          : bank.access_status}
+                    <div className="flex items-start justify-between mb-3">
+                      <span className="text-[10px] font-bold px-2 py-1 rounded-md bg-emerald-200/50 dark:bg-emerald-800/50 text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
+                        {item.exams.subjects?.name || "Mock Exam"}
                       </span>
+                      <ChevronRight className="size-4 text-gray-400 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
+                    </div>
+                    <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
+                      {item.exams.title}
+                    </h3>
+                    <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
+                      <div className="flex items-center gap-1">
+                        <Trophy className="size-3.5 text-amber-500" />
+                        <span>{item.completion_count} attempts</span>
+                      </div>
+                      {item.best_score !== null && (
+                        <div className="flex items-center gap-1">
+                          <Target className="size-3.5 text-green-500" />
+                          <span>Best: {item.best_score}%</span>
+                        </div>
+                      )}
+                      {item.best_time_seconds !== null && (
+                        <div className="flex items-center gap-1">
+                          <Clock className="size-3.5 text-blue-500" />
+                          <span>
+                            {Math.floor(item.best_time_seconds / 60)}m
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </Link>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                You haven't unlocked any question banks yet.
-              </div>
-            )}
-          </div>
+                ))
+              ) : (
+                <div className="md:col-span-2 p-8 rounded-2xl bg-gray-50 dark:bg-gray-800/20 text-center border border-dashed border-gray-200 dark:border-gray-700">
+                  <GraduationCap className="size-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
+                  <p className="text-gray-500 font-medium mb-2">
+                    No mock exams added yet
+                  </p>
+                  <Link
+                    href="/library"
+                    className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+                  >
+                    Browse subjects and exams →
+                  </Link>
+                </div>
+              )}
+            </div>
+          </section>
         </div>
       </div>
     </div>

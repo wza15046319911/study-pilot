@@ -24,6 +24,7 @@ export function FloatingSupportButton() {
         <button
           onClick={() => setIsOpen(!isOpen)}
           className="bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-lg hover:shadow-xl transition-all active:scale-95 flex items-center justify-center pointer-events-auto"
+          aria-label={isOpen ? "Close support menu" : "Open support menu"}
         >
           {isOpen ? (
             <X className="size-6" />
@@ -52,6 +53,8 @@ export function FloatingSupportButton() {
                       <img
                         src="/qrcode.png"
                         alt="WeChat QR Code"
+                        width={128}
+                        height={128}
                         className="w-full h-full object-contain"
                       />
                     </div>

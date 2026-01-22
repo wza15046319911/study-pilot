@@ -109,7 +109,7 @@ export function PricingContent() {
           <GlassPanel
             key={tier.name}
             variant="card"
-            className={`p-8 flex flex-col relative transition-all duration-300 ${
+            className={`p-8 flex flex-col relative transition-[border-color,box-shadow,transform] duration-300 ${
               tier.popular
                 ? "border-blue-500/50 dark:border-blue-500 ring-4 ring-blue-500/10 shadow-2xl scale-105 z-10"
                 : "hover:border-gray-300 dark:hover:border-gray-600"
@@ -189,13 +189,13 @@ export function PricingContent() {
             </div>
 
             {tier.popular ? (
-              <CheckoutButton className="w-full py-4 rounded-xl font-bold transition-all duration-200 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:-translate-y-0.5">
+              <CheckoutButton className="w-full py-4 rounded-xl font-bold transition-[background-color,box-shadow,transform] duration-200 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:-translate-y-0.5">
                 {tier.cta}
               </CheckoutButton>
             ) : (
               <Link
                 href="/library"
-                className="block w-full py-4 rounded-xl font-bold transition-all duration-200 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white border border-gray-200 dark:border-slate-700 text-center"
+                className="block w-full py-4 rounded-xl font-bold transition-[background-color,border-color,color] duration-200 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-slate-900 dark:text-white border border-gray-200 dark:border-slate-700 text-center"
               >
                 {tier.cta}
               </Link>

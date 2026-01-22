@@ -25,8 +25,13 @@ export function DailyTrendChart({ data }: DailyTrendChartProps) {
   // Recharts styling is a bit specific
 
   return (
-    <div className="w-full h-[300px] mt-4">
-      <ResponsiveContainer width="100%" height="100%">
+    <div className="w-full h-[300px] min-h-[300px] min-w-0 mt-4">
+      <ResponsiveContainer
+        width="100%"
+        height="100%"
+        minHeight={300}
+        minWidth={0}
+      >
         <BarChart
           data={data}
           margin={{

@@ -261,7 +261,7 @@ export default function LoginPage() {
       <Suspense
         fallback={
           <div className="flex w-full flex-col items-center justify-center p-8 lg:w-1/2">
-            Loading...
+            Loading…
           </div>
         }
       >

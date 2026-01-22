@@ -701,7 +701,7 @@ export default function UploadQuestionPage() {
                       disabled={pdfLoading}
                     />
                     <div
-                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed transition-all ${
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border border-dashed transition-colors ${
                         pdfLoading
                           ? "border-blue-400 bg-blue-50 dark:bg-blue-900/20"
                           : "border-gray-300 dark:border-gray-600 hover:border-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20"
@@ -792,7 +792,7 @@ export default function UploadQuestionPage() {
                                     [idx]: "code",
                                   }))
                                 }
-                                className={`p-1 rounded-md transition-all ${
+                                className={`p-1 rounded-md transition-[color,background-color,box-shadow] ${
                                   (answerViewModes[idx] || "text") === "code"
                                     ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
                                     : "text-gray-400 hover:text-gray-600"
@@ -809,7 +809,7 @@ export default function UploadQuestionPage() {
                                     [idx]: "text",
                                   }))
                                 }
-                                className={`p-1 rounded-md transition-all ${
+                                className={`p-1 rounded-md transition-[color,background-color,box-shadow] ${
                                   (answerViewModes[idx] || "text") === "text"
                                     ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
                                     : "text-gray-400 hover:text-gray-600"
@@ -840,7 +840,7 @@ export default function UploadQuestionPage() {
                                 type="button"
                                 key={opt}
                                 onClick={() => updateAnswer(idx, opt)}
-                                className={`px-3 py-1 rounded text-xs font-medium transition-all ${
+                                className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
                                   q.answer === opt
                                     ? opt === "True"
                                       ? "bg-green-100 text-green-700"
@@ -902,7 +902,7 @@ export default function UploadQuestionPage() {
                                   [idx]: "code",
                                 }))
                               }
-                              className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all ${
+                              className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-[color,background-color,box-shadow] ${
                                 (codeViewModes[idx] || "code") === "code"
                                   ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
                                   : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
@@ -919,7 +919,7 @@ export default function UploadQuestionPage() {
                                   [idx]: "text",
                                 }))
                               }
-                              className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-all ${
+                              className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-[color,background-color,box-shadow] ${
                                 codeViewModes[idx] === "text"
                                   ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
                                   : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"

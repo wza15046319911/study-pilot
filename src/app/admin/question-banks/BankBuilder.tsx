@@ -45,18 +45,18 @@ export default function BankBuilder({
 
   // Form State
   const [subjectId, setSubjectId] = useState<string>(
-    initialData?.subject_id?.toString() || ""
+    initialData?.subject_id?.toString() || "",
   );
   const [title, setTitle] = useState(initialData?.title || "");
   const [slug, setSlug] = useState(initialData?.slug || "");
   const [description, setDescription] = useState(
-    initialData?.description || ""
+    initialData?.description || "",
   );
   const [unlockType, setUnlockType] = useState<
     "free" | "premium" | "referral" | "paid"
   >(initialData?.unlock_type || "free");
   const [price, setPrice] = useState<string>(
-    initialData?.price?.toString() || ""
+    initialData?.price?.toString() || "",
   );
 
   // Auto-generate slug from title
@@ -73,7 +73,7 @@ export default function BankBuilder({
   const [topics, setTopics] = useState<Topic[]>([]);
   const [availableQuestions, setAvailableQuestions] = useState<Question[]>([]);
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>(
-    initialData?.questions || []
+    initialData?.questions || [],
   );
 
   const [loading, setLoading] = useState(false);
@@ -194,7 +194,7 @@ export default function BankBuilder({
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 xl:grid-cols-1 gap-8">
         {/* Left Panel - Configuration & Selection */}
         <div className="space-y-6">
           <GlassPanel className="p-6">
@@ -265,7 +265,7 @@ export default function BankBuilder({
                 </label>
                 <div className="grid grid-cols-1 gap-3">
                   <label
-                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition-all ${
+                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition-[background-color,border-color,color] ${
                       unlockType === "free"
                         ? "border-green-300 bg-green-50 dark:border-green-800 dark:bg-green-900/20"
                         : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-800"
@@ -290,7 +290,7 @@ export default function BankBuilder({
                   </label>
 
                   <label
-                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition-all ${
+                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition-[background-color,border-color,color] ${
                       unlockType === "premium"
                         ? "border-amber-300 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20"
                         : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-800"
@@ -315,7 +315,7 @@ export default function BankBuilder({
                   </label>
 
                   <label
-                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition-all ${
+                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition-[background-color,border-color,color] ${
                       unlockType === "referral"
                         ? "border-purple-300 bg-purple-50 dark:border-purple-800 dark:bg-purple-900/20"
                         : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-800"
@@ -340,7 +340,7 @@ export default function BankBuilder({
                   </label>
 
                   <label
-                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition-all ${
+                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition-[background-color,border-color,color] ${
                       unlockType === "paid"
                         ? "border-blue-300 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20"
                         : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-800"
@@ -437,7 +437,7 @@ export default function BankBuilder({
                 filteredQuestions.map((q) => (
                   <div
                     key={q.id}
-                    className={`flex items-start gap-3 p-3 rounded-lg border transition-all cursor-pointer ${
+                    className={`flex items-start gap-3 p-3 rounded-lg border transition-[background-color,border-color] cursor-pointer ${
                       selectedQuestions.find((sq) => sq.id === q.id)
                         ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
                         : "bg-white dark:bg-slate-800 border-gray-100 dark:border-gray-700 hover:border-gray-300"
@@ -458,8 +458,8 @@ export default function BankBuilder({
                               q.difficulty === "easy"
                                 ? "bg-green-100 text-green-700"
                                 : q.difficulty === "medium"
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-red-100 text-red-700"
+                                  ? "bg-amber-100 text-amber-700"
+                                  : "bg-red-100 text-red-700"
                             }`}
                           >
                             {q.difficulty}
@@ -540,7 +540,8 @@ export default function BankBuilder({
                     </div>
                     <button
                       onClick={() => removeQuestion(q.id)}
-                      className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-all"
+                      className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded opacity-0 group-hover:opacity-100 transition-[color,background-color,opacity]"
+                      aria-label="Remove question"
                     >
                       <Trash2 className="size-4" />
                     </button>

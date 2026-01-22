@@ -5,6 +5,13 @@
 /* Theme Variables */
 html {
   font-size: 125%; /* approx 20px base size (increased from 17px) */
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  html {
+    color-scheme: dark;
+  }
 }
 
 :root {
@@ -23,6 +30,12 @@ html {
   --muted: #f8f9fa;
   --muted-foreground: #6b7280; /* gray-500 */
   --border: #e5e7eb; /* gray-200 */
+
+  /* Status Colors - Light Mode */
+  --success: #10b981; /* emerald-500 */
+  --warning: #f59e0b; /* amber-500 */
+  --error: #ef4444; /* red-500 */
+  --info: #3b82f6; /* blue-500 */
 }
 
 .dark {
@@ -37,6 +50,12 @@ html {
   --muted: #0f172a; /* slate-900 same as bg for dark usually, or slightly lighter */
   --muted-foreground: #94a3b8; /* slate-400 */
   --border: #334155; /* slate-700 */
+
+  /* Status Colors - Dark Mode */
+  --success: #34d399; /* emerald-400 */
+  --warning: #fbbf24; /* amber-400 */
+  --error: #f87171; /* red-400 */
+  --info: #60a5fa; /* blue-400 */
 }
 
 @theme inline {
@@ -56,6 +75,24 @@ html {
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+
+  /* Status Utilities */
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+  --color-info: var(--info);
+
+  /* Typography Scale */
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-2xl: 1.5rem;
+  --font-size-3xl: 1.875rem;
+  --font-size-4xl: 2.25rem;
+  --font-size-5xl: 3rem;
+  --font-size-6xl: 3.75rem;
 
   /* Animations */
   --animate-aurora: aurora 60s linear infinite;
@@ -221,6 +258,20 @@ html {
 /* Base Styles */
 body {
   font-family: "Lexend", "Noto Sans SC", sans-serif;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prefers Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 @keyframes shake-small {

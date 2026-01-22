@@ -93,7 +93,11 @@ export default function BookmarksClient({
 
     if (diffInDays === 0) return "Today";
     if (diffInDays === 1) return "Yesterday";
-    return date.toLocaleDateString();
+    return new Intl.DateTimeFormat(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    }).format(date);
   };
 
   return (
@@ -192,7 +196,7 @@ export default function BookmarksClient({
                 {items.map((bookmark) => (
                   <div
                     key={bookmark.id}
-                    className="group bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all cursor-pointer relative"
+                    className="group bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors cursor-pointer relative"
                     onClick={() =>
                       router.push(
                         `/question/${encodeId(bookmark.questions.id)}`
@@ -238,7 +242,7 @@ export default function BookmarksClient({
                           <Trash2 className="size-5" />
                         </button>
                         <div className="p-2 text-gray-300 group-hover:text-blue-500 transition-colors mt-auto">
-                          <ArrowRight className="size-5 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
+                          <ArrowRight className="size-5 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-[transform,opacity]" />
                         </div>
                       </div>
                     </div>

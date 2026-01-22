@@ -10,12 +10,12 @@ const homepageFaqs = [
   {
     question: "What is StudyPilot?",
     answer:
-      "StudyPilot is an AI-powered exam practice platform with 10,000+ curated questions, spaced repetition flashcards, and smart mistake tracking for university students.",
+      "StudyPilot is an exam practice platform with 10,000+ curated questions, spaced repetition flashcards, and smart mistake tracking for university students.",
   },
   {
     question: "How does StudyPilot help with exam preparation?",
     answer:
-      "StudyPilot uses AI tutoring, organized question banks from past exams, and scientifically-proven spaced repetition to help students master course material efficiently.",
+      "StudyPilot uses organized question banks from past exams and scientifically-proven spaced repetition to help students master course material efficiently.",
   },
   {
     question: "Which universities and courses are supported?",
@@ -159,17 +159,17 @@ export default async function Home() {
       */}
       <article
         className="sr-only"
-        aria-label="StudyPilot - AI-Powered Exam Practice Platform"
+        aria-label="StudyPilot - Exam Practice Platform"
         itemScope
         itemType="https://schema.org/WebPage"
       >
         <header>
           <h1 itemProp="name">
-            StudyPilot - AI-Powered Exam Practice Platform
+            StudyPilot - Exam Practice Platform
           </h1>
           <p itemProp="description">
-            Master your university exams with StudyPilot's AI-powered question
-            banks, spaced repetition flashcards, and smart mistake tracking.
+            Master your university exams with StudyPilot's question banks,
+            spaced repetition flashcards, and smart mistake tracking.
             Practice smarter for midterms and finals with{" "}
             {totalQuestions?.toLocaleString() || "10,000"}+ curated questions
             across {subjects.length} subjects.
@@ -185,8 +185,8 @@ export default async function Home() {
               explanations.
             </li>
             <li>
-              <strong>AI Tutor:</strong> Get personalized help when you're
-              stuck. Our AI analyzes your mistakes and suggests what to review.
+              <strong>Detailed Explanations:</strong> Learn from clear, structured
+              explanations to understand why an answer is correct.
             </li>
             <li>
               <strong>Spaced Repetition:</strong> Scientifically-proven
@@ -244,12 +244,12 @@ export default async function Home() {
           <div className="max-w-4xl mx-auto">
             <h1 className="text-4xl font-bold mb-4">StudyPilot</h1>
             <p className="text-xl mb-8">
-              AI-Powered Exam Practice Platform for University Students
+              Exam Practice Platform for University Students
             </p>
             <p className="mb-4">
               Master your exams with{" "}
-              {totalQuestions?.toLocaleString() || "10,000"}+ curated questions,
-              AI tutoring, and spaced repetition flashcards.
+              {totalQuestions?.toLocaleString() || "10,000"}+ curated questions
+              and spaced repetition flashcards.
             </p>
             <a href="/login" className="text-blue-600 underline">
               Get Started →

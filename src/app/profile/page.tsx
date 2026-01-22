@@ -57,7 +57,7 @@ export default async function ProfilePage() {
           question_count
         )
       )
-    `
+    `,
     )
     .eq("user_id", user.id)) as {
     data:
@@ -100,10 +100,10 @@ export default async function ProfilePage() {
     d.setDate(today.getDate() - i);
     const dateStr = d.toISOString().split("T")[0]; // YYYY-MM-DD
     dailyActivityMap.set(dateStr, {
-      date: new Date(dateStr).toLocaleDateString(undefined, {
+      date: new Intl.DateTimeFormat(undefined, {
         month: "short",
         day: "numeric",
-      }),
+      }).format(new Date(dateStr)),
       count: 0,
       correct: 0,
     });
@@ -174,7 +174,7 @@ export default async function ProfilePage() {
       correct: stats.correct,
       accuracy:
         stats.total > 0 ? Math.round((stats.correct / stats.total) * 100) : 0,
-    })
+    }),
   );
 
   // Convert to array format expected by ProfileContent
@@ -245,7 +245,7 @@ export default async function ProfilePage() {
   const unlockedBankIds = new Set(
     (unlockedBanksData || [])
       .map((u: any) => u.unlocked_bank_id)
-      .filter(Boolean) as number[]
+      .filter(Boolean) as number[],
   );
 
   // Determine accessible banks
@@ -286,6 +286,55 @@ export default async function ProfilePage() {
         access_status: status,
       };
     });
+
+  // Fetch user's question bank collections (with fallback if table doesn't exist)
+  let userQuestionBanks: any[] = [];
+  try {
+    const { data: userQuestionBanksData } = await supabase
+      .from("user_question_bank_collections")
+      .select(
+        `
+        *,
+        question_banks (
+          id,
+          title,
+          slug,
+          subjects (*)
+        )
+      `,
+      )
+      .eq("user_id", user.id)
+      .order("added_at", { ascending: false });
+    userQuestionBanks = userQuestionBanksData || [];
+  } catch {
+    // Table may not exist yet, use empty array
+    userQuestionBanks = [];
+  }
+
+  // Fetch user's exam collections (with fallback if table doesn't exist)
+  let userExams: any[] = [];
+  try {
+    const { data: userExamsData } = await supabase
+      .from("user_exam_collections")
+      .select(
+        `
+        *,
+        exams (
+          id,
+          title,
+          slug,
+          duration_minutes,
+          subjects (*)
+        )
+      `,
+      )
+      .eq("user_id", user.id)
+      .order("added_at", { ascending: false });
+    userExams = userExamsData || [];
+  } catch {
+    // Table may not exist yet, use empty array
+    userExams = [];
+  }
 
   // Fallback profile if not found (should be handled by trigger, but just in case)
   // Also merge auth metadata avatar if profile doesn't have one
@@ -345,6 +394,8 @@ export default async function ProfilePage() {
             }
           }
           accessibleBanks={accessibleBanks}
+          userQuestionBanks={userQuestionBanks}
+          userExams={userExams}
           isAdmin={
             !!process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL
           }

@@ -15,13 +15,11 @@ import {
   CheckCircle2,
   XCircle,
   X,
-  Sparkles,
   Timer,
   Maximize2,
   Minimize2,
-  Loader2,
+  Sparkles,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
 
 interface ImmersiveSessionProps {
   initialQuestion: Question | null;
@@ -40,10 +38,10 @@ export default function ImmersiveSession({
   const supabase = createClient();
 
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(
-    initialQuestion
+    initialQuestion,
   );
   const [previousQuestion, setPreviousQuestion] = useState<Question | null>(
-    null
+    null,
   );
   const [userAnswer, setUserAnswer] = useState<string>("");
   const [isChecked, setIsChecked] = useState(false);
@@ -54,10 +52,6 @@ export default function ImmersiveSession({
   const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
-
-  // AI Tutor State
-  const [isLoadingAI, setIsLoadingAI] = useState(false);
-  const [aiExplanation, setAiExplanation] = useState<string | null>(null);
 
   // Timer Logic
   useEffect(() => {
@@ -119,7 +113,7 @@ export default function ImmersiveSession({
     if (data && data.length > 0) {
       // Pick a random one from the batch that isn't the current question
       const filtered = data.filter(
-        (q: Question) => q.id !== currentQuestion?.id
+        (q: Question) => q.id !== currentQuestion?.id,
       );
       const randomIndex = Math.floor(Math.random() * filtered.length);
       return (filtered[randomIndex] || data[0]) as Question;
@@ -163,7 +157,7 @@ export default function ImmersiveSession({
           last_wrong_answer: userAnswer,
           last_error_at: new Date().toISOString(),
         } as any,
-        { onConflict: "user_id,question_id" }
+        { onConflict: "user_id,question_id" },
       );
     }
 
@@ -232,8 +226,9 @@ export default function ImmersiveSession({
       {/* Exit Button */}
       <button
         onClick={handleExit}
-        className="absolute top-4 right-4 p-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-900 transition-all shadow-sm"
+        className="absolute top-4 right-4 p-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-500 hover:text-gray-900 transition-colors shadow-sm"
         title="Exit Immersive Mode"
+        aria-label="Exit Immersive Mode"
       >
         <X className="size-6" />
       </button>
@@ -267,7 +262,7 @@ export default function ImmersiveSession({
       <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20">
         <button
           onClick={() => setIsFocusMode(!isFocusMode)}
-          className={`px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all ${
+          className={`px-4 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-[color,background-color,box-shadow] ${
             isFocusMode
               ? "bg-purple-600 text-white shadow-lg shadow-purple-500/30"
               : "bg-white/50 text-gray-400 hover:bg-white hover:text-purple-600"
@@ -286,7 +281,7 @@ export default function ImmersiveSession({
           }`}
         >
           {previousQuestion && (
-            <div className="opacity-30 scale-90 transform transition-all">
+            <div className="opacity-30 scale-90 transform transition-[transform,opacity]">
               <GlassPanel className="p-4 bg-gray-50 border-gray-200">
                 <p className="text-gray-600 text-sm line-clamp-4">
                   {previousQuestion.content}
@@ -306,11 +301,14 @@ export default function ImmersiveSession({
               </span>
               <button
                 onClick={toggleBookmark}
-                className={`p-2 rounded-full transition-all ${
+                className={`p-2 rounded-full transition-colors ${
                   isBookmarked
                     ? "text-yellow-500 bg-yellow-400/10"
                     : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
                 }`}
+                aria-label={
+                  isBookmarked ? "Remove bookmark" : "Bookmark question"
+                }
               >
                 <Bookmark
                   className={`size-5 ${isBookmarked ? "fill-yellow-500" : ""}`}
@@ -361,7 +359,7 @@ export default function ImmersiveSession({
                       key={option.label}
                       onClick={() => handleSelectAnswer(option.label)}
                       disabled={isChecked}
-                      className={`w-full p-4 rounded-xl text-left transition-all flex items-center gap-4 border ${style}`}
+                      className={`w-full p-4 rounded-xl text-left transition-[background-color,border-color,box-shadow,color] flex items-center gap-4 border ${style}`}
                     >
                       <span className="font-bold text-lg">{option.label}.</span>
                       <span>{option.content}</span>
@@ -382,7 +380,7 @@ export default function ImmersiveSession({
                   onChange={(e) => setUserAnswer(e.target.value)}
                   disabled={isChecked}
                   placeholder="Type your answer..."
-                  className={`w-full p-4 rounded-xl border bg-gray-50 text-gray-900 text-lg font-medium outline-none transition-all placeholder:text-gray-400 ${
+                  className={`w-full p-4 rounded-xl border bg-gray-50 text-gray-900 text-lg font-medium outline-none transition-[background-color,border-color] placeholder:text-gray-400 ${
                     isChecked
                       ? isCorrect
                         ? "border-green-500 bg-green-50"
@@ -419,104 +417,11 @@ export default function ImmersiveSession({
                   </p>
                 )}
 
-                {/* AI Tutor Button */}
                 <div className="mt-4 pt-4 border-t border-current/10">
-                  {!aiExplanation ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={async () => {
-                        setIsLoadingAI(true);
-                        const { getExplanation } = await import(
-                          "@/lib/actions/getExplanation"
-                        );
-                        const result = await getExplanation(
-                          currentQuestion.content,
-                          currentQuestion.answer,
-                          currentQuestion.code_snippet || undefined
-                        );
-                        if (result.success && result.explanation) {
-                          setAiExplanation(result.explanation);
-                        }
-                        setIsLoadingAI(false);
-                      }}
-                      disabled={isLoadingAI}
-                      className="gap-2"
-                    >
-                      {isLoadingAI ? (
-                        <Loader2 className="size-4 animate-spin" />
-                      ) : (
-                        <Sparkles className="size-4" />
-                      )}
-                      {isLoadingAI ? "Generating..." : "AI Tutor"}
-                    </Button>
-                  ) : (
-                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-                      <div className="flex items-center gap-2 text-blue-600 font-semibold mb-2">
-                        <Sparkles className="size-4" />
-                        AI Tutor
-                      </div>
-                      <div className="text-sm text-blue-800">
-                        <ReactMarkdown
-                          components={{
-                            p: ({ children }) => (
-                              <p className="mb-2 last:mb-0 leading-relaxed">
-                                {children}
-                              </p>
-                            ),
-                            strong: ({ children }) => (
-                              <span className="font-bold text-blue-900">
-                                {children}
-                              </span>
-                            ),
-                            ul: ({ children }) => (
-                              <ul className="list-disc pl-5 mb-2 space-y-1">
-                                {children}
-                              </ul>
-                            ),
-                            ol: ({ children }) => (
-                              <ol className="list-decimal pl-5 mb-2 space-y-1">
-                                {children}
-                              </ol>
-                            ),
-                            li: ({ children }) => (
-                              <li className="pl-1">{children}</li>
-                            ),
-                            pre: ({ children }) => <>{children}</>,
-                            code: ({ className, children, ...props }: any) => {
-                              const match = /language-(\w+)/.exec(
-                                className || ""
-                              );
-                              const isInline =
-                                !match && !String(children).includes("\n");
-
-                              if (!isInline) {
-                                return (
-                                  <div className="not-prose my-2">
-                                    <CodeBlock
-                                      code={String(children).replace(/\n$/, "")}
-                                      language={match ? match[1] : "plaintext"}
-                                    />
-                                  </div>
-                                );
-                              }
-
-                              return (
-                                <code
-                                  className="bg-blue-100 px-1 py-0.5 rounded font-mono text-xs"
-                                  {...props}
-                                >
-                                  {children}
-                                </code>
-                              );
-                            },
-                          }}
-                        >
-                          {aiExplanation}
-                        </ReactMarkdown>
-                      </div>
-                    </div>
-                  )}
+                  <p className="text-sm text-gray-600">
+                    Need more help? Review the question notes or try a similar
+                    question.
+                  </p>
                 </div>
               </div>
             )}
@@ -539,7 +444,7 @@ export default function ImmersiveSession({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={toggleBookmark}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                      className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
                         isBookmarked
                           ? "bg-yellow-100 text-yellow-700 border border-yellow-200"
                           : "bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -560,7 +465,7 @@ export default function ImmersiveSession({
                     className="bg-purple-500 hover:bg-purple-600"
                     size="lg"
                   >
-                    {isLoading ? "Loading..." : "Next Question"}
+                    {isLoading ? "Loading…" : "Next Question"}
                     <ChevronRight className="size-5 ml-2" />
                   </Button>
                 </>

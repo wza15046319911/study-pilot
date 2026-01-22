@@ -83,7 +83,7 @@ export function SubjectsContent({ subjects }: SubjectsContentProps) {
                     <span className="text-2xl font-bold">
                       {featured.question_count} Questions
                     </span>
-                    <span className="flex items-center gap-2 text-white/90 font-medium group-hover:gap-3 transition-all">
+                    <span className="flex items-center gap-2 text-white/90 font-medium group-hover:gap-3 transition-[transform,opacity]">
                       Start Now <ArrowRight className="size-5" />
                     </span>
                   </div>
@@ -129,7 +129,7 @@ export function SubjectsContent({ subjects }: SubjectsContentProps) {
               <div
                 className={`relative group h-full overflow-hidden rounded-2xl bg-gradient-to-br ${
                   gradients[(index + 1) % gradients.length]
-                } p-6 text-white shadow-xl cursor-pointer transition-all duration-300 hover:shadow-2xl hover:-translate-y-1`}
+                } p-6 text-white shadow-xl cursor-pointer transition-[transform,box-shadow] duration-300 hover:shadow-2xl hover:-translate-y-1`}
                 style={{ perspective: "1000px" }}
               >
                 {/* Subtle glow */}
@@ -163,7 +163,7 @@ export function SubjectsContent({ subjects }: SubjectsContentProps) {
                     <span className="text-sm font-medium">
                       {subject.question_count} Questions
                     </span>
-                    <span className="flex items-center gap-1 text-sm font-medium opacity-80 group-hover:opacity-100 group-hover:gap-2 transition-all">
+                    <span className="flex items-center gap-1 text-sm font-medium opacity-80 group-hover:opacity-100 group-hover:gap-2 transition-[transform,opacity]">
                       Practice <ArrowRight className="size-4" />
                     </span>
                   </div>

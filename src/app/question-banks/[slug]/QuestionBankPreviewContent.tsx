@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import {
   Lock,
@@ -13,13 +13,14 @@ import {
   Check,
   ChevronRight,
   ListChecks,
-  Sparkles,
-  Layers,
   DollarSign,
+  Bookmark,
+  BookmarkCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Header } from "@/components/layout/Header";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
+import { toggleQuestionBankCollection } from "@/app/library/actions";
 
 interface QuestionBankPreviewContentProps {
   bank: any;
@@ -29,6 +30,7 @@ interface QuestionBankPreviewContentProps {
   totalQuestions: number;
   isUnlocked: boolean;
   unlockReason: string;
+  isCollected: boolean;
   libraryContext?: {
     subjectSlug: string;
     subjectName: string;
@@ -47,16 +49,6 @@ const modes = [
     borderColor: "border-blue-200 dark:border-blue-800",
     ringColor: "ring-blue-500",
   },
-  {
-    id: "immersive",
-    name: "Immersive",
-    description: "Endless stream. Minimalist. Pure focus.",
-    icon: Sparkles,
-    color: "text-purple-600",
-    bgColor: "bg-purple-50 dark:bg-purple-900/20",
-    borderColor: "border-purple-200 dark:border-purple-800",
-    ringColor: "ring-purple-500",
-  },
 ];
 
 export function QuestionBankPreviewContent({
@@ -67,9 +59,22 @@ export function QuestionBankPreviewContent({
   totalQuestions,
   isUnlocked,
   unlockReason,
+  isCollected,
   libraryContext,
 }: QuestionBankPreviewContentProps) {
   const [selectedMode, setSelectedMode] = useState("practice");
+  const [activeUsers] = useState(() => ((bank.id * 7) % 40) + 12);
+  const [collected, setCollected] = useState(isCollected);
+  const [isPending, startTransition] = useTransition();
+
+  const handleToggleCollection = () => {
+    startTransition(async () => {
+      const res = await toggleQuestionBankCollection(bank.id);
+      if (res.success && res.isCollected !== undefined) {
+        setCollected(res.isCollected);
+      }
+    });
+  };
 
   const getStartLink = () => {
     const basePath = libraryContext
@@ -83,7 +88,7 @@ export function QuestionBankPreviewContent({
   };
 
   return (
-    <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc] dark:bg-slate-950">
+    <div className="relative flex min-h-screen w-full flex-col bg-[#f0f4fc] dark:bg-slate-950">
       <AmbientBackground />
       <Header user={user} />
 
@@ -111,14 +116,13 @@ export function QuestionBankPreviewContent({
           <div className="lg:col-span-4 flex flex-col items-center">
             {/* Book Cover Visualization */}
             <div className="relative w-full max-w-[320px] aspect-[3/4] rounded-r-2xl rounded-l-sm transform shadow-2xl mb-8 group perspective-[1500px]">
-              {/* Same implementation as QuestionBankItem variant='default' but static/expanded */}
               <div className="absolute inset-0 bg-[#e0c097] rounded-r-2xl rounded-l-sm shadow-[inset_5px_0_15px_rgba(0,0,0,0.1)] overflow-hidden border-l-8 border-[#5d4037]">
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/paper-fibers.png')] opacity-20 mix-blend-multiply" />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/5 via-transparent to-black/20 mix-blend-overlay pointer-events-none" />
                 <div className="absolute left-0 top-0 bottom-0 w-2 bg-gradient-to-r from-transparent to-white/30" />
 
-                <div className="relative h-full flex flex-col p-8 z-10">
-                  <div className="flex justify-between items-start mb-6">
+                <div className="relative h-full flex flex-col p-6 z-10">
+                  <div className="flex justify-between items-start mb-4">
                     {bank.unlock_type === "paid" ? (
                       <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-900 rounded-full shadow-sm border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100 font-medium text-xs tracking-wide">
                         <DollarSign className="size-3.5" />
@@ -143,14 +147,14 @@ export function QuestionBankPreviewContent({
                   </div>
 
                   <div className="mt-4 mb-auto text-center">
-                    <div className="w-12 h-0.5 bg-[#d7ccc8] mb-6 mx-auto opacity-70" />
+                    <div className="w-12 h-0.5 bg-[#d7ccc8] mb-4 mx-auto opacity-70" />
                     <h3 className="text-3xl font-serif font-bold text-[#fff8e1] leading-tight tracking-tight drop-shadow-md">
                       {bank.title}
                     </h3>
-                    <div className="w-12 h-0.5 bg-[#d7ccc8] mt-6 mx-auto opacity-70" />
+                    <div className="w-12 h-0.5 bg-[#d7ccc8] mt-4 mx-auto opacity-70" />
                   </div>
 
-                  <div className="text-center mt-8">
+                  <div className="text-center mt-auto pb-2">
                     <div className="text-xs font-mono text-[#d7ccc8] tracking-[0.2em] uppercase opacity-80 mb-2">
                       Vol. {totalQuestions}
                     </div>
@@ -173,29 +177,58 @@ export function QuestionBankPreviewContent({
 
           {/* Right Column: Details & Stats */}
           <div className="lg:col-span-8 flex flex-col">
-            <div className="mb-12">
-              <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">
-                {bank.title}
-              </h1>
-              <p className="text-xl text-slate-600 dark:text-slate-300 leading-relaxed font-serif italic text-balance">
-                &quot;
-                {bank.description ||
-                  "Master the concepts with this curated collection."}
-                &quot;
-              </p>
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <div>
+                <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white mb-4 tracking-tight">
+                  {bank.title}
+                </h1>
+                <p className="text-xl text-slate-600 dark:text-slate-300 leading-relaxed font-serif italic text-balance mb-6">
+                  &quot;
+                  {bank.description ||
+                    "Master the concepts with this curated collection."}
+                  &quot;
+                </p>
+              </div>
+              <button
+                onClick={handleToggleCollection}
+                disabled={isPending}
+                className={`flex-shrink-0 p-3 rounded-xl border transition-all ${
+                  collected
+                    ? "bg-violet-100 border-violet-200 text-violet-600 dark:bg-violet-900/30 dark:border-violet-800 dark:text-violet-400"
+                    : "bg-white border-slate-200 text-slate-400 hover:text-slate-600 hover:border-slate-300 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-500"
+                }`}
+                title={collected ? "Remove from Library" : "Add to Library"}
+              >
+                {collected ? (
+                  <BookmarkCheck className="size-6" />
+                ) : (
+                  <Bookmark className="size-6" />
+                )}
+              </button>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid sm:grid-cols-2 gap-10 mb-12">
-              <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="mb-8">
+              {/* People practicing indicator */}
+              <div className="flex items-center gap-2 text-sm font-medium text-slate-500 dark:text-slate-400">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                </span>
+                {activeUsers} people practicing right now
+              </div>
+            </div>
+
+            {/* Stats Grid - Vertical Stack */}
+            <div className="grid grid-cols-1 gap-6 mb-12">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <PieChart className="size-5 text-blue-500" />
                   <h3 className="font-bold text-slate-900 dark:text-white">
                     Difficulty Distribution
                   </h3>
                 </div>
-                <div className="space-y-5">
-                  {/* Difficulty Bars (Simplified Copy) */}
+                <div className="space-y-4">
+                  {/* Difficulty Bars */}
                   {["easy", "medium", "hard"].map((lvl) => (
                     <div key={lvl} className="space-y-1">
                       <div className="flex justify-between text-sm">
@@ -204,7 +237,7 @@ export function QuestionBankPreviewContent({
                         </span>
                         <span className="font-medium text-slate-900 dark:text-white">
                           {Math.round(
-                            (difficultyCounts[lvl] / totalQuestions) * 100
+                            (difficultyCounts[lvl] / totalQuestions) * 100,
                           ) || 0}
                           %
                         </span>
@@ -215,8 +248,8 @@ export function QuestionBankPreviewContent({
                             lvl === "easy"
                               ? "bg-emerald-400"
                               : lvl === "medium"
-                              ? "bg-amber-400"
-                              : "bg-red-400"
+                                ? "bg-amber-400"
+                                : "bg-red-400"
                           }`}
                           style={{
                             width: `${
@@ -230,14 +263,14 @@ export function QuestionBankPreviewContent({
                 </div>
               </div>
 
-              <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
                   <BarChart className="size-5 text-indigo-500" />
                   <h3 className="font-bold text-slate-900 dark:text-white">
                     Key Topics
                   </h3>
                 </div>
-                <div className="space-y-5">
+                <div className="space-y-3">
                   {sortedTopics.length > 0 ? (
                     sortedTopics.map(([topic, count]) => (
                       <div
@@ -270,7 +303,7 @@ export function QuestionBankPreviewContent({
                   <h3 className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">
                     Select Practice Mode
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                     {modes.map((m) => {
                       const Icon = m.icon;
                       const isSelected = selectedMode === m.id;
@@ -278,7 +311,7 @@ export function QuestionBankPreviewContent({
                         <button
                           key={m.id}
                           onClick={() => setSelectedMode(m.id)}
-                          className={`group relative p-4 text-left rounded-xl transition-all duration-300 border-2 ${
+                          className={`group relative p-4 text-left rounded-xl transition-[background-color,border-color,box-shadow] duration-300 border-2 ${
                             isSelected
                               ? `bg-white dark:bg-slate-800 ${m.borderColor} ${m.ringColor} ring-1 shadow-lg`
                               : "bg-white/50 dark:bg-slate-900/50 border-transparent hover:border-gray-200 dark:hover:border-gray-700"
@@ -338,8 +371,8 @@ export function QuestionBankPreviewContent({
                           bank.price ? `$${bank.price}` : "one-time access"
                         } to unlock.`
                       : bank.unlock_type === "referral"
-                      ? "This is a special reward bank. Invite friends to StudyPilot to unlock it for free."
-                      : "This is a premium Question Bank. Upgrade your account or purchase separately to access."}
+                        ? "This is a special reward bank. Invite friends to StudyPilot to unlock it for free."
+                        : "This is a premium Question Bank. Upgrade your account or purchase separately to access."}
                   </p>
 
                   {bank.unlock_type === "paid" ? (

@@ -220,7 +220,7 @@ export function PracticeSetupContent({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * (index + 1) }}
               onClick={() => setMode(m.id as any)}
-              className={`group relative p-5 text-left rounded-2xl transition-all duration-300 border-2 ${
+              className={`group relative p-5 text-left rounded-2xl transition-[background-color,border-color,box-shadow,transform] duration-300 border-2 ${
                 isSelected
                   ? `bg-white dark:bg-slate-800 ${m.borderColor} ${m.ringColor} ring-1 shadow-xl translate-y-[-2px]`
                   : "bg-white/50 dark:bg-slate-900/50 border-transparent hover:border-gray-200 dark:hover:border-gray-700 hover:bg-white dark:hover:bg-slate-800"
@@ -277,7 +277,7 @@ export function PracticeSetupContent({
                     <button
                       key={d.value}
                       onClick={() => setDifficulty(d.value)}
-                      className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-all border ${
+                      className={`px-6 py-2.5 rounded-xl text-sm font-semibold transition-[background-color,border-color,color,transform,box-shadow] border ${
                         difficulty === d.value
                           ? `${d.color} shadow-sm scale-105`
                           : "bg-white dark:bg-slate-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-gray-300"
@@ -301,7 +301,7 @@ export function PracticeSetupContent({
                   <div className="flex flex-wrap gap-2">
                     <button
                       onClick={() => toggleTopic("all")}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-[background-color,border-color,color] border ${
                         selectedTopics.includes("all")
                           ? "bg-blue-600 text-white border-blue-600 dark:bg-blue-500"
                           : "bg-white dark:bg-slate-800 text-gray-600 border-gray-200 dark:border-gray-700 hover:border-gray-300"
@@ -313,7 +313,7 @@ export function PracticeSetupContent({
                       <button
                         key={t.id}
                         onClick={() => toggleTopic(t.slug)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all border ${
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-[background-color,border-color,color] border ${
                           selectedTopics.includes(t.slug)
                             ? "bg-blue-600 text-white border-blue-600 dark:bg-blue-500"
                             : "bg-white dark:bg-slate-800 text-gray-600 border-gray-200 dark:border-gray-700 hover:border-gray-300"
@@ -370,10 +370,10 @@ export function PracticeSetupContent({
       >
         <button
           onClick={handleStart}
-          className={`group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl text-base font-bold shadow-lg transition-all duration-200 hover:scale-[1.02] hover:shadow-xl ${selectedMode.btnColor}`}
+          className={`group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl text-base font-bold shadow-lg transition-[background-color,box-shadow,transform,color] duration-200 hover:scale-[1.02] hover:shadow-xl ${selectedMode.btnColor}`}
         >
           <span>Start Session</span>
-          <ChevronRight className="size-5 opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+          <ChevronRight className="size-5 opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-[transform,opacity]" />
         </button>
       </motion.div>
     </div>

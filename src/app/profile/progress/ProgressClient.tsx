@@ -138,7 +138,7 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
         <button
           onClick={() => setActiveTab("mastery")}
           className={cn(
-            "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
+            "px-4 py-2 rounded-lg text-sm font-medium transition-[background-color,color,box-shadow] flex items-center gap-2",
             activeTab === "mastery"
               ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm"
               : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
@@ -150,7 +150,7 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
         <button
           onClick={() => setActiveTab("weakness")}
           className={cn(
-            "px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2",
+            "px-4 py-2 rounded-lg text-sm font-medium transition-[background-color,color,box-shadow] flex items-center gap-2",
             activeTab === "weakness"
               ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm"
               : "text-gray-500 hover:text-gray-900 dark:hover:text-white"
@@ -225,7 +225,7 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
                   {/* Topics List */}
                   <div
                     className={cn(
-                      "border-t border-gray-100 dark:border-gray-800 transition-all duration-300 ease-in-out",
+                      "border-t border-gray-100 dark:border-gray-800 transition-[max-height,opacity] duration-300 ease-in-out",
                       isExpanded
                         ? "max-h-[2000px] opacity-100"
                         : "max-h-0 opacity-0 overflow-hidden"
@@ -268,7 +268,7 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
                               <div className="w-full bg-gray-200 dark:bg-gray-700/50 rounded-full h-2.5 overflow-hidden relative">
                                 {/* Attempted Layer (Lighter) - How many unique questions ATTEMPTED vs Total Questions in Topic */}
                                 <div
-                                  className="absolute inset-y-0 left-0 bg-blue-200 dark:bg-blue-900/50 rounded-full transition-all duration-500"
+                                  className="absolute inset-y-0 left-0 bg-blue-200 dark:bg-blue-900/50 rounded-full transition-[width] duration-500"
                                   style={{
                                     width: `${Math.min(
                                       100,
@@ -279,7 +279,7 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
                                 {/* Correct Layer (Solid) - How many unique questions CORRECT vs Total Questions in Topic */}
                                 <div
                                   className={cn(
-                                    "absolute inset-y-0 left-0 h-full rounded-full transition-all duration-500",
+                                    "absolute inset-y-0 left-0 h-full rounded-full transition-[width] duration-500",
                                     getProgressBarColor(tAccuracy)
                                   )}
                                   style={{
@@ -300,7 +300,7 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
                             </div>
                             <Link
                               href={`/library/${subject.slug}/practice?topic=${topic.slug}`}
-                              className="shrink-0 p-2 text-gray-400 hover:text-blue-600 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-all shadow-sm"
+                              className="shrink-0 p-2 text-gray-400 hover:text-blue-600 hover:bg-white dark:hover:bg-slate-700 rounded-lg transition-colors shadow-sm"
                             >
                               <ChevronRight className="size-5" />
                             </Link>

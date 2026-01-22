@@ -7,19 +7,19 @@ import Link from "next/link";
 export const metadata = {
   title: "FAQ - Frequently Asked Questions | StudyPilot",
   description:
-    "Find answers to common questions about StudyPilot - the AI-powered exam practice platform.",
+    "Find answers to common questions about StudyPilot - the exam practice platform.",
 };
 
 const faqs = [
   {
     question: "What is StudyPilot?",
     answer:
-      "StudyPilot is an AI-powered exam practice platform designed for university students. It offers curated question banks from past exams, AI-powered tutoring, spaced repetition flashcards, and smart mistake tracking to help you study more effectively.",
+      "StudyPilot is an exam practice platform designed for university students. It offers curated question banks from past exams, spaced repetition flashcards, and smart mistake tracking to help you study more effectively.",
   },
   {
     question: "How does the Question Bank work?",
     answer:
-      "Our question banks contain thousands of practice questions organized by subject and topic. Each question includes detailed explanations, and our AI tutor can provide personalized help when you get stuck.",
+      "Our question banks contain thousands of practice questions organized by subject and topic. Each question includes detailed explanations to help you learn.",
   },
   {
     question: "What is Spaced Repetition?",
@@ -29,17 +29,12 @@ const faqs = [
   {
     question: "Is StudyPilot free to use?",
     answer:
-      "Yes! StudyPilot offers a free tier that includes access to selected question banks and basic features. Premium features like unlimited question banks and AI tutoring are available with a subscription.",
+      "Yes! StudyPilot offers a free tier that includes access to selected question banks and basic features. Premium features like unlimited question banks are available with a subscription.",
   },
   {
     question: "Which courses are supported?",
     answer:
       "StudyPilot currently supports courses from the University of Queensland, including CSSE1001, CSSE7030, COMP3506, INFS3202, and more. We're constantly adding new courses.",
-  },
-  {
-    question: "How does the AI Tutor work?",
-    answer:
-      "Our AI tutor analyzes your answers and provides personalized explanations when you make mistakes. It can break down complex concepts and suggest related topics to review.",
   },
   {
     question: "Can I track my progress?",

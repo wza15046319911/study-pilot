@@ -116,7 +116,7 @@ export function LoginVisuals() {
           }}
         >
           <div
-            className="absolute flex gap-8 transition-all duration-700 ease-in-out"
+            className="absolute flex gap-8 transition-transform duration-700 ease-in-out"
             style={{ left: 54, top: 42 }}
           >
             <div className="flex items-center justify-center rounded-full bg-white overflow-hidden size-[18px]">
@@ -144,7 +144,7 @@ export function LoginVisuals() {
           }}
         >
           <div
-            className="absolute flex gap-6 transition-all duration-700 ease-in-out"
+            className="absolute flex gap-6 transition-transform duration-700 ease-in-out"
             style={{ left: 28, top: 32 }}
           >
             <div className="flex items-center justify-center rounded-full bg-white overflow-hidden size-[16px]">
@@ -172,7 +172,7 @@ export function LoginVisuals() {
           }}
         >
           <div
-            className="absolute flex gap-8 transition-all duration-200 ease-out"
+            className="absolute flex gap-8 transition-transform duration-200 ease-out"
             style={{ left: 93, top: 88 }}
           >
             <div className="eye-pupil rounded-full bg-[#2D2D2D] size-[12px]" />
@@ -196,7 +196,7 @@ export function LoginVisuals() {
           }}
         >
           <div
-            className="absolute flex gap-6 transition-all duration-200 ease-out"
+            className="absolute flex gap-6 transition-transform duration-200 ease-out"
             style={{ left: 50, top: 38 }}
           >
             <div className="eye-pupil rounded-full bg-[#2D2D2D] size-[12px]" />
@@ -204,7 +204,7 @@ export function LoginVisuals() {
           </div>
           {/* Mouth */}
           <div
-            className="absolute h-[4px] w-20 rounded-full bg-[#2D2D2D] transition-all duration-200 ease-out"
+            className="absolute h-[4px] w-20 rounded-full bg-[#2D2D2D] transition-transform duration-200 ease-out"
             style={{ left: 38, top: 86 }}
           />
         </div>

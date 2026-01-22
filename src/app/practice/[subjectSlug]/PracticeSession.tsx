@@ -24,15 +24,10 @@ import {
   XCircle,
   Check,
   LogOut,
-  Share2,
   BookPlus,
-  Sparkles,
-  Loader2,
   Maximize2,
   Minimize2,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-import { encodeId } from "@/lib/ids";
 
 interface PracticeSessionProps {
   questions: Question[];
@@ -61,13 +56,10 @@ export function PracticeSession({
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [copied, setCopied] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [finalScore, setFinalScore] = useState(0);
   const [isAddingMistake, setIsAddingMistake] = useState(false);
   const [addedMistake, setAddedMistake] = useState(false);
-  const [isLoadingAI, setIsLoadingAI] = useState(false);
-  const [aiExplanation, setAiExplanation] = useState<string | null>(null);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
 
@@ -118,20 +110,7 @@ export function PracticeSession({
   const isChecked = checkedAnswers[currentQuestion.id];
   const supabase: any = createClient();
 
-  // ... (keep helper functions: handleShare)
-
-  const handleShare = async () => {
-    const url = `${window.location.origin}/question/${encodeId(
-      currentQuestion.id
-    )}`;
-    try {
-      await navigator.clipboard.writeText(url);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
-  };
+  // ... (keep helper functions)
 
   // Fetch bookmarks
   useEffect(() => {
@@ -361,7 +340,7 @@ export function PracticeSession({
             </h3>
             <div className="w-full bg-gray-200 dark:bg-gray-800 h-1 mt-2">
               <div
-                className="bg-black dark:bg-white h-full transition-all duration-500"
+                className="bg-black dark:bg-white h-full transition-[width] duration-500"
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
@@ -394,7 +373,7 @@ export function PracticeSession({
                     <button
                       key={q.id}
                       onClick={() => setCurrentIndex(i)}
-                      className={`size-9 rounded-sm font-serif font-bold text-sm flex items-center justify-center transition-all duration-200 ${btnClass}`}
+                      className={`size-9 rounded-sm font-serif font-bold text-sm flex items-center justify-center transition-[background-color,border-color,color] duration-200 ${btnClass}`}
                     >
                       {i + 1}
                     </button>
@@ -423,7 +402,7 @@ export function PracticeSession({
           mode === "standalone"
             ? "w-full max-w-4xl"
             : isFocusMode
-            ? "w-full max-w-5xl mx-auto transition-all duration-500"
+            ? "w-full max-w-5xl mx-auto transition-[width,margin] duration-500"
             : ""
         }`}
       >
@@ -447,8 +426,9 @@ export function PracticeSession({
               {/* Focus Mode Toggle */}
               <button
                 onClick={toggleFocusMode}
-                className="p-2 rounded-full transition-all text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-800 dark:hover:text-gray-300"
+                className="p-2 rounded-full transition-colors text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-800 dark:hover:text-gray-300"
                 title={isFocusMode ? "Exit Focus Mode" : "Enter Focus Mode"}
+                aria-label={isFocusMode ? "Exit Focus Mode" : "Enter Focus Mode"}
               >
                 {isFocusMode ? (
                   <Minimize2 className="size-5" />
@@ -464,27 +444,14 @@ export function PracticeSession({
                 </div>
               )}
 
-              {/* Share Button (Always useful) */}
-              <button
-                onClick={handleShare}
-                className="p-2 rounded-full transition-all text-gray-400 hover:bg-gray-100 hover:text-gray-600 relative group"
-                title="Share Question"
-              >
-                <Share2 className="size-5" />
-                {copied && (
-                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-black/80 text-white text-xs rounded opacity-100 transition-opacity whitespace-nowrap sans-serif">
-                    Copied!
-                  </span>
-                )}
-              </button>
-
               <button
                 onClick={toggleBookmark}
-                className={`p-2 rounded-full transition-all ${
+                className={`p-2 rounded-full transition-colors ${
                   bookmarks.has(currentQuestion.id)
                     ? "text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
                     : "text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800"
                 }`}
+                aria-label={bookmarks.has(currentQuestion.id) ? "Remove bookmark" : "Bookmark question"}
               >
                 <Bookmark
                   className={`size-5 ${
@@ -496,8 +463,9 @@ export function PracticeSession({
               <button
                 onClick={handleAddToMistakes}
                 disabled={isAddingMistake}
-                className="p-2 rounded-full transition-all text-gray-400 hover:bg-gray-100 hover:text-gray-600 relative group"
+                className="p-2 rounded-full transition-colors text-gray-400 hover:bg-gray-100 hover:text-gray-600 relative group"
                 title="Add to Mistakes"
+                aria-label={addedMistake ? "Remove from mistakes" : "Add to Mistakes"}
               >
                 {addedMistake ? (
                   <CheckCircle2 className="size-5 text-green-500" />
@@ -678,7 +646,7 @@ export function PracticeSession({
               </div>
             </div>
 
-            {/* Feedback & AI Tutor Section - Moved Below */}
+            {/* Feedback Section - Moved Below */}
             {isChecked && (
               <div
                 className={`w-full p-8 border-t-2 border-dashed ${
@@ -706,116 +674,11 @@ export function PracticeSession({
                       </p>
                     </div>
 
-                    {/* AI Tutor Button */}
                     <div className="pt-4 border-t border-current/10 w-full">
-                      {!aiExplanation ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={async () => {
-                            setIsLoadingAI(true);
-                            const { getExplanation } = await import(
-                              "@/lib/actions/getExplanation"
-                            );
-                            const result = await getExplanation(
-                              currentQuestion.content,
-                              currentQuestion.answer,
-                              currentQuestion.code_snippet || undefined,
-                              currentQuestion.id
-                            );
-                            if (result.success && result.explanation) {
-                              setAiExplanation(result.explanation);
-                            }
-                            setIsLoadingAI(false);
-                          }}
-                          disabled={isLoadingAI}
-                          className="gap-2 bg-white dark:bg-black border-current hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-colors font-serif"
-                        >
-                          {isLoadingAI ? (
-                            <Loader2 className="size-4 animate-spin" />
-                          ) : (
-                            <Sparkles className="size-4" />
-                          )}
-                          {isLoadingAI
-                            ? "Consulting AI..."
-                            : "Ask AI Tutor for Detailed Breakdown"}
-                        </Button>
-                      ) : (
-                        <div className="bg-white dark:bg-black border border-current rounded-lg p-6 w-full">
-                          <div className="flex items-center gap-2 font-bold mb-4 border-b border-current pb-2">
-                            <Sparkles className="size-5" />
-                            AI Tutor Analysis
-                          </div>
-                          <div className="prose dark:prose-invert max-w-none font-serif leading-relaxed">
-                            <ReactMarkdown
-                              components={{
-                                p: ({ children }) => (
-                                  <p className="mb-4 last:mb-0 text-lg">
-                                    {children}
-                                  </p>
-                                ),
-                                strong: ({ children }) => (
-                                  <span className="font-bold underline decoration-2 underline-offset-2">
-                                    {children}
-                                  </span>
-                                ),
-                                ul: ({ children }) => (
-                                  <ul className="list-disc pl-5 mb-4 space-y-2">
-                                    {children}
-                                  </ul>
-                                ),
-                                ol: ({ children }) => (
-                                  <ol className="list-decimal pl-5 mb-4 space-y-2">
-                                    {children}
-                                  </ol>
-                                ),
-                                li: ({ children }) => (
-                                  <li className="pl-1 text-lg">{children}</li>
-                                ),
-                                pre: ({ children }) => <>{children}</>,
-                                code: ({
-                                  className,
-                                  children,
-                                  ...props
-                                }: any) => {
-                                  const match = /language-(\w+)/.exec(
-                                    className || ""
-                                  );
-                                  const isInline =
-                                    !match && !String(children).includes("\n");
-
-                                  if (!isInline) {
-                                    return (
-                                      <div className="not-prose my-4">
-                                        <CodeBlock
-                                          code={String(children).replace(
-                                            /\n$/,
-                                            ""
-                                          )}
-                                          language={
-                                            match ? match[1] : "plaintext"
-                                          }
-                                        />
-                                      </div>
-                                    );
-                                  }
-
-                                  return (
-                                    <code
-                                      className="bg-blue-100 dark:bg-blue-900/40 px-1 py-0.5 rounded font-mono text-xs"
-                                      {...props}
-                                    >
-                                      {children}
-                                    </code>
-                                  );
-                                },
-                              }}
-                            >
-                              {aiExplanation}
-                            </ReactMarkdown>
-                          </div>
-                        </div>
-                      )}
+                      <p className="text-sm opacity-80">
+                        Review the explanation, then try a similar question to
+                        reinforce the concept.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -843,7 +706,7 @@ export function PracticeSession({
               <Button
                 onClick={() => handleCheck()}
                 disabled={!answers[currentQuestion.id]}
-                className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-all active:scale-95 group gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-[background-color,box-shadow,transform,color] active:scale-95 group gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Submit Answer
                 <span className="text-xs px-1.5 py-0.5 rounded border border-white/20 bg-white/10 text-white/80 group-hover:text-white transition-colors">
@@ -853,7 +716,7 @@ export function PracticeSession({
             ) : (
               <Button
                 onClick={handleNext}
-                className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-all active:scale-95 group gap-2"
+                className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-[background-color,box-shadow,transform,color] active:scale-95 group gap-2"
               >
                 {currentIndex === questions.length - 1
                   ? "Finish Exam"
