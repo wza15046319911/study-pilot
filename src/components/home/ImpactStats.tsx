@@ -16,18 +16,18 @@ interface StatItem {
 const stats: StatItem[] = [
   {
     icon: <Users size={28} />,
-    value: 5000,
+    value: 1000,
     suffix: "+",
     label: "Active Users",
   },
   {
     icon: <HelpCircle size={28} />,
-    value: 10000,
+    value: 500,
     suffix: "+",
     label: "Questions",
   },
-  { icon: <BookOpen size={28} />, value: 50, suffix: "+", label: "Subjects" },
-  { icon: <Trophy size={28} />, value: 98, suffix: "%", label: "Success Rate" },
+  { icon: <BookOpen size={28} />, value: 3, suffix: "+", label: "Subjects" },
+  { icon: <Trophy size={28} />, value: 99.4, suffix: "%", label: "Success Rate" },
 ];
 
 function AnimatedCounter({

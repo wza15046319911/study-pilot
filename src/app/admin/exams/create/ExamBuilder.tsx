@@ -15,11 +15,13 @@ import {
   Sparkles,
   Plus,
   Trash2,
-  GripVertical,
   Save,
   Send,
   Search,
-  Filter,
+  ListChecks,
+  Brain,
+  GraduationCap,
+  Timer,
 } from "lucide-react";
 import { LatexContent } from "@/components/ui/LatexContent";
 import { CodeBlock } from "@/components/ui/CodeBlock";
@@ -32,7 +34,7 @@ interface Subject {
 
 interface ExamBuilderProps {
   subjects: Subject[];
-  initialData?: any; // Consider typing this properly if possible, but any is acceptable for now given the complexity
+  initialData?: any;
 }
 
 const questionTypes = [
@@ -59,6 +61,22 @@ export default function ExamBuilder({
   const [examType, setExamType] = useState<"midterm" | "final">(
     initialData?.exam_type || "midterm"
   );
+  const [unlockType, setUnlockType] = useState<
+    "free" | "premium" | "referral" | "paid"
+  >(initialData?.unlock_type || "free");
+  const [price, setPrice] = useState<number | undefined>(
+    initialData?.price || undefined
+  );
+  const [allowedModes, setAllowedModes] = useState<string[]>(
+    initialData?.allowed_modes || ["exam"]
+  );
+
+  // Toggle helper for practice modes
+  const toggleMode = (mode: string) => {
+    setAllowedModes((prev) =>
+      prev.includes(mode) ? prev.filter((m) => m !== mode) : [...prev, mode]
+    );
+  };
 
   const generateSlug = (val: string) => {
     return val
@@ -163,7 +181,6 @@ export default function ExamBuilder({
   };
 
   // Random generate based on rules
-  // Random generate based on rules
   const randomGenerate = () => {
     const newSelection: Question[] = [];
 
@@ -205,6 +222,9 @@ export default function ExamBuilder({
         rules,
         publish,
         questionIds: selectedQuestions.map((q) => q.id),
+        unlockType,
+        price: unlockType === "paid" ? price : null,
+        allowedModes,
       };
 
       if (initialData) {
@@ -345,6 +365,126 @@ export default function ExamBuilder({
                     </span>
                   </div>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-[#4c669a] mb-2">
+                    Unlock Type
+                  </label>
+                  <Select
+                    value={unlockType}
+                    onChange={(e) => setUnlockType(e.target.value as any)}
+                    options={[
+                      { value: "free", label: "Free" },
+                      { value: "premium", label: "Premium (VIP Only)" },
+                      { value: "referral", label: "Referral Reward" },
+                      { value: "paid", label: "Paid" },
+                    ]}
+                  />
+                </div>
+                {unlockType === "paid" && (
+                  <div>
+                    <label className="block text-sm font-medium text-[#4c669a] mb-2">
+                      Price ($)
+                    </label>
+                    <Input
+                      type="number"
+                      value={price || ""}
+                      onChange={(e) =>
+                        setPrice(parseFloat(e.target.value) || 0)
+                      }
+                      placeholder="9.99"
+                      min={0}
+                      step={0.01}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Practice Modes */}
+              <div className="pt-2">
+                <label className="block text-sm font-medium text-slate-500 mb-3">
+                  Allowed Practice Modes *
+                </label>
+                <div className="space-y-2">
+                  <label
+                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition-[background-color,border-color,color] ${
+                      allowedModes.includes("exam")
+                        ? "border-indigo-300 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-900/20"
+                        : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={allowedModes.includes("exam")}
+                      onChange={() => toggleMode("exam")}
+                      className="size-4 text-indigo-600 focus:ring-indigo-500 rounded"
+                    />
+                    <Timer className="size-5 text-indigo-500" />
+                    <div className="flex-1">
+                      <span className="font-medium text-sm block">
+                        Exam Mode
+                      </span>
+                      <span className="text-xs text-slate-400">
+                        Timed, no hints, strict conditions
+                      </span>
+                    </div>
+                  </label>
+
+                  <label
+                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition-[background-color,border-color,color] ${
+                      allowedModes.includes("standard")
+                        ? "border-blue-300 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20"
+                        : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={allowedModes.includes("standard")}
+                      onChange={() => toggleMode("standard")}
+                      className="size-4 text-blue-600 focus:ring-blue-500 rounded"
+                    />
+                    <ListChecks className="size-5 text-blue-500" />
+                    <div className="flex-1">
+                      <span className="font-medium text-sm block">
+                        Standard Practice
+                      </span>
+                      <span className="text-xs text-slate-400">
+                        Untimed, instant feedback
+                      </span>
+                    </div>
+                  </label>
+
+                  <label
+                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition-[background-color,border-color,color] ${
+                      allowedModes.includes("immersive")
+                        ? "border-violet-300 bg-violet-50 dark:border-violet-800 dark:bg-violet-900/20"
+                        : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={allowedModes.includes("immersive")}
+                      onChange={() => toggleMode("immersive")}
+                      className="size-4 text-violet-600 focus:ring-violet-500 rounded"
+                    />
+                    <Brain className="size-5 text-violet-500" />
+                    <div className="flex-1">
+                      <span className="font-medium text-sm block">
+                        Immersive
+                      </span>
+                      <span className="text-xs text-slate-400">
+                        Focus mode, distraction free
+                      </span>
+                    </div>
+                  </label>
+                </div>
+                {allowedModes.length === 0 && (
+                  <p className="text-xs text-red-500 mt-2">
+                    At least one mode is required
+                  </p>
+                )}
               </div>
             </div>
           </GlassPanel>
@@ -501,9 +641,7 @@ export default function ExamBuilder({
                         e.stopPropagation();
                         addQuestion(q);
                       }}
-                      disabled={
-                        !!selectedQuestions.find((sq) => sq.id === q.id)
-                      }
+                      disabled={!!selectedQuestions.find((sq) => sq.id === q.id)}
                       className="p-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                     >
                       <Plus className="size-4" />
@@ -542,6 +680,14 @@ export default function ExamBuilder({
                   </span>
                   <span className="ml-2 font-medium capitalize">
                     {examType}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-slate-500 dark:text-slate-400">
+                    Unlock:
+                  </span>
+                  <span className="ml-2 font-medium capitalize">
+                    {unlockType}
                   </span>
                 </div>
               </div>

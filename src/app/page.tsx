@@ -42,11 +42,32 @@ export default async function Home() {
   let userData = null;
   let isAdmin = false;
 
+  const subjectsPromise = supabase
+    .from("subjects")
+    .select(
+      "id, name, slug, icon, description, question_count, is_new, is_hot",
+    )
+    .order("name");
+
+  const totalQuestionsPromise = supabase
+    .from("questions")
+    .select("*", { count: "exact", head: true });
+
+  const totalBanksPromise = supabase
+    .from("question_banks")
+    .select("*", { count: "exact", head: true })
+    .eq("is_published", true);
+
+  const translationsPromise = Promise.all([
+    getTranslations("home"),
+    getTranslations("results"),
+    getTranslations("subjects"),
+  ]);
+
   if (user) {
-    // Fetch profile
     const { data: profileData } = await supabase
       .from("profiles")
-      .select("*")
+      .select("id, username, avatar_url, is_vip")
       .eq("id", user.id)
       .single();
 
@@ -70,26 +91,25 @@ export default async function Home() {
       !!process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL;
   }
 
-  // Fetch all subjects for the browse section
-  const { data: subjectsData } = await supabase
-    .from("subjects")
-    .select("*")
-    .order("name");
+  const [
+    subjectsResult,
+    totalQuestionsResult,
+    totalBanksResult,
+    translations,
+  ] = await Promise.all([
+    subjectsPromise,
+    totalQuestionsPromise,
+    totalBanksPromise,
+    translationsPromise,
+  ]);
 
-  // Fetch stats for SEO content
-  const { count: totalQuestions } = await supabase
-    .from("questions")
-    .select("*", { count: "exact", head: true });
+  const subjects = (subjectsResult.data || []) as Subject[];
+  const t = translations[0];
+  const t2 = translations[1];
+  const t3 = translations[2];
 
-  const { count: totalBanks } = await supabase
-    .from("question_banks")
-    .select("*", { count: "exact", head: true })
-    .eq("is_published", true);
-
-  const subjects = (subjectsData || []) as Subject[];
-  const t = await getTranslations("home");
-  const t2 = await getTranslations("results");
-  const t3 = await getTranslations("subjects");
+  const totalQuestions = totalQuestionsResult.count;
+  const totalBanks = totalBanksResult.count;
 
   const content = {
     hero: {

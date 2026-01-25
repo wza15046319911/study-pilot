@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 interface CountdownTimerProps {
   targetDate: Date;
   className?: string;
+  label?: string | null;
 }
 
 interface TimeLeft {
@@ -17,6 +18,7 @@ interface TimeLeft {
 export function CountdownTimer({
   targetDate,
   className = "",
+  label = "Offer ends in:",
 }: CountdownTimerProps) {
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null);
   const [isExpired, setIsExpired] = useState(false);
@@ -56,9 +58,11 @@ export function CountdownTimer({
 
   return (
     <div className={`flex items-center justify-center gap-2 ${className}`}>
-      <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
-        Offer ends in:
-      </span>
+      {label && (
+        <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+          {label}
+        </span>
+      )}
       <div className="flex items-center gap-1">
         <TimeUnit value={timeLeft.days} label="d" />
         <span className="text-slate-400">:</span>

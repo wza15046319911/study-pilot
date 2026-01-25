@@ -206,6 +206,7 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
       isUnlocked={isUnlocked}
       unlockReason={unlockReason}
       isCollected={isCollected}
+      allowedModes={bank.allowed_modes}
       libraryContext={{
         subjectSlug,
         subjectName: subject.name,

@@ -75,37 +75,38 @@ export async function getOrCreateReferralCode() {
   return code;
 }
 
-export async function getReferralStats() {
+export async function getReferralStats(userId?: string) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  let targetUserId = userId;
 
-  if (!user) return null;
+  if (!targetUserId) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
+    targetUserId = user.id;
+  }
 
   // Get total referrals
-  const { count: totalReferrals } = await (supabase.from("referrals") as any)
-    .select("*", { count: "exact", head: true })
-    .eq("referrer_id", user.id);
-
-  // Get unused unlocks (referrals not yet used for unlock)
-  const { count: unusedReferrals } = await (supabase.from("referrals") as any)
-    .select("*", { count: "exact", head: true })
-    .eq("referrer_id", user.id)
-    .eq("used_for_unlock", false);
-
-  // Get unlocked banks count
-  const { count: unlockedBanks } = await (
-    supabase.from("user_bank_unlocks") as any
-  )
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .eq("unlock_type", "referral");
+  const [totalReferralsResult, unusedReferralsResult, unlockedBanksResult] =
+    await Promise.all([
+      (supabase.from("referrals") as any)
+        .select("*", { count: "exact", head: true })
+        .eq("referrer_id", targetUserId),
+      (supabase.from("referrals") as any)
+        .select("*", { count: "exact", head: true })
+        .eq("referrer_id", targetUserId)
+        .eq("used_for_unlock", false),
+      (supabase.from("user_bank_unlocks") as any)
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", targetUserId)
+        .eq("unlock_type", "referral"),
+    ]);
 
   return {
-    totalReferrals: totalReferrals || 0,
-    unusedReferrals: unusedReferrals || 0,
-    unlockedBanks: unlockedBanks || 0,
+    totalReferrals: totalReferralsResult.count || 0,
+    unusedReferrals: unusedReferralsResult.count || 0,
+    unlockedBanks: unlockedBanksResult.count || 0,
   };
 }
 

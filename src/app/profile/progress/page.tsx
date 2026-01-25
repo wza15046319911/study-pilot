@@ -17,13 +17,54 @@ export default async function ProgressPage() {
     redirect("/login");
   }
 
-  // 2. Fetch User Profile for Header
-  const { data: profile } = await supabase
+  const profilePromise = supabase
     .from("profiles")
-    .select("*")
+    .select("id, username, avatar_url, is_vip")
     .eq("id", user.id)
     .single();
 
+  const subjectsPromise = supabase
+    .from("subjects")
+    .select("id, name, slug")
+    .order("name");
+
+  const topicsPromise = supabase
+    .from("topics")
+    .select("id, name, slug, subject_id, questions(count)")
+    .order("name");
+
+  const topicProgressPromise = supabase
+    .from("topic_progress")
+    .select("topic_id, completed_count, correct_count")
+    .eq("user_id", user.id);
+
+  const userAnswersPromise = supabase
+    .from("user_answers")
+    .select(
+      `
+      is_correct,
+      questions!inner (
+        tags
+      )
+    `,
+    )
+    .eq("user_id", user.id);
+
+  const [
+    profileResult,
+    subjectsResult,
+    topicsResult,
+    topicProgressResult,
+    userAnswersResult,
+  ] = await Promise.all([
+    profilePromise,
+    subjectsPromise,
+    topicsPromise,
+    topicProgressPromise,
+    userAnswersPromise,
+  ]);
+
+  const profile = profileResult.data;
   const userForHeader = {
     username: (profile as any)?.username || user.user_metadata?.name || "User",
     avatar_url:
@@ -34,70 +75,23 @@ export default async function ProgressPage() {
     is_vip: (profile as any)?.is_vip || false,
   };
 
-  // 3. Fetch Subjects and Topics
-  const { data: subjectsData } = await supabase
-    .from("subjects")
-    .select("*")
-    .order("name");
-
-  const { data: topicsData } = await supabase
-    .from("topics")
-    .select("*, questions(count)")
-    .order("name");
-
-  // 4. Fetch User Answers with Question Details
-  const { data: userAnswersData } = (await supabase
-    .from("user_answers")
-    .select(
-      `
-      is_correct,
-      questions!inner (
-        id,
-        subject_id,
-        topic_id,
-        tags
-      )
-    `
-    )
-    .eq("user_id", user.id)) as { data: any[] | null };
+  const subjectsData = subjectsResult.data;
+  const topicsData = topicsResult.data;
+  const userAnswersData = userAnswersResult.data as any[] | null;
 
   // --- Data Processing ---
 
-  // A. Calculate Topic Progress from user_answers
-  // A. Calculate Topic Progress from user_answers
-  // Use map of Sets to track unique question IDs
-  const topicStatsMap = new Map<
-    number,
-    { correctIds: Set<number>; completedIds: Set<number> }
-  >();
-
-  if (userAnswersData) {
-    for (const answer of userAnswersData) {
-      const question = answer.questions as any;
-      if (!question || !question.topic_id) continue;
-
-      const topicId = question.topic_id;
-      const existing = topicStatsMap.get(topicId) || {
-        correctIds: new Set<number>(),
-        completedIds: new Set<number>(),
-      };
-
-      existing.completedIds.add(question.id);
-      if (answer.is_correct) existing.correctIds.add(question.id);
-      topicStatsMap.set(topicId, existing);
-    }
-  }
-
-  // Convert Sets to counts for valid progress objects
+  // A. Calculate Topic Progress from topic_progress
   const topicProgressMap = new Map<
     number,
     { correct_count: number; completed_count: number }
   >();
 
-  topicStatsMap.forEach((stats, topicId) => {
-    topicProgressMap.set(topicId, {
-      correct_count: stats.correctIds.size,
-      completed_count: stats.completedIds.size,
+  (topicProgressResult.data || []).forEach((stats: any) => {
+    if (!stats.topic_id) return;
+    topicProgressMap.set(stats.topic_id, {
+      correct_count: stats.correct_count || 0,
+      completed_count: stats.completed_count || 0,
     });
   });
 

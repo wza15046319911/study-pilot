@@ -25,14 +25,21 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
     redirect(`/login?next=/question-banks/${slug}`);
   }
 
-  // Fetch Bank + basic items info
+  // Fetch Bank + basic info
   const { data: bank, error: bankError } = await (
     supabase.from("question_banks") as any
   )
     .select(
       `
-      *,
-      subject:subjects(name, icon)
+      id,
+      title,
+      slug,
+      description,
+      subject_id,
+      unlock_type,
+      is_premium,
+      price,
+      allowed_modes
     `,
     )
     .eq("slug", slug)
@@ -55,11 +62,51 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
     );
   }
 
-  // Fetch User Profile for Access Check
-  const { data: profile } = await (supabase.from("profiles") as any)
-    .select("*")
+  const profilePromise = (supabase.from("profiles") as any)
+    .select("id, username, avatar_url, is_vip")
     .eq("id", user.id)
     .single();
+
+  const itemsPromise = supabase
+    .from("question_bank_items")
+    .select(
+      `
+      question:questions(
+        difficulty,
+        topic_id
+      )
+    `,
+    )
+    .eq("bank_id", bank.id);
+
+  const topicsPromise = supabase
+    .from("topics")
+    .select("id, name")
+    .eq("subject_id", bank.subject_id);
+
+  const collectionPromise = supabase
+    .from("user_question_bank_collections")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("bank_id", bank.id)
+    .maybeSingle();
+
+  const unlockPromise = (supabase.from("user_bank_unlocks") as any)
+    .select("id, unlock_type")
+    .eq("user_id", user.id)
+    .eq("bank_id", bank.id)
+    .single();
+
+  const [profileResult, itemsResult, topicsResult, collectionResult, unlockResult] =
+    await Promise.all([
+      profilePromise,
+      itemsPromise,
+      topicsPromise,
+      collectionPromise,
+      unlockPromise,
+    ]);
+
+  const profile = profileResult.data as any;
 
   // Check Unlock Status
   let isUnlocked = false;
@@ -75,12 +122,7 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
     unlockReason = "Premium";
   } else {
     // For referral and paid banks (or premium without VIP), check explicit unlocks
-    const { data: unlock } = await (supabase.from("user_bank_unlocks") as any)
-      .select("id, unlock_type")
-      .eq("user_id", user.id)
-      .eq("bank_id", bank.id)
-      .single();
-
+    const unlock = unlockResult.data;
     if (unlock) {
       isUnlocked = true;
       unlockReason = unlock.unlock_type;
@@ -88,38 +130,18 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
   }
 
   // Fetch Stats Data: Items -> Questions -> Difficulty & Topic
-  const { data: items } = await supabase
-    .from("question_bank_items")
-    .select(
-      `
-      question:questions(
-        difficulty,
-        topic_id
-      )
-    `,
-    )
-    .eq("bank_id", bank.id);
+  const items = itemsResult.data;
 
   const questions = (items || []).map((i: any) => i.question);
   const totalQuestions = questions.length;
 
   // Fetch Topics Map
-  const { data: topics } = await supabase
-    .from("topics")
-    .select("id, name")
-    .eq("subject_id", bank.subject_id);
+  const topics = topicsResult.data;
 
   const topicMap = new Map(topics?.map((t: any) => [t.id, t.name]) || []);
 
   // Check if collected
-  const { data: collectionEntry } = await supabase
-    .from("user_question_bank_collections")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("bank_id", bank.id)
-    .maybeSingle();
-
-  const isCollected = !!collectionEntry;
+  const isCollected = !!collectionResult.data;
 
   // Calculate Stats
   const difficultyCounts = questions.reduce(
@@ -159,6 +181,7 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
       isUnlocked={isUnlocked}
       unlockReason={unlockReason}
       isCollected={isCollected}
+      allowedModes={bank.allowed_modes}
     />
   );
 }

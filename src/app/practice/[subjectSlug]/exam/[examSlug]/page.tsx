@@ -45,7 +45,19 @@ export default async function ExamPage(props: PageProps) {
   // Fetch exam details
   const { data: examData } = await supabase
     .from("exams")
-    .select("*")
+    .select(
+      [
+        "id",
+        "title",
+        "exam_type",
+        "duration_minutes",
+        "slug",
+        "subject_id",
+        "unlock_type",
+        "is_premium",
+        "price",
+      ].join(", "),
+    )
     .eq("slug", examSlug)
     .eq("subject_id", (subject as any).id)
     .eq("is_published", true)
@@ -57,25 +69,74 @@ export default async function ExamPage(props: PageProps) {
     redirect(`/practice/${subject.slug}/exams`);
   }
 
-  // Fetch exam questions with full question data
-  const { data: examQuestions } = await supabase
-    .from("exam_questions")
-    .select("*, questions(*)")
-    .eq("exam_id", exam.id)
-    .order("order_index");
-
-  const questions = (examQuestions || []).map(
-    (eq: any) => eq.questions as Question
-  );
-
   // Fetch profile
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("*")
+    .select(
+      [
+        "id",
+        "username",
+        "level",
+        "streak_days",
+        "avatar_url",
+        "created_at",
+        "last_practice_date",
+        "is_vip",
+        "vip_expires_at",
+        "active_session_id",
+        "is_admin",
+      ].join(", "),
+    )
     .eq("id", user.id)
     .single();
 
   const profile = profileData as Profile | null;
+  const isVip = profile?.is_vip || false;
+
+  let isUnlocked = false;
+  if (exam.unlock_type === "free") {
+    isUnlocked = true;
+  } else if (exam.unlock_type === "premium" && isVip) {
+    isUnlocked = true;
+  } else {
+    const { data: unlock } = await (supabase.from("user_exam_unlocks") as any)
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("exam_id", exam.id)
+      .single();
+    if (unlock) {
+      isUnlocked = true;
+    }
+  }
+
+  if (!isUnlocked) {
+    redirect(`/library/${subject.slug}/exams/${examSlug}`);
+  }
+
+  // Fetch exam questions with full question data
+  const { data: examQuestions } = await supabase
+    .from("exam_questions")
+    .select(
+      `
+      order_index,
+      questions(
+        id,
+        content,
+        type,
+        options,
+        answer,
+        explanation,
+        code_snippet
+      )
+    `,
+    )
+    .eq("exam_id", exam.id)
+    .order("order_index");
+
+  const questions = (examQuestions || []).map(
+    (eq: any) => eq.questions as Question,
+  );
+
   const userData = {
     username: profile?.username || "User",
     avatar_url: profile?.avatar_url ?? undefined,
@@ -92,6 +153,7 @@ export default async function ExamPage(props: PageProps) {
     is_vip: false,
     vip_expires_at: null,
     active_session_id: null,
+    is_admin: false,
   };
 
   return (
@@ -102,6 +164,7 @@ export default async function ExamPage(props: PageProps) {
         questions={questions}
         user={sessionUser}
         subjectId={subject.id}
+        exitLink={`/library/${subject.slug}/exams/${examSlug}`}
       />
     </div>
   );

@@ -166,6 +166,7 @@ export default async function LibraryPracticePage(props: PageProps) {
     is_vip: false,
     vip_expires_at: null,
     active_session_id: null,
+    is_admin: false,
   };
 
   return (
@@ -176,6 +177,7 @@ export default async function LibraryPracticePage(props: PageProps) {
         user={sessionUser}
         subjectId={subject.id}
         enableTimer={searchParamsStr.timer !== "false"}
+        exitLink={`/library/${subjectSlug}`}
       />
     </div>
   );

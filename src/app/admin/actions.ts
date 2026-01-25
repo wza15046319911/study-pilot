@@ -109,3 +109,60 @@ export async function deleteTopic(id: number) {
   revalidatePath("/admin/subjects");
   return { success: true };
 }
+
+// --- Subject Exam Dates ---
+
+export async function upsertSubjectExamDate(
+  data: Database["public"]["Tables"]["subject_exam_dates"]["Insert"]
+) {
+  const supabase = createAdminClient();
+  const userSupabase = await createClient();
+
+  // Verify auth
+  const {
+    data: { user },
+  } = await userSupabase.auth.getUser();
+  if (!user || user.email !== process.env.ADMIN_EMAIL) {
+    throw new Error("Unauthorized");
+  }
+
+  const { error } = await supabase
+    .from("subject_exam_dates")
+    .upsert(data as any, { onConflict: "subject_id, exam_type" });
+
+  if (error) {
+    console.error("Error upserting subject exam date:", error);
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/subjects");
+  revalidatePath("/library");
+  return { success: true };
+}
+
+export async function deleteSubjectExamDate(id: number) {
+  const supabase = createAdminClient();
+  const userSupabase = await createClient();
+
+  // Verify auth
+  const {
+    data: { user },
+  } = await userSupabase.auth.getUser();
+  if (!user || user.email !== process.env.ADMIN_EMAIL) {
+    throw new Error("Unauthorized");
+  }
+
+  const { error } = await supabase
+    .from("subject_exam_dates")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    console.error("Error deleting subject exam date:", error);
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/admin/subjects");
+  revalidatePath("/library");
+  return { success: true };
+}

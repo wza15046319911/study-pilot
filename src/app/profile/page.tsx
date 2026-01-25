@@ -6,16 +6,17 @@ import { ProfileContent } from "./ProfileContent";
 import { getReferralStats } from "@/lib/actions/referral";
 import { Profile, Subject, Mistake, Question } from "@/types/database";
 
-// Combined type for progress data calculated from user_answers
-interface ProgressWithSubject {
-  subjects: Subject;
-  total_attempts: number;
-  unique_completed: number;
-  unique_correct: number;
-}
+type QuestionSummary = Pick<Question, "title" | "difficulty">;
 
 interface MistakeWithQuestion extends Mistake {
-  questions: Question;
+  questions: QuestionSummary;
+}
+
+interface BookmarkWithQuestion {
+  id: number;
+  question_id: number;
+  created_at: string;
+  questions: QuestionSummary;
 }
 
 export default async function ProfilePage() {
@@ -29,70 +30,199 @@ export default async function ProfilePage() {
     redirect("/login");
   }
 
-  // Fetch user profile
-  const { data: profileData } = await supabase
+  const today = new Date();
+  const activityStart = new Date(today);
+  activityStart.setDate(today.getDate() - 29);
+  const activityStartIso = activityStart.toISOString();
+
+  const profilePromise = supabase
     .from("profiles")
-    .select("*")
+    .select(
+      [
+        "id",
+        "username",
+        "level",
+        "streak_days",
+        "avatar_url",
+        "created_at",
+        "last_practice_date",
+        "is_vip",
+        "vip_expires_at",
+        "active_session_id",
+        "is_admin",
+      ].join(", "),
+    )
     .eq("id", user.id)
     .single();
 
-  const profile = profileData as Profile | null;
-
-  // Fetch user answers with question and subject details for progress calculation
-  const { data: userAnswersData } = (await supabase
+  const userAnswersPromise = supabase
     .from("user_answers")
     .select(
       `
       is_correct,
-      question_id,
       created_at,
       questions!inner (
-        subject_id,
-        difficulty,
-        subjects!inner (
-          id,
+        difficulty
+      )
+    `,
+    )
+    .eq("user_id", user.id)
+    .gte("created_at", activityStartIso);
+
+  const mistakesPromise = supabase
+    .from("mistakes")
+    .select(
+      "id, question_id, error_count, last_error_at, questions(title, difficulty)",
+    )
+    .eq("user_id", user.id)
+    .order("last_error_at", { ascending: false })
+    .limit(5);
+
+  const bookmarksPromise = supabase
+    .from("bookmarks")
+    .select("id, question_id, created_at, questions(title, difficulty)")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  const totalAnswersPromise = supabase
+    .from("user_answers")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  const correctAnswersPromise = supabase
+    .from("user_answers")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("is_correct", true);
+
+  const referralStatsPromise = getReferralStats(user.id);
+
+  const userProgressPromise = supabase
+    .from("user_progress")
+    .select(
+      `
+      completed_count,
+      correct_count,
+      subjects!inner (
+        id,
+        name,
+        slug,
+        category,
+        question_count
+      )
+    `,
+    )
+    .eq("user_id", user.id);
+
+  const userQuestionBanksPromise = supabase
+    .from("user_question_bank_collections")
+    .select(
+      `
+      id,
+      bank_id,
+      added_at,
+      completion_count,
+      last_completed_at,
+      question_banks (
+        id,
+        title,
+        slug,
+        subjects (
           name,
-          slug,
-          category,
-          question_count
+          slug
         )
       )
     `,
     )
-    .eq("user_id", user.id)) as {
-    data:
-      | {
-          is_correct: boolean;
-          question_id: number;
-          created_at: string;
-          questions: {
-            subject_id: number;
-            difficulty: string;
-            subjects: any;
-          };
-        }[]
-      | null;
-  };
+    .eq("user_id", user.id)
+    .order("added_at", { ascending: false });
 
-  // Aggregate progress by subject from user_answers
-  const progressBySubject = new Map<
-    number,
-    {
-      subject: any;
-      totalAttempts: number;
-      uniqueCompleted: Set<number>;
-      uniqueCorrect: Set<number>;
-    }
-  >();
+  const userExamsPromise = supabase
+    .from("user_exam_collections")
+    .select(
+      `
+      id,
+      exam_id,
+      added_at,
+      completion_count,
+      best_score,
+      best_time_seconds,
+      last_attempted_at,
+      exams (
+        id,
+        title,
+        slug,
+        subjects (
+          name,
+          slug
+        )
+      )
+    `,
+    )
+    .eq("user_id", user.id)
+    .order("added_at", { ascending: false });
+
+  const [
+    profileResult,
+    userAnswersResult,
+    mistakesResult,
+    bookmarksResult,
+    totalAnswersResult,
+    correctAnswersResult,
+    referralStatsResult,
+    userProgressResult,
+    userQuestionBanksResult,
+    userExamsResult,
+  ] = await Promise.all([
+    profilePromise,
+    userAnswersPromise,
+    mistakesPromise,
+    bookmarksPromise,
+    totalAnswersPromise,
+    correctAnswersPromise,
+    referralStatsPromise,
+    userProgressPromise,
+    userQuestionBanksPromise,
+    userExamsPromise,
+  ]);
+
+  const referralStats = referralStatsResult || { totalReferrals: 0, unusedReferrals: 0, unlockedBanks: 0 };
+
+  const profile = profileResult.data as Profile | null;
+
+  const userAnswersData = (userAnswersResult.data || []) as {
+    is_correct: boolean;
+    created_at: string;
+    questions: {
+      difficulty: string | null;
+    };
+  }[];
+
+  const mistakes = (mistakesResult.data || []) as MistakeWithQuestion[];
+  const bookmarks = (bookmarksResult.data || []) as BookmarkWithQuestion[];
+
+  const totalQuestionsAnswered = totalAnswersResult.count || 0;
+  const correctAnswers = correctAnswersResult.count || 0;
+
+  const userProgressData = (userProgressResult.data || []) as Array<{
+    completed_count: number;
+    correct_count: number;
+    subjects: Subject;
+  }>;
+
+  const userQuestionBanks = userQuestionBanksResult.error
+    ? []
+    : userQuestionBanksResult.data || [];
+  const userExams = userExamsResult.error ? [] : userExamsResult.data || [];
 
   // --- Analytics Aggregation ---
 
-  // 1. Daily Activity (Last 14 Days)
+  // 1. Daily Activity (Last 30 Days)
   const dailyActivityMap = new Map<
     string,
     { date: string; count: number; correct: number }
   >();
-  const today = new Date();
 
   // Initialize last 30 days with 0
   for (let i = 29; i >= 0; i--) {
@@ -118,7 +248,7 @@ export default async function ProfilePage() {
     difficultyStatsMap.set(level, { total: 0, correct: 0 });
   });
 
-  if (userAnswersData) {
+  if (userAnswersData.length > 0) {
     for (const answer of userAnswersData) {
       // Daily Activity processing
       const dateStr = new Date(answer.created_at).toISOString().split("T")[0];
@@ -143,25 +273,6 @@ export default async function ProfilePage() {
       diffStat.total++;
       if (answer.is_correct) diffStat.correct++;
       difficultyStatsMap.set(normalizedDifficulty, diffStat); // Update map if it was a new entry
-
-      // ... existing Subject Logic ...
-      const question = answer.questions as any;
-      if (!question || !question.subjects) continue;
-
-      const subjectId = question.subjects.id;
-      const existing = progressBySubject.get(subjectId) || {
-        subject: question.subjects,
-        totalAttempts: 0,
-        uniqueCompleted: new Set<number>(),
-        uniqueCorrect: new Set<number>(),
-      };
-
-      existing.totalAttempts++;
-      existing.uniqueCompleted.add(answer.question_id);
-      if (answer.is_correct) {
-        existing.uniqueCorrect.add(answer.question_id);
-      }
-      progressBySubject.set(subjectId, existing);
     }
   }
 
@@ -177,171 +288,29 @@ export default async function ProfilePage() {
     }),
   );
 
-  // Convert to array format expected by ProfileContent
-  const progress = Array.from(progressBySubject.values()).map((item) => ({
-    subjects: item.subject,
-    total_attempts: item.totalAttempts,
-    unique_completed: item.uniqueCompleted.size,
-    unique_correct: item.uniqueCorrect.size,
+  const progress = userProgressData.map((item) => ({
+    subjects: item.subjects,
+    total_attempts: item.completed_count || 0,
+    unique_completed: item.completed_count || 0,
+    unique_correct: item.correct_count || 0,
   }));
 
-  // Fetch mistakes with question details
-  const { data: mistakesData } = await supabase
-    .from("mistakes")
-    .select("*, questions(*)")
-    .eq("user_id", user.id)
-    .order("last_error_at", { ascending: false })
-    .limit(5);
-
-  const mistakes = mistakesData as unknown as MistakeWithQuestion[] | null;
-
-  // Fetch bookmarks with question details
-  const { data: bookmarksData } = await supabase
-    .from("bookmarks")
-    .select("*, questions(*)")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(5);
-
-  const bookmarks = bookmarksData as unknown as MistakeWithQuestion[] | null;
-
-  // Fetch aggregate stats from user_answers
-  const { count: totalQuestionsAnswered } = await supabase
-    .from("user_answers")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id);
-
-  const { count: correctAnswers } = await supabase
-    .from("user_answers")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user.id)
-    .eq("is_correct", true);
-
   const answerStats = {
-    total: totalQuestionsAnswered || 0,
-    correct: correctAnswers || 0,
+    total: totalQuestionsAnswered,
+    correct: correctAnswers,
     accuracy:
-      totalQuestionsAnswered && totalQuestionsAnswered > 0
-        ? Math.round(((correctAnswers || 0) / totalQuestionsAnswered) * 100)
+      totalQuestionsAnswered > 0
+        ? Math.round((correctAnswers / totalQuestionsAnswered) * 100)
         : 0,
   };
 
-  // Fetch referral stats
-  const referralStats = await getReferralStats();
-
-  // Fetch all question banks
-  const { data: allBanks } = await supabase
-    .from("question_banks")
-    .select("*, subjects!inner(*)") // Inner join to ensure subject exists
-    .eq("is_published", true)
-    .order("created_at", { ascending: false });
-
-  // Fetch user unlocked banks
-  const { data: unlockedBanksData } = await supabase
-    .from("user_bank_unlocks")
-    .select("unlocked_bank_id")
-    .eq("user_id", user.id);
-
-  const unlockedBankIds = new Set(
-    (unlockedBanksData || [])
-      .map((u: any) => u.unlocked_bank_id)
-      .filter(Boolean) as number[],
-  );
-
-  // Determine accessible banks
-  // If is_premium === false => Free for everyone
-  // If is_premium === true => Need VIP status OR explicit unlock in user_bank_unlocks
-  const isVip = profile?.is_vip || false;
-  const accessibleBanks = (allBanks || [])
-    .filter((bank: any) => {
-      const isPremium = bank.is_premium || bank.unlock_type !== "free";
-
-      // Free banks (not premium) are accessible to everyone
-      if (!isPremium) return true;
-
-      // Premium banks: only if VIP or explicitly unlocked
-      if (isVip) return true;
-      if (unlockedBankIds.has(bank.id)) return true;
-      return false;
-    })
-    .map((bank: any) => {
-      // Determine if really premium based on flag OR unlock type
-      const isPremium = bank.is_premium || bank.unlock_type !== "free";
-
-      let status: "Free" | "Unlocked" | "Premium" = "Free";
-
-      if (isPremium) {
-        if (unlockedBankIds.has(bank.id)) {
-          status = "Unlocked";
-        } else if (isVip) {
-          status = "Premium";
-        } else {
-          // Should be filtered out by previous step, but safe fallback
-          status = "Premium";
-        }
-      }
-
-      return {
-        ...bank,
-        access_status: status,
-      };
-    });
-
-  // Fetch user's question bank collections (with fallback if table doesn't exist)
-  let userQuestionBanks: any[] = [];
-  try {
-    const { data: userQuestionBanksData } = await supabase
-      .from("user_question_bank_collections")
-      .select(
-        `
-        *,
-        question_banks (
-          id,
-          title,
-          slug,
-          subjects (*)
-        )
-      `,
-      )
-      .eq("user_id", user.id)
-      .order("added_at", { ascending: false });
-    userQuestionBanks = userQuestionBanksData || [];
-  } catch {
-    // Table may not exist yet, use empty array
-    userQuestionBanks = [];
-  }
-
-  // Fetch user's exam collections (with fallback if table doesn't exist)
-  let userExams: any[] = [];
-  try {
-    const { data: userExamsData } = await supabase
-      .from("user_exam_collections")
-      .select(
-        `
-        *,
-        exams (
-          id,
-          title,
-          slug,
-          duration_minutes,
-          subjects (*)
-        )
-      `,
-      )
-      .eq("user_id", user.id)
-      .order("added_at", { ascending: false });
-    userExams = userExamsData || [];
-  } catch {
-    // Table may not exist yet, use empty array
-    userExams = [];
-  }
+  const accessibleBanks: any[] = [];
 
   // Fallback profile if not found (should be handled by trigger, but just in case)
   // Also merge auth metadata avatar if profile doesn't have one
   const rawProfile = profile || {
     id: user.id,
     username: user.email?.split("@")[0] || "User",
-    email: user.email,
     level: 1,
     streak_days: 0,
     avatar_url: null,
@@ -350,6 +319,7 @@ export default async function ProfilePage() {
     is_vip: false,
     vip_expires_at: null,
     active_session_id: null,
+    is_admin: false,
   };
 
   const userData = {
@@ -380,25 +350,17 @@ export default async function ProfilePage() {
       <main className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ProfileContent
           user={userData}
-          progress={progress || []}
+          progress={progress}
           mistakes={mistakes || []}
           bookmarks={bookmarks || []}
           answerStats={answerStats}
           dailyActivity={dailyActivity}
           difficultyStats={difficultyStats}
-          referralStats={
-            referralStats || {
-              totalReferrals: 0,
-              unusedReferrals: 0,
-              unlockedBanks: 0,
-            }
-          }
+          referralStats={referralStats}
           accessibleBanks={accessibleBanks}
           userQuestionBanks={userQuestionBanks}
           userExams={userExams}
-          isAdmin={
-            !!process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL
-          }
+          isAdmin={userData.is_admin || false}
         />
       </main>
     </div>

@@ -19,13 +19,7 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  // Double check admin status (middleware handles this too, but for type safety/redirects)
-  const adminEmail = process.env.ADMIN_EMAIL;
-  if (!adminEmail || user.email !== adminEmail) {
-    redirect("/login");
-  }
-
-  // Fetch user profile for Header
+  // Fetch user profile for Header and admin check
   const { data: profileData } = await (await supabase)
     .from("profiles")
     .select("*")
@@ -33,6 +27,11 @@ export default async function AdminLayout({
     .single();
 
   const profile = profileData as Profile | null;
+
+  // Double check admin status based on profile
+  if (!profile?.is_admin) {
+    redirect("/login");
+  }
 
   const userData = {
     username:

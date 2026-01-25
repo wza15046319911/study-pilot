@@ -112,16 +112,16 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                 {t("pricing")}
               </Link>
               <Link
+                href="/about"
+                className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
+              >
+                About
+              </Link>
+              <Link
                 href="/contact"
                 className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
               >
                 Contact Us
-              </Link>
-              <Link
-                href="/blog"
-                className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
-              >
-                Blog
               </Link>
             </div>
           )}
@@ -446,6 +446,13 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t("pricing")}
+                </Link>
+                <Link
+                  href="/about"
+                  className="block px-3 py-2 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  About
                 </Link>
                 <Link
                   href="/contact"

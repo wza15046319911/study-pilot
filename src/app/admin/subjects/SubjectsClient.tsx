@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Subject, Topic } from "@/types/database";
+import { Subject, Topic, SubjectExamDate } from "@/types/database";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import {
@@ -15,6 +15,7 @@ import {
   Globe,
   Cpu,
   Calculator,
+  Calendar,
 } from "lucide-react";
 import { SubjectModal } from "./SubjectModal";
 import { deleteSubject } from "../actions";
@@ -39,6 +40,7 @@ const DynamicIcon = ({
     Globe: <Globe className={className} />,
     Cpu: <Cpu className={className} />,
     Calculator: <Calculator className={className} />,
+    Calendar: <Calendar className={className} />,
   };
 
   return icons[name] || <span className={className}>{name}</span>;
@@ -47,11 +49,13 @@ const DynamicIcon = ({
 interface SubjectsClientProps {
   initialSubjects: Subject[];
   initialTopics: Topic[];
+  initialExamDates: SubjectExamDate[];
 }
 
 export function SubjectsClient({
   initialSubjects,
   initialTopics,
+  initialExamDates,
 }: SubjectsClientProps) {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -62,6 +66,10 @@ export function SubjectsClient({
   // We filter topics for the currently editing subject in the modal
   const getSubjectTopics = (subjectId: number) => {
     return initialTopics.filter((t) => t.subject_id === subjectId);
+  };
+
+  const getSubjectExamDates = (subjectId: number) => {
+    return initialExamDates.filter((d) => d.subject_id === subjectId);
   };
 
   const handleCreate = () => {
@@ -164,6 +172,7 @@ export function SubjectsClient({
         onClose={() => setIsModalOpen(false)}
         subject={editingSubject}
         topics={editingSubject ? getSubjectTopics(editingSubject.id) : []}
+        examDates={editingSubject ? getSubjectExamDates(editingSubject.id) : []}
       />
     </>
   );

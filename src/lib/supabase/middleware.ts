@@ -71,11 +71,23 @@ export async function updateSession(request: NextRequest) {
 
   // Admin protection
   if (request.nextUrl.pathname.startsWith("/admin")) {
-    const adminEmail = process.env.ADMIN_EMAIL;
-    if (!adminEmail || user?.email !== adminEmail) {
-      // Redirect unauthorized users to 403 page
+    if (!user) {
       const url = request.nextUrl.clone();
-      url.pathname = "/forbidden";
+      url.pathname = "/login";
+      return NextResponse.redirect(url);
+    }
+
+    // Check if user has admin privileges from profile
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile?.is_admin) {
+      // Redirect unauthorized users to home page
+      const url = request.nextUrl.clone();
+      url.pathname = "/";
       return NextResponse.redirect(url);
     }
   }

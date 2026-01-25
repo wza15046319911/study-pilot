@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { WeChatPaymentModal } from "./WeChatPaymentModal";
 
 interface CheckoutButtonProps {
   className?: string;
@@ -12,9 +13,15 @@ interface CheckoutButtonProps {
 export function CheckoutButton({ className, children }: CheckoutButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
   const router = useRouter();
 
   const handleCheckout = async () => {
+    // Temporary: Show WeChat modal instead of Stripe
+    setShowModal(true);
+    
+    /* 
+    // Stripe implementation commented out for now
     setIsLoading(true);
     setError(null);
 
@@ -45,27 +52,35 @@ export function CheckoutButton({ className, children }: CheckoutButtonProps) {
       setError(err instanceof Error ? err.message : "Failed to start checkout");
       setIsLoading(false);
     }
+    */
   };
 
   return (
-    <div className="w-full">
-      <button
-        onClick={handleCheckout}
-        disabled={isLoading}
-        className={className}
-      >
-        {isLoading ? (
-          <span className="flex items-center justify-center gap-2">
-            <Loader2 className="size-5 animate-spin" />
-            Processing...
-          </span>
-        ) : (
-          children || "Buy Now"
+    <>
+      <div className="w-full">
+        <button
+          onClick={handleCheckout}
+          disabled={isLoading}
+          className={className}
+        >
+          {isLoading ? (
+            <span className="flex items-center justify-center gap-2">
+              <Loader2 className="size-5 animate-spin" />
+              Processing...
+            </span>
+          ) : (
+            children || "Buy Now"
+          )}
+        </button>
+        {error && (
+          <p className="text-sm text-red-500 mt-2 text-center">{error}</p>
         )}
-      </button>
-      {error && (
-        <p className="text-sm text-red-500 mt-2 text-center">{error}</p>
-      )}
-    </div>
+      </div>
+
+      <WeChatPaymentModal 
+        isOpen={showModal} 
+        onClose={() => setShowModal(false)} 
+      />
+    </>
   );
 }

@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { QuestionBankItem } from "@/components/question-bank/QuestionBankItem";
 import { PremiumModal } from "@/components/ui/PremiumModal";
+import { CountdownTimer } from "@/components/ui/CountdownTimer";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Link from "next/link";
@@ -15,6 +16,7 @@ import {
   GraduationCap,
   BookOpen,
   ChevronRight,
+  Clock,
 } from "lucide-react";
 
 interface SubjectContentProps {
@@ -28,7 +30,9 @@ interface SubjectContentProps {
   banks: any[];
   isVip: boolean;
   unlockedBankIds: Set<number>;
+  unlockedExamIds: Set<number>;
   questionCount: number;
+  examDates: any[];
 }
 
 export function SubjectContent({
@@ -37,18 +41,19 @@ export function SubjectContent({
   banks,
   isVip,
   unlockedBankIds,
+  unlockedExamIds,
   questionCount,
+  examDates,
 }: SubjectContentProps) {
   const router = useRouter();
   const [showPremiumModal, setShowPremiumModal] = useState(false);
 
-  const handleSetupClick = () => {
-    if (!isVip) {
-      setShowPremiumModal(true);
-    } else {
-      router.push(`/library/${subject.slug}/setup`);
-    }
-  };
+  // Find nearest upcoming exam
+  const upcomingExam = examDates
+    ?.map((d) => ({ ...d, dateObj: new Date(d.exam_date) }))
+    .filter((d) => d.dateObj > new Date())
+    .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime())[0];
+
 
   const practiceCards = [
     {
@@ -97,6 +102,23 @@ export function SubjectContent({
               Explore practice materials, mock exams, and curated question
               banks.
             </p>
+
+            {upcomingExam && (
+              <div className="mt-6 inline-flex flex-wrap items-center gap-3 px-5 py-3 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800">
+                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold animate-pulse">
+                  <Clock className="size-5" />
+                  <span>
+                    {upcomingExam.exam_type === "midterm" ? "Midterm" : "Final"}{" "}
+                    Exam Countdown:
+                  </span>
+                </div>
+                <CountdownTimer
+                  targetDate={upcomingExam.dateObj}
+                  label={null}
+                  className="!gap-1 text-amber-900 dark:text-amber-100"
+                />
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -243,7 +265,7 @@ export function SubjectContent({
                         isVip={isVip}
                         questionCount={0}
                         variant="exam"
-                        isUnlocked={true}
+                        isUnlocked={unlockedExamIds.has(exam.id)}
                         onClickOverride={() => {
                           router.push(
                             `/library/${subject.slug}/exams/${exam.slug}`,

@@ -1,6 +1,7 @@
 "use server";
 
 import { createAdminClient, createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 type ExamType = "midterm" | "final";
 
@@ -13,6 +14,9 @@ interface CreateExamInput {
   rules: Record<string, number>;
   publish: boolean;
   questionIds: number[];
+  unlockType: "free" | "premium" | "referral" | "paid";
+  price?: number | null;
+  allowedModes?: string[];
 }
 
 export async function createExam(input: CreateExamInput) {
@@ -35,6 +39,9 @@ export async function createExam(input: CreateExamInput) {
 
   const supabase = createAdminClient();
 
+  // Map unlock_type to is_premium for backwards compatibility
+  const isPremium = input.unlockType === "premium";
+
   const { data: exam, error: examError } = await supabase
     .from("exams")
     .insert({
@@ -45,6 +52,10 @@ export async function createExam(input: CreateExamInput) {
       duration_minutes: input.durationMinutes,
       rules: input.rules,
       is_published: input.publish,
+      unlock_type: input.unlockType,
+      is_premium: isPremium,
+      price: input.unlockType === "paid" ? input.price : null,
+      allowed_modes: input.allowedModes || ["exam"],
     } as any)
     .select()
     .single();
@@ -67,6 +78,19 @@ export async function createExam(input: CreateExamInput) {
 
   if (questionsError) {
     throw new Error(questionsError.message);
+  }
+
+  const { data: subject } = await supabase
+    .from("subjects")
+    .select("slug")
+    .eq("id", input.subjectId)
+    .single();
+
+  revalidatePath("/admin/exams");
+  revalidatePath("/library");
+  const subjectData = subject as { slug: string } | null;
+  if (subjectData?.slug) {
+    revalidatePath(`/library/${subjectData.slug}`);
   }
 
   return { success: true, examId: examData.id };
@@ -97,6 +121,17 @@ export async function updateExam(input: UpdateExamInput) {
 
   const supabase = createAdminClient();
 
+  // Map unlock_type to is_premium for backwards compatibility
+  const isPremium = input.unlockType === "premium";
+
+  const { data: existingExam } = await supabase
+    .from("exams")
+    .select("subject_id")
+    .eq("id", input.examId)
+    .single();
+
+  const existingExamData = existingExam as { subject_id: number } | null;
+
   // Update exam details
   const { error: examError } = await (supabase.from("exams") as any)
     .update({
@@ -107,6 +142,10 @@ export async function updateExam(input: UpdateExamInput) {
       duration_minutes: input.durationMinutes,
       rules: input.rules,
       is_published: input.publish,
+      unlock_type: input.unlockType,
+      is_premium: isPremium,
+      price: input.unlockType === "paid" ? input.price : null,
+      allowed_modes: input.allowedModes || ["exam"],
     })
     .eq("id", input.examId);
 
@@ -137,6 +176,32 @@ export async function updateExam(input: UpdateExamInput) {
 
   if (questionsError) {
     throw new Error(questionsError.message);
+  }
+
+  const [previousSubjectResult, currentSubjectResult] = await Promise.all([
+    existingExamData?.subject_id
+      ? supabase
+          .from("subjects")
+          .select("slug")
+          .eq("id", existingExamData.subject_id)
+          .single()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from("subjects")
+      .select("slug")
+      .eq("id", input.subjectId)
+      .single(),
+  ]);
+
+  revalidatePath("/admin/exams");
+  revalidatePath("/library");
+  const previousSlug = (previousSubjectResult?.data as { slug: string } | null)?.slug;
+  const currentSlug = (currentSubjectResult?.data as { slug: string } | null)?.slug;
+  if (previousSlug) {
+    revalidatePath(`/library/${previousSlug}`);
+  }
+  if (currentSlug && currentSlug !== previousSlug) {
+    revalidatePath(`/library/${currentSlug}`);
   }
 
   return { success: true };

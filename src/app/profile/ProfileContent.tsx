@@ -2,21 +2,18 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/Button";
+import dynamic from "next/dynamic";
 import { Profile, Subject, Mistake, Question } from "@/types/database";
 import {
-  Check,
   AlertCircle,
   TrendingUp,
   Users,
-  Flame,
   FileText,
   Target,
   Layers,
   BookMarked,
   Settings,
   LogOut,
-  User,
   LayoutDashboard,
   Library,
   GraduationCap,
@@ -26,11 +23,16 @@ import {
 } from "lucide-react";
 
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
-import { DailyTrendChart } from "./analytics/DailyTrendChart";
-import { DifficultyAnalysis } from "./analytics/DifficultyAnalysis";
-import { SubjectRadarChart } from "./analytics/SubjectRadarChart";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+
+const DailyTrendChart = dynamic(
+  () =>
+    import("./analytics/DailyTrendChart").then(
+      (module) => module.DailyTrendChart,
+    ),
+  { ssr: false },
+);
 
 // Combined types for props
 interface ProgressWithSubject {
@@ -40,15 +42,17 @@ interface ProgressWithSubject {
   unique_correct: number;
 }
 
+type QuestionSummary = Pick<Question, "title" | "difficulty">;
+
 interface MistakeWithQuestion extends Mistake {
-  questions: Question;
+  questions: QuestionSummary;
 }
 
 interface BookmarkWithQuestion {
   id: number;
   question_id: number;
   created_at: string;
-  questions: Question;
+  questions: QuestionSummary;
 }
 
 interface ProfileContentProps {
@@ -120,14 +124,10 @@ interface ProfileContentProps {
 
 export function ProfileContent({
   user,
-  progress,
   mistakes,
   bookmarks,
   answerStats,
   dailyActivity,
-  difficultyStats,
-  referralStats,
-  accessibleBanks,
   userQuestionBanks,
   userExams,
   isAdmin = false,
@@ -422,19 +422,19 @@ export function ProfileContent({
                 </h2>
               </div>
               <Link
-                href="/question-banks"
+                href="/profile/question-banks"
                 className="text-sm font-medium text-blue-600 hover:text-blue-700"
               >
-                Browse All
+                View All
               </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {userQuestionBanks && userQuestionBanks.length > 0 ? (
-                userQuestionBanks.slice(0, 4).map((item) => (
+                userQuestionBanks.slice(0, 2).map((item) => (
                   <Link
                     key={item.id}
-                    href={`/question-banks/${item.question_banks.slug || item.bank_id}`}
+                    href={`/library/${item.question_banks.subjects?.slug}/question-bank/${item.question_banks.slug || item.bank_id}`}
                     className="group p-5 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 hover:from-violet-100 hover:to-purple-100 dark:hover:from-violet-900/30 dark:hover:to-purple-900/30 transition-all duration-300 border border-violet-100 dark:border-violet-800/50 hover:border-violet-200 dark:hover:border-violet-700"
                   >
                     <div className="flex items-start justify-between mb-3">
@@ -488,16 +488,16 @@ export function ProfileContent({
                 </h2>
               </div>
               <Link
-                href="/library"
+                href="/profile/mock-exams"
                 className="text-sm font-medium text-blue-600 hover:text-blue-700"
               >
-                Browse All
+                View All
               </Link>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {userExams && userExams.length > 0 ? (
-                userExams.slice(0, 4).map((item) => (
+                userExams.slice(0, 2).map((item) => (
                   <Link
                     key={item.id}
                     href={`/practice/${item.exams.subjects?.slug || "unknown"}/exam/${item.exams.slug || item.exam_id}`}

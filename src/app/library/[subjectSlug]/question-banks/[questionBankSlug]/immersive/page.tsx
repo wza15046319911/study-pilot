@@ -14,7 +14,7 @@ interface PageProps {
 }
 
 export default async function LibraryQuestionBankImmersivePage(
-  props: PageProps
+  props: PageProps,
 ) {
   const params = await props.params;
   const { subjectSlug, questionBankSlug } = params;
@@ -26,7 +26,7 @@ export default async function LibraryQuestionBankImmersivePage(
 
   if (!user) {
     redirect(
-      `/login?next=/library/${subjectSlug}/question-banks/${questionBankSlug}/immersive`
+      `/login?next=/library/${subjectSlug}/question-banks/${questionBankSlug}/immersive`,
     );
   }
 
@@ -102,6 +102,7 @@ export default async function LibraryQuestionBankImmersivePage(
     is_vip: false,
     vip_expires_at: null,
     active_session_id: null,
+    is_admin: false,
   };
 
   return (

@@ -10,6 +10,7 @@ export async function createQuestionBank(data: {
   description?: string;
   unlockType: "free" | "premium" | "referral" | "paid";
   price?: number | null;
+  allowedModes: string[];
   isPublished: boolean;
   questionIds: number[];
 }) {
@@ -30,6 +31,7 @@ export async function createQuestionBank(data: {
       is_premium: isPremium,
       unlock_type: data.unlockType,
       price: data.unlockType === "paid" ? data.price : null,
+      allowed_modes: data.allowedModes,
       is_published: data.isPublished,
     } as any)
     .select()
@@ -75,6 +77,7 @@ export async function updateQuestionBank(data: {
   description?: string;
   unlockType: "free" | "premium" | "referral" | "paid";
   price?: number | null;
+  allowedModes: string[];
   isPublished: boolean;
   questionIds: number[];
 }) {
@@ -93,6 +96,7 @@ export async function updateQuestionBank(data: {
       is_premium: isPremium,
       unlock_type: data.unlockType,
       price: data.unlockType === "paid" ? data.price : null,
+      allowed_modes: data.allowedModes,
       is_published: data.isPublished,
     } as any)
     .eq("id", data.bankId);

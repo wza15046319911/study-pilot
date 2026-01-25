@@ -10,6 +10,10 @@ import {
   FileText,
   Bookmark,
   BookmarkCheck,
+  Lock,
+  Gift,
+  Crown,
+  DollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Header } from "@/components/layout/Header";
@@ -20,6 +24,7 @@ interface ExamPreviewContentProps {
   exam: any;
   user: any;
   isCollected: boolean;
+  isUnlocked: boolean;
   libraryContext?: {
     subjectSlug: string;
     subjectName: string;
@@ -31,6 +36,7 @@ export function ExamPreviewContent({
   exam,
   user,
   isCollected,
+  isUnlocked,
   libraryContext,
 }: ExamPreviewContentProps) {
   const [collected, setCollected] = useState(isCollected);
@@ -178,17 +184,67 @@ export function ExamPreviewContent({
 
             {/* Action Buttons */}
             <div className="mt-auto">
-              <div className="flex flex-col gap-4">
-                <Link href={getStartLink()} className="w-full sm:w-auto">
-                  <Button
-                    size="lg"
-                    className="w-full sm:w-auto min-w-[200px] text-lg rounded-xl shadow-xl shadow-purple-500/20 bg-purple-600 hover:bg-purple-700 text-white"
-                  >
-                    <Play className="size-5 mr-2 fill-current" />
-                    Start Mock Exam
-                  </Button>
-                </Link>
-              </div>
+              {isUnlocked ? (
+                <div className="flex flex-col gap-4">
+                  <Link href={getStartLink()} className="w-full sm:w-auto">
+                    <Button
+                      size="lg"
+                      className="w-full sm:w-auto min-w-[200px] text-lg rounded-xl shadow-xl shadow-purple-500/20 bg-purple-600 hover:bg-purple-700 text-white"
+                    >
+                      <Play className="size-5 mr-2 fill-current" />
+                      Start Mock Exam
+                    </Button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="bg-slate-100 dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                    <Lock className="size-5 text-slate-500" />
+                    Locked Exam
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400 mb-6">
+                    {exam.unlock_type === "paid"
+                      ? `This is a paid mock exam. Purchase for ${
+                          exam.price ? `$${exam.price}` : "one-time access"
+                        } to unlock.`
+                      : exam.unlock_type === "referral"
+                        ? "This is a referral reward exam. Invite friends to unlock it for free."
+                        : "This is a premium mock exam. Upgrade your account or purchase separately to access."}
+                  </p>
+
+                  {exam.unlock_type === "paid" ? (
+                    <button
+                      className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2 transition-colors"
+                      onClick={() =>
+                        alert("Payment integration coming soon!")
+                      }
+                    >
+                      <DollarSign className="size-5" />
+                      Purchase for {exam.price ? `$${exam.price}` : "Access"}
+                    </button>
+                  ) : exam.unlock_type === "referral" ? (
+                    <Link href="/profile/referrals">
+                      <Button
+                        size="lg"
+                        className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-lg shadow-purple-500/25"
+                      >
+                        <Gift className="size-5 mr-2" />
+                        Invite Friends to Unlock
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Link href="/pricing">
+                      <Button
+                        size="lg"
+                        className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-lg shadow-amber-500/25"
+                      >
+                        <Crown className="size-5 mr-2" />
+                        Upgrade to Premium
+                      </Button>
+                    </Link>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </div>

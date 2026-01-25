@@ -80,6 +80,7 @@ export default async function LibraryFlashcardsPage(props: PageProps) {
     is_vip: false,
     vip_expires_at: null,
     active_session_id: null,
+    is_admin: false,
   };
 
   return (

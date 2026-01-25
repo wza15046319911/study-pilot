@@ -29,7 +29,16 @@ export default async function ExamPreviewPage(props: PageProps) {
   const { data: exam, error: examError } = await (supabase.from("exams") as any)
     .select(
       `
-      *,
+      id,
+      slug,
+      title,
+      description,
+      subject_id,
+      exam_type,
+      duration_minutes,
+      unlock_type,
+      is_premium,
+      price,
       subject:subjects(id, name, slug, icon)
     `,
     )
@@ -55,7 +64,7 @@ export default async function ExamPreviewPage(props: PageProps) {
 
   // Fetch User Profile
   const { data: profile } = await (supabase.from("profiles") as any)
-    .select("*")
+    .select("id, username, avatar_url, is_vip")
     .eq("id", user.id)
     .single();
 
@@ -64,6 +73,24 @@ export default async function ExamPreviewPage(props: PageProps) {
     avatar_url: profile?.avatar_url ?? undefined,
     is_vip: profile?.is_vip || false,
   };
+
+  let isUnlocked = false;
+
+  if (exam.unlock_type === "free") {
+    isUnlocked = true;
+  } else if (exam.unlock_type === "premium" && profile?.is_vip) {
+    isUnlocked = true;
+  } else {
+    const { data: unlock } = await (supabase.from("user_exam_unlocks") as any)
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("exam_id", exam.id)
+      .single();
+
+    if (unlock) {
+      isUnlocked = true;
+    }
+  }
 
   // Check if collected
   const { data: collectionEntry } = await supabase
@@ -76,6 +103,11 @@ export default async function ExamPreviewPage(props: PageProps) {
   const isCollected = !!collectionEntry;
 
   return (
-    <ExamPreviewContent exam={exam} user={userData} isCollected={isCollected} />
+    <ExamPreviewContent
+      exam={exam}
+      user={userData}
+      isCollected={isCollected}
+      isUnlocked={isUnlocked}
+    />
   );
 }

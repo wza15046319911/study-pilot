@@ -80,33 +80,32 @@ export default async function SubjectPage(props: PageProps) {
     );
   }
 
-  // 3. Fetch Profile
-  const { data: profile } = await (supabase.from("profiles") as any)
-    .select("*")
+  const profilePromise = supabase
+    .from("profiles")
+    .select("id, username, avatar_url, is_vip")
     .eq("id", user.id)
     .single();
 
-  const isVip = profile?.is_vip || false;
-
-  const userData = {
-    username: profile?.username || user.email?.split("@")[0] || "User",
-    avatar_url: profile?.avatar_url ?? undefined,
-    is_vip: isVip,
-  };
-
-  // 4. Fetch Exams for this subject
-  const { data: exams } = await supabase
+  const examsPromise = supabase
     .from("exams")
-    .select("*")
+    .select(
+      "id, title, slug, exam_type, duration_minutes, is_premium, unlock_type, price",
+    )
     .eq("subject_id", subject.id)
     .eq("is_published", true)
     .order("created_at", { ascending: false });
 
-  // 5. Fetch Question Banks for this subject
-  const { data: banks } = await (supabase.from("question_banks") as any)
+  const banksPromise = (supabase.from("question_banks") as any)
     .select(
       `
-      *,
+      id,
+      title,
+      slug,
+      description,
+      unlock_type,
+      is_premium,
+      price,
+      subject_id,
       items:question_bank_items(count)
     `
     )
@@ -114,22 +113,67 @@ export default async function SubjectPage(props: PageProps) {
     .eq("is_published", true)
     .order("created_at", { ascending: false });
 
-  // 6. Fetch User Unlocks
-  const { data: unlocks } = await supabase
+  const unlocksPromise = supabase
     .from("user_bank_unlocks")
     .select("bank_id")
     .eq("user_id", user.id);
 
-  const unlockedBankIds = new Set((unlocks || []).map((u: any) => u.bank_id));
+  const examUnlocksPromise = supabase
+    .from("user_exam_unlocks")
+    .select("exam_id")
+    .eq("user_id", user.id);
 
-  // 7. Fetch Question Count for this subject
-  const { count: questionCount } = await supabase
+  const questionCountPromise = supabase
     .from("questions")
     .select("*", { count: "exact", head: true })
     .eq("subject_id", subject.id);
 
+  const examDatesPromise = supabase
+    .from("subject_exam_dates")
+    .select("id, exam_type, exam_date")
+    .eq("subject_id", subject.id);
+
+  const [
+    profileResult,
+    examsResult,
+    banksResult,
+    unlocksResult,
+    examUnlocksResult,
+    questionCountResult,
+    examDatesResult,
+  ] = await Promise.all([
+    profilePromise,
+    examsPromise,
+    banksPromise,
+    unlocksPromise,
+    examUnlocksPromise,
+    questionCountPromise,
+    examDatesPromise,
+  ]);
+
+  const profile = profileResult.data as { is_vip?: boolean } | null;
+  const isVip = profile?.is_vip || false;
+
+  const userData = {
+    username: (profileResult.data as any)?.username || user.email?.split("@")[0] || "User",
+    avatar_url: (profileResult.data as any)?.avatar_url ?? undefined,
+    is_vip: isVip,
+  };
+
+  const unlockedBankIds = new Set(
+    (unlocksResult.data || []).map((u: any) => u.bank_id),
+  );
+  const unlockedExamIds = new Set(
+    (examUnlocksResult.data || []).map((u: any) => u.exam_id),
+  );
+
+  const exams = examsResult.data || [];
+  const banks = banksResult.data || [];
+  const questionCount = questionCountResult.count || 0;
+  const examDates = examDatesResult.data || [];
+
   return (
-    <div className="relative min-h-screen flex flex-col bg-[#f0f4fc] dark:bg-slate-950 overflow-x-hidden">
+    <div className="relative min-h-screen flex flex-col bg-[#f0f4fc] dark:bg-slate-900 overflow-x-hidden">
       <AmbientBackground />
       <Header user={userData} />
 
@@ -152,11 +196,13 @@ export default async function SubjectPage(props: PageProps) {
 
         <SubjectContent
           subject={subject}
-          exams={exams || []}
-          banks={banks || []}
+          exams={exams}
+          banks={banks}
           isVip={isVip}
           unlockedBankIds={unlockedBankIds}
-          questionCount={questionCount || 0}
+          unlockedExamIds={unlockedExamIds}
+          questionCount={questionCount}
+          examDates={examDates}
         />
       </main>
     </div>

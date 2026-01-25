@@ -2,14 +2,8 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { calculateSM2, SRSQuality } from "@/lib/srs";
-
 export async function saveFlashcardReview(
-  questionId: number,
-  quality: SRSQuality, // 0-5
-  currentInterval: number,
-  currentEase: number,
-  currentRepetitions: number
+  questionId: number
 ) {
   const supabase = await createClient();
   const {
@@ -20,23 +14,15 @@ export async function saveFlashcardReview(
     return { success: false, error: "Unauthorized" };
   }
 
-  // Calculate next schedule
-  const nextSchedule = calculateSM2(
-    quality,
-    currentInterval,
-    currentEase,
-    currentRepetitions
-  );
-
   // Upsert into DB
   const { error } = await supabase.from("flashcard_reviews").upsert(
     {
       user_id: user.id,
       question_id: questionId,
-      next_review_at: nextSchedule.nextReviewAt.toISOString(),
-      interval_days: nextSchedule.intervalDays,
-      ease_factor: nextSchedule.easeFactor,
-      repetitions: nextSchedule.repetitions,
+      next_review_at: new Date().toISOString(),
+      interval_days: 0,
+      ease_factor: 2.5,
+      repetitions: 0,
       last_reviewed_at: new Date().toISOString(),
     } as any,
     { onConflict: "user_id,question_id" }
@@ -52,5 +38,5 @@ export async function saveFlashcardReview(
   // We can optionally update user_progress counts here too.
 
   revalidatePath("/practice");
-  return { success: true, data: nextSchedule };
+  return { success: true };
 }

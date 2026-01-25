@@ -1,20 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Subject, Topic } from "@/types/database";
+import { Subject, Topic, SubjectExamDate } from "@/types/database";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { GlassPanel } from "@/components/ui/GlassPanel";
-import { X, Save, Layers, ListFilter } from "lucide-react";
+import { X, Save, Layers, ListFilter, Calendar } from "lucide-react";
 import { upsertSubject } from "../actions";
 import { useRouter } from "next/navigation";
 import { TopicManager } from "./TopicManager";
+import { ExamDateManager } from "./ExamDateManager";
 
 interface SubjectModalProps {
   isOpen: boolean;
   onClose: () => void;
   subject?: Subject;
   topics: Topic[];
+  examDates: SubjectExamDate[];
 }
 
 export function SubjectModal({
@@ -22,9 +24,10 @@ export function SubjectModal({
   onClose,
   subject,
   topics,
+  examDates,
 }: SubjectModalProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<"general" | "topics">("general");
+  const [activeTab, setActiveTab] = useState<"general" | "topics" | "exams">("general");
   const [loading, setLoading] = useState(false);
 
   // Form states
@@ -149,11 +152,23 @@ export function SubjectModal({
           >
             <ListFilter className="size-4" /> Topics
           </button>
+          <button
+            onClick={() => setActiveTab("exams")}
+            className={`flex-1 py-3 px-4 text-sm font-medium flex items-center justify-center gap-2 transition-colors ${
+              activeTab === "exams"
+                ? "text-[#135bec] border-b-2 border-[#135bec] bg-blue-50/30 dark:bg-blue-900/10"
+                : "text-gray-500 hover:text-gray-700 dark:text-gray-400"
+            }`}
+            disabled={!subject}
+            title={!subject ? "Save subject first to manage exams" : ""}
+          >
+            <Calendar className="size-4" /> Exams
+          </button>
         </div>
 
         {/* Content */}
         <div className="p-6 overflow-y-auto flex-1">
-          {activeTab === "general" ? (
+          {activeTab === "general" && (
             <div className="space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -251,10 +266,27 @@ export function SubjectModal({
                 </div>
               )}
             </div>
-          ) : (
+          )}
+
+          {activeTab === "topics" && (
             <div>
               {subject ? (
                 <TopicManager subjectId={subject.id} initialTopics={topics} />
+              ) : (
+                <div className="text-center py-10 text-gray-500">
+                  Please save the subject first.
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "exams" && (
+            <div>
+              {subject ? (
+                <ExamDateManager 
+                  subjectId={subject.id} 
+                  initialExamDates={examDates} 
+                />
               ) : (
                 <div className="text-center py-10 text-gray-500">
                   Please save the subject first.

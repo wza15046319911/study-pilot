@@ -21,6 +21,7 @@ export interface Database {
           vip_expires_at: string | null;
           created_at: string;
           active_session_id: string | null;
+          is_admin: boolean;
         };
         Insert: {
           id: string;
@@ -33,6 +34,7 @@ export interface Database {
           vip_expires_at?: string | null;
           created_at?: string;
           active_session_id?: string | null;
+          is_admin?: boolean;
         };
         Update: {
           id?: string;
@@ -45,6 +47,7 @@ export interface Database {
           vip_expires_at?: string | null;
           created_at?: string;
           active_session_id?: string | null;
+          is_admin?: boolean;
         };
       };
       topics: {
@@ -70,6 +73,29 @@ export interface Database {
           slug?: string;
           subject_id?: number;
           name?: string;
+          created_at?: string;
+        };
+      };
+      subject_exam_dates: {
+        Row: {
+          id: number;
+          subject_id: number;
+          exam_type: "midterm" | "final";
+          exam_date: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          subject_id: number;
+          exam_type: "midterm" | "final";
+          exam_date: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          subject_id?: number;
+          exam_type?: "midterm" | "final";
+          exam_date?: string;
           created_at?: string;
         };
       };
@@ -324,6 +350,9 @@ export interface Database {
           exam_type: "midterm" | "final";
           duration_minutes: number;
           rules: Json;
+          is_premium: boolean;
+          unlock_type: "free" | "premium" | "referral" | "paid";
+          price: number | null;
           is_published: boolean;
           created_at: string;
           updated_at: string;
@@ -337,6 +366,9 @@ export interface Database {
           exam_type: "midterm" | "final";
           duration_minutes?: number;
           rules?: Json;
+          is_premium?: boolean;
+          unlock_type?: "free" | "premium" | "referral" | "paid";
+          price?: number | null;
           is_published?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -350,6 +382,9 @@ export interface Database {
           exam_type?: "midterm" | "final";
           duration_minutes?: number;
           rules?: Json;
+          is_premium?: boolean;
+          unlock_type?: "free" | "premium" | "referral" | "paid";
+          price?: number | null;
           is_published?: boolean;
           created_at?: string;
           updated_at?: string;
@@ -515,6 +550,7 @@ export interface Database {
           is_published: boolean;
           unlock_type: "free" | "premium" | "referral" | "paid";
           price: number | null;
+          allowed_modes: string[];
           created_at: string;
           updated_at: string;
         };
@@ -529,6 +565,7 @@ export interface Database {
           is_published?: boolean;
           unlock_type?: "free" | "premium" | "referral" | "paid";
           price?: number | null;
+          allowed_modes?: string[];
           created_at?: string;
           updated_at?: string;
         };
@@ -543,6 +580,7 @@ export interface Database {
           is_published?: boolean;
           unlock_type?: "free" | "premium" | "referral" | "paid";
           price?: number | null;
+          allowed_modes?: string[];
           created_at?: string;
           updated_at?: string;
         };
@@ -645,6 +683,32 @@ export interface Database {
           created_at?: string;
         };
       };
+      user_exam_unlocks: {
+        Row: {
+          id: number;
+          user_id: string;
+          exam_id: number;
+          unlock_type: "referral" | "purchase" | "admin";
+          referral_id: number | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          user_id: string;
+          exam_id: number;
+          unlock_type: "referral" | "purchase" | "admin";
+          referral_id?: number | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          user_id?: string;
+          exam_id?: number;
+          unlock_type?: "referral" | "purchase" | "admin";
+          referral_id?: number | null;
+          created_at?: string;
+        };
+      };
       payments: {
         Row: {
           id: number;
@@ -690,6 +754,8 @@ export interface Database {
 // Helper types
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 export type Subject = Database["public"]["Tables"]["subjects"]["Row"];
+export type SubjectExamDate =
+  Database["public"]["Tables"]["subject_exam_dates"]["Row"];
 export type Topic = Database["public"]["Tables"]["topics"]["Row"];
 export type Question = Database["public"]["Tables"]["questions"]["Row"];
 export type UserAnswer = Database["public"]["Tables"]["user_answers"]["Row"];

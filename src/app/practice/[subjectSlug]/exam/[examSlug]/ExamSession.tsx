@@ -33,6 +33,7 @@ interface ExamSessionProps {
   questions: Question[];
   user: Profile;
   subjectId: number;
+  exitLink?: string;
 }
 
 export default function ExamSession({
@@ -40,6 +41,7 @@ export default function ExamSession({
   questions,
   user,
   subjectId,
+  exitLink = "/library",
 }: ExamSessionProps) {
   const router = useRouter();
   const supabase = createClient();
@@ -175,7 +177,7 @@ export default function ExamSession({
   };
 
   const handleExit = () => {
-    router.push("/library");
+    router.push(exitLink);
   };
 
   // Calculate progress

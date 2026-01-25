@@ -13,7 +13,7 @@ interface PageProps {
 }
 
 export default async function LibraryQuestionBankPracticePage(
-  props: PageProps
+  props: PageProps,
 ) {
   const params = await props.params;
   const { subjectSlug, questionBankSlug } = params;
@@ -25,7 +25,7 @@ export default async function LibraryQuestionBankPracticePage(
 
   if (!user) {
     redirect(
-      `/login?next=/library/${subjectSlug}/question-banks/${questionBankSlug}/practice`
+      `/login?next=/library/${subjectSlug}/question-banks/${questionBankSlug}/practice`,
     );
   }
 
@@ -70,6 +70,37 @@ export default async function LibraryQuestionBankPracticePage(
     );
   }
 
+  // Fetch user profile for access check + session data
+  const { data: profileData } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
+
+  const profile = profileData as Profile | null;
+
+  // Check access for non-public banks
+  let isUnlocked = false;
+  if (bank.unlock_type === "free") {
+    isUnlocked = true;
+  } else if (bank.unlock_type === "premium" && profile?.is_vip) {
+    isUnlocked = true;
+  } else {
+    const { data: unlock } = await (supabase.from("user_bank_unlocks") as any)
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("bank_id", bank.id)
+      .single();
+
+    if (unlock) {
+      isUnlocked = true;
+    }
+  }
+
+  if (!isUnlocked) {
+    redirect(`/library/${subjectSlug}/question-banks/${questionBankSlug}`);
+  }
+
   // Fetch Questions in Order
   const { data: items } = await supabase
     .from("question_bank_items")
@@ -95,15 +126,6 @@ export default async function LibraryQuestionBankPracticePage(
     );
   }
 
-  // Fetch user profile
-  const { data: profileData } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .single();
-
-  const profile = profileData as Profile | null;
-
   const sessionUser = profile || {
     id: user.id,
     username: user.email?.split("@")[0] || "User",
@@ -115,6 +137,7 @@ export default async function LibraryQuestionBankPracticePage(
     is_vip: false,
     vip_expires_at: null,
     active_session_id: null,
+    is_admin: false,
   };
 
   return (
@@ -125,6 +148,7 @@ export default async function LibraryQuestionBankPracticePage(
         user={sessionUser}
         subjectId={subject.id}
         enableTimer={true}
+        exitLink={`/library/${subjectSlug}/question-banks/${questionBankSlug}`}
       />
     </div>
   );

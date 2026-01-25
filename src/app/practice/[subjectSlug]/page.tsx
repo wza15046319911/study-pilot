@@ -53,7 +53,7 @@ export default async function PracticePage(props: PageProps) {
   // Fetch subject by slug
   const { data: subjectData } = await supabase
     .from("subjects")
-    .select("*")
+    .select("id, slug")
     .eq("slug", subjectSlug)
     .single();
 
@@ -76,49 +76,83 @@ export default async function PracticePage(props: PageProps) {
     );
   }
 
-  // Fetch questions based on filters
-  let query = supabase
-    .from("questions")
-    .select("*")
-    .eq("subject_id", subject.id);
+  const questionSelect =
+    "id, content, type, options, answer, explanation, code_snippet";
 
-  if (difficulty && difficulty !== "all") {
-    query = query.eq("difficulty", difficulty);
-  }
+  const buildQuestionsQuery = (
+    selectClause: string,
+    selectOptions?: { count?: "exact"; head?: boolean },
+  ) => {
+    let query = supabase
+      .from("questions")
+      .select(selectClause, selectOptions)
+      .eq("subject_id", subject.id);
 
-  if (topicSlug && topicSlug !== "all") {
-    // Split slugs by comma
-    const slugs = topicSlug.split(",");
+    if (difficulty && difficulty !== "all") {
+      query = query.eq("difficulty", difficulty);
+    }
 
-    // Find topics by slugs
-    const { data: topicsData } = await supabase
-      .from("topics")
-      .select("id")
-      .in("slug", slugs);
-
-    const topics = topicsData as { id: number }[] | null;
-
-    if (topics && topics.length > 0) {
-      const topicIds = topics.map((t) => t.id);
+    if (topicSlug && topicSlug !== "all" && topicIds.length > 0) {
       query = query.in("topic_id", topicIds);
     }
-  }
-
-  // Filter by specific question IDs if provided (e.g. from mistakes book)
-  if (questions) {
-    const questionIds = questions
-      .split(",")
-      .map((id) => decodeId(id))
-      .filter((id) => id !== null) as number[];
 
     if (questionIds.length > 0) {
       query = query.in("id", questionIds);
     }
+
+    return query;
+  };
+
+  let topicIds: number[] = [];
+  if (topicSlug && topicSlug !== "all") {
+    const slugs = topicSlug.split(",");
+    const { data: topicsData } = await supabase
+      .from("topics")
+      .select("id")
+      .in("slug", slugs);
+    const topics = topicsData as { id: number }[] | null;
+    if (topics && topics.length > 0) {
+      topicIds = topics.map((t) => t.id);
+    }
   }
 
-  const { data: allQuestions } = await query;
+  const questionIds =
+    questions
+      ?.split(",")
+      .map((id) => decodeId(id))
+      .filter((id) => id !== null) || [];
 
-  if (!allQuestions || allQuestions.length === 0) {
+  let selectedQuestions: any[] = [];
+  const questionCountStr = count || "10";
+
+  if (questionIds.length > 0) {
+    const { data: questionsById } = await buildQuestionsQuery(questionSelect)
+      .order("id");
+    selectedQuestions = questionsById || [];
+  } else if (questionCountStr === "all") {
+    const { data: allQuestions } = await buildQuestionsQuery(questionSelect)
+      .order("id");
+    selectedQuestions = allQuestions || [];
+  } else {
+    const { count: totalMatching } = await buildQuestionsQuery("id", {
+      count: "exact",
+      head: true,
+    });
+
+    if (totalMatching && totalMatching > 0) {
+      const limit = Math.min(parseInt(questionCountStr, 10), totalMatching);
+      const maxOffset = Math.max(totalMatching - limit, 0);
+      const offset =
+        maxOffset > 0 ? Math.floor(Math.random() * (maxOffset + 1)) : 0;
+
+      const { data: questionsPage } = await buildQuestionsQuery(questionSelect)
+        .order("id")
+        .range(offset, offset + limit - 1);
+      selectedQuestions = questionsPage || [];
+    }
+  }
+
+  if (selectedQuestions.length === 0) {
     return (
       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc]">
         <AmbientBackground />
@@ -135,27 +169,33 @@ export default async function PracticePage(props: PageProps) {
     );
   }
 
-  // Shuffle and slice questions
-  const questionCountStr = count || "10";
-  let selectedQuestions = [...allQuestions];
-
-  // If explicit count given (and not "all"), slice it. Otherwise keep all.
   if (questionCountStr !== "all") {
-    // Random shuffle + slice
-    const limit = parseInt(questionCountStr);
-    selectedQuestions = selectedQuestions
-      .sort(() => 0.5 - Math.random())
-      .slice(0, limit);
-  }
-
-  if (questionCountStr === "all") {
-    selectedQuestions = selectedQuestions.sort(() => 0.5 - Math.random());
+    const limit = parseInt(questionCountStr, 10);
+    if (selectedQuestions.length > limit) {
+      selectedQuestions = selectedQuestions
+        .sort(() => 0.5 - Math.random())
+        .slice(0, limit);
+    }
   }
 
   // Fetch user profile for header
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("*")
+    .select(
+      [
+        "id",
+        "username",
+        "level",
+        "streak_days",
+        "avatar_url",
+        "created_at",
+        "last_practice_date",
+        "is_vip",
+        "vip_expires_at",
+        "active_session_id",
+        "is_admin",
+      ].join(", "),
+    )
     .eq("id", user.id)
     .single();
 
@@ -187,6 +227,7 @@ export default async function PracticePage(props: PageProps) {
     is_vip: false,
     vip_expires_at: null,
     active_session_id: null,
+    is_admin: false,
   };
 
   return (
@@ -197,6 +238,7 @@ export default async function PracticePage(props: PageProps) {
         user={sessionUser}
         subjectId={subject.id}
         enableTimer={searchParamsStr.timer !== "false"}
+        exitLink={`/library/${subjectSlug}`}
       />
     </div>
   );

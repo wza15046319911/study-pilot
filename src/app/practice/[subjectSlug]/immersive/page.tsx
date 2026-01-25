@@ -78,6 +78,7 @@ export default async function ImmersivePracticePage(props: PageProps) {
     is_vip: false,
     vip_expires_at: null,
     active_session_id: null,
+    is_admin: false,
   };
 
   return (

@@ -8,16 +8,17 @@ import { motion } from "framer-motion";
 import { SplashScreen } from "./SplashScreen";
 import { ImpactStats } from "./ImpactStats";
 import {
-  Database,
-  BookOpen,
-  Activity,
-  GraduationCap,
+  // Database,
+  // BookOpen,
+  // Activity,
+  // GraduationCap,
 } from "lucide-react";
 import { FAQSection } from "@/components/common/FAQSection";
 import { AnimatedTestimonials } from "@/components/aceternity/animated-testimonials";
 import { FlipWords } from "@/components/aceternity/flip-words";
 import { StatefulButton } from "@/components/ui/stateful-button";
-import { FeaturesSection, FeatureItem, FeatureSkeleton } from "./FeaturesSection";
+import { TimelineSection } from "./TimelineSection";
+import { FeatureCarousel } from "./FeatureCarousel";
 
 // ... (Subject and Props interfaces same as before)
 interface Subject {
@@ -86,97 +87,37 @@ const testimonials = [
     quote:
       "The explanations are incredibly clear. It's like having a private tutor available 24/7.",
     name: "Sarah Lin",
-    designation: "Computer Science Student",
-    src: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=3388&auto=format&fit=crop",
-  },
-  {
-    quote:
-      "I passed my professional certification thanks to the extensive question bank and the immersive mock exams.",
-    name: "James Wong",
-    designation: "Financial Analyst",
-    src: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=3560&auto=format&fit=crop",
+    designation: "CS Student",
+    src: "/avatar1.jpg",
   },
   {
     quote:
       "The spaced repetition system actually works. I've retained far more information than using traditional methods.",
     name: "Elena Rodriguez",
-    designation: "Medical Student",
-    src: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=3387&auto=format&fit=crop",
+    designation: "Engineering Student",
+    src: "/avatar3.jpg",
   },
   {
     quote:
       "The interface is so clean and distraction-free. StudyPilot has transformed my late-night study sessions.",
     name: "David Kim",
-    designation: "Law Student",
-    src: "https://images.unsplash.com/photo-1633332755192-727a05c4013d?q=80&w=3560&auto=format&fit=crop",
-  },
-  {
-    quote:
-      "Tracking my progress with the analytics dashboard motivated me to study everyday. Seeing my accuracy grow is so satisfying.",
-    name: "Maya Singh",
-    designation: "Engineering Student",
-    src: "https://images.unsplash.com/photo-1628157588553-5eeea00af15c?q=80&w=3560&auto=format&fit=crop",
+    designation: "CS Student",
+    src: "/avatar4.jpg",
   },
   {
     quote:
       "The 'Smart Review' feature saved me hours. It identified exactly where my knowledge gaps were.",
     name: "Thomas Chen",
-    designation: "Graduate Researcher",
-    src: "https://images.unsplash.com/photo-1599566150163-29194dcaad36?q=80&w=3387&auto=format&fit=crop",
+    designation: "IT Student",
+    src: "/avatar2.jpg",
   },
 ];
 
 export function WholePageScroll({
   user,
-  isAdmin,
-  subjects,
-  content,
   faqs,
 }: WholePageScrollProps) {
   const router = useRouter();
-
-  const featureItems: FeatureItem[] = [
-    {
-      title: "Question Bank",
-      description: "Access 10,000+ real exam questions, meticulously categorized by topic and difficulty. Always updated to match the latest university curriculum.",
-      header: (
-        <FeatureSkeleton className="flex items-center justify-center bg-blue-50 dark:bg-blue-900/20">
-          <Database className="h-20 w-20 text-blue-500" />
-        </FeatureSkeleton>
-      ),
-      icon: <Database className="h-4 w-4 text-neutral-500" />,
-    },
-    {
-      title: "Practice Mode",
-      description: "Clean, distraction-free interface to focus on what matters — mastering each question with instant feedback.",
-      header: (
-        <FeatureSkeleton className="flex items-center justify-center bg-blue-50 dark:bg-blue-900/20">
-          <BookOpen className="h-20 w-20 text-blue-500" />
-        </FeatureSkeleton>
-      ),
-      icon: <BookOpen className="h-4 w-4 text-neutral-500" />,
-    },
-    {
-      title: "Smart Review",
-      description: "AI-powered mistake tracking helps you focus on areas that need improvement.",
-      header: (
-        <FeatureSkeleton className="flex items-center justify-center bg-purple-50 dark:bg-purple-900/20">
-          <Activity className="h-20 w-20 text-purple-500" />
-        </FeatureSkeleton>
-      ),
-      icon: <Activity className="h-4 w-4 text-neutral-500" />,
-    },
-    {
-      title: "Mock Exam",
-      description: "Simulate real exam conditions with timed practice sessions. Experience the pressure before the real day.",
-      header: (
-        <FeatureSkeleton className="flex items-center justify-center bg-purple-50 dark:bg-purple-900/20">
-          <GraduationCap className="h-20 w-20 text-purple-500" />
-        </FeatureSkeleton>
-      ),
-      icon: <GraduationCap className="h-4 w-4 text-neutral-500" />,
-    },
-  ];
 
   const handleStartPractice = async () => {
     // Simulate async operation if needed, or just navigation delay
@@ -193,13 +134,11 @@ export function WholePageScroll({
         {/* Impact Stats Section */}
         <ImpactStats />
 
-        {/* Feature Section (Bento Grid) */}
-        <FeaturesSection 
-          title={content.features.title}
-          subtitle={content.features.subtitle}
-          overline={content.features.coreFeatures}
-          features={featureItems}
-        />
+        {/* Timeline Section */}
+        <TimelineSection />
+
+        {/* Feature Carousel Section */}
+        <FeatureCarousel />
 
         {/* Testimonials Section */}
         <section className="py-24 bg-neutral-50 dark:bg-black relative flex flex-col items-center justify-center antialiased overflow-hidden">
@@ -289,11 +228,11 @@ export function WholePageScroll({
                       FAQ
                     </Link>
                   </li>
-                  <li>
+                  {/* <li>
                     <Link href="/blog" className="hover:text-primary">
                       Blog
                     </Link>
-                  </li>
+                  </li> */}
                 </ul>
               </div>
               <div>

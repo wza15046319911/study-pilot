@@ -14,7 +14,7 @@ interface PageProps {
 }
 
 export default async function LibraryQuestionBankFlashcardsPage(
-  props: PageProps
+  props: PageProps,
 ) {
   const params = await props.params;
   const { subjectSlug, questionBankSlug } = params;
@@ -26,7 +26,7 @@ export default async function LibraryQuestionBankFlashcardsPage(
 
   if (!user) {
     redirect(
-      `/login?next=/library/${subjectSlug}/question-banks/${questionBankSlug}/flashcards`
+      `/login?next=/library/${subjectSlug}/question-banks/${questionBankSlug}/flashcards`,
     );
   }
 
@@ -108,6 +108,7 @@ export default async function LibraryQuestionBankFlashcardsPage(
     is_vip: false,
     vip_expires_at: null,
     active_session_id: null,
+    is_admin: false,
   };
 
   return (

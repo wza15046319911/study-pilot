@@ -28,7 +28,7 @@ export default async function QuestionBankPracticePage(props: PageProps) {
   const { data: bank, error: bankError } = await (
     supabase.from("question_banks") as any
   )
-    .select("*")
+    .select("id, slug, subject_id, is_premium, unlock_type")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -83,7 +83,21 @@ export default async function QuestionBankPracticePage(props: PageProps) {
   // Fetch Questions in Order
   const { data: items } = await supabase
     .from("question_bank_items")
-    .select("question_id, order_index, question:questions(*)")
+    .select(
+      `
+      question_id,
+      order_index,
+      question:questions(
+        id,
+        content,
+        type,
+        options,
+        answer,
+        explanation,
+        code_snippet
+      )
+    `,
+    )
     .eq("bank_id", bank.id)
     .order("order_index");
 
@@ -108,7 +122,21 @@ export default async function QuestionBankPracticePage(props: PageProps) {
 
   // Fetch user profile for header
   const { data: headerProfile } = await (supabase.from("profiles") as any)
-    .select("*")
+    .select(
+      [
+        "id",
+        "username",
+        "level",
+        "streak_days",
+        "avatar_url",
+        "created_at",
+        "last_practice_date",
+        "is_vip",
+        "vip_expires_at",
+        "active_session_id",
+        "is_admin",
+      ].join(", "),
+    )
     .eq("id", user.id)
     .single();
 
@@ -140,6 +168,7 @@ export default async function QuestionBankPracticePage(props: PageProps) {
         user={sessionUser}
         subjectId={bank.subject_id}
         mode="practice"
+        exitLink={`/question-banks/${slug}`}
       />
     </div>
   );

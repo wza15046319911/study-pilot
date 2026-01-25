@@ -24,6 +24,15 @@ export default async function AdminSubjectsPage() {
     console.error("Error fetching topics:", topicError);
   }
 
+  // Fetch all subject exam dates
+  const { data: examDates, error: examDatesError } = await supabase
+    .from("subject_exam_dates")
+    .select("*");
+
+  if (examDatesError) {
+    console.error("Error fetching exam dates:", examDatesError);
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-2">
@@ -38,6 +47,7 @@ export default async function AdminSubjectsPage() {
       <SubjectsClient
         initialSubjects={subjects || []}
         initialTopics={topics || []}
+        initialExamDates={examDates || []}
       />
     </div>
   );

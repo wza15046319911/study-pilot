@@ -337,7 +337,8 @@ CREATE TABLE IF NOT EXISTS "public"."profiles" (
     "created_at" timestamp with time zone DEFAULT "now"(),
     "is_vip" boolean DEFAULT false,
     "vip_expires_at" timestamp with time zone,
-    "active_session_id" "uuid" DEFAULT "extensions"."uuid_generate_v4"()
+    "active_session_id" "uuid" DEFAULT "extensions"."uuid_generate_v4"(),
+    "is_admin" boolean DEFAULT false NOT NULL
 );
 
 

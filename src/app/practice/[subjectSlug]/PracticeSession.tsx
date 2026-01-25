@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
@@ -27,6 +27,10 @@ import {
   BookPlus,
   Maximize2,
   Minimize2,
+  List,
+  ChevronDown,
+  ChevronRight,
+  Layout,
 } from "lucide-react";
 
 interface PracticeSessionProps {
@@ -36,6 +40,7 @@ interface PracticeSessionProps {
   mode?: "practice" | "standalone";
   enableTimer?: boolean;
   isGuest?: boolean;
+  exitLink?: string;
 }
 
 export function PracticeSession({
@@ -45,6 +50,7 @@ export function PracticeSession({
   mode = "practice",
   enableTimer = true,
   isGuest = false,
+  exitLink = "/library",
 }: PracticeSessionProps) {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -52,7 +58,6 @@ export function PracticeSession({
   const [checkedAnswers, setCheckedAnswers] = useState<Record<number, boolean>>(
     {}
   );
-  // ... (keep state)
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,6 +67,10 @@ export function PracticeSession({
   const [addedMistake, setAddedMistake] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [isFocusMode, setIsFocusMode] = useState(false);
+  const [topics, setTopics] = useState<Record<number, string>>({});
+  const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
+
+  const supabase: any = createClient();
 
   // Handle Fullscreen changes (e.g. user presses Esc)
   useEffect(() => {
@@ -108,9 +117,6 @@ export function PracticeSession({
 
   const currentQuestion = questions[currentIndex];
   const isChecked = checkedAnswers[currentQuestion.id];
-  const supabase: any = createClient();
-
-  // ... (keep helper functions)
 
   // Fetch bookmarks
   useEffect(() => {
@@ -130,6 +136,68 @@ export function PracticeSession({
     };
     fetchBookmarks();
   }, [questions, user.id]);
+
+  // Fetch Topics
+  useEffect(() => {
+    const fetchTopics = async () => {
+      if (!subjectId) return;
+      const { data } = await supabase
+        .from("topics")
+        .select("id, name")
+        .eq("subject_id", subjectId);
+
+      if (data) {
+        const topicMap: Record<number, string> = {};
+        data.forEach((t: any) => (topicMap[t.id] = t.name));
+        setTopics(topicMap);
+      }
+    };
+    fetchTopics();
+  }, [subjectId]);
+
+  // Group questions by topic
+  const groupedQuestions = useMemo(() => {
+    const groups: Record<string, number[]> = {};
+    const topicOrder: string[] = [];
+
+    questions.forEach((q, index) => {
+      const topicName =
+        q.topic_id && topics[q.topic_id] ? topics[q.topic_id] : "General";
+      if (!groups[topicName]) {
+        groups[topicName] = [];
+        topicOrder.push(topicName);
+      }
+      groups[topicName].push(index);
+    });
+
+    // Move "General" to the end if it exists
+    if (groups["General"]) {
+      const generalIndex = topicOrder.indexOf("General");
+      if (generalIndex > -1) {
+        topicOrder.splice(generalIndex, 1);
+        topicOrder.push("General");
+      }
+    }
+
+    return { groups, topicOrder };
+  }, [questions, topics]);
+
+  // Initialize expanded topics (expand all by default)
+  useEffect(() => {
+    if (groupedQuestions.topicOrder.length > 0 && expandedTopics.size === 0) {
+      setExpandedTopics(new Set(groupedQuestions.topicOrder));
+    }
+  }, [groupedQuestions.topicOrder]);
+
+  const toggleTopic = (topic: string) => {
+    const newExpanded = new Set(expandedTopics);
+    if (newExpanded.has(topic)) {
+      newExpanded.delete(topic);
+    } else {
+      newExpanded.add(topic);
+    }
+    setExpandedTopics(newExpanded);
+  };
 
   // Timer
   useEffect(() => {
@@ -306,90 +374,142 @@ export function PracticeSession({
   // Parse options safely
   const options = currentQuestion.options as unknown as QuestionOption[] | null;
 
-  // Calculate progress based on CHECKED answers
-  const progressPercentage =
-    (Object.keys(checkedAnswers).length / questions.length) * 100;
-
   // Keyboard navigation is disabled - question switching should be fully user-controlled
   // Users can navigate using the question navigator or Next/Previous buttons only
 
   return (
     <div
-      className={`flex-1 w-full max-w-[1600px] mx-auto p-4 md:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 ${
+      className={`flex-1 w-full max-w-[1800px] mx-auto p-4 md:p-6 lg:p-8 flex flex-col lg:flex-row gap-6 ${
         mode === "standalone" ? "items-center justify-center" : ""
       }`}
     >
-      {/* Left Sidebar - Progress (Only in Practice Mode and NOT in Focus Mode) */}
+      {/* Left Sidebar - Topic Navigation (Only in Practice Mode and NOT in Focus Mode) */}
       {mode === "practice" && !isFocusMode && (
-        <aside className="w-full lg:w-72 flex flex-col gap-8 shrink-0 order-2 lg:order-1 lg:sticky lg:top-0 lg:self-start font-serif">
-          {/* Progress Card */}
-          <div className="bg-white dark:bg-slate-900 rounded-none border border-black dark:border-white p-6 shadow-none box-content">
-            <div className="flex justify-between items-center mb-4 border-b border-black dark:border-white pb-2">
-              <p className="text-sm font-bold text-black dark:text-white uppercase tracking-widest">
-                Progress
-              </p>
-              <div className="size-6 rounded-full border border-black dark:border-white flex items-center justify-center">
-                <TrendingUp className="size-3 text-black dark:text-white" />
-              </div>
-            </div>
-            <h3 className="text-4xl font-black text-black dark:text-white tracking-tight mb-2">
-              {Object.keys(checkedAnswers).length}
-              <span className="text-lg text-gray-500 font-medium ml-1">
-                /{questions.length}
+        <aside className="w-full lg:w-80 flex flex-col gap-0 shrink-0 order-2 lg:order-1 lg:sticky lg:top-8 lg:self-start font-serif h-[calc(100vh-6rem)]">
+          <div className="bg-white dark:bg-slate-900 border-2 border-black dark:border-white flex flex-col h-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
+            {/* Header */}
+            <div className="p-4 border-b-2 border-black dark:border-white bg-gray-50 dark:bg-slate-800 flex items-center justify-between">
+              <h3 className="font-bold text-lg flex items-center gap-2 text-black dark:text-white">
+                <Layout className="size-5" />
+                Contents
+              </h3>
+              <span className="text-xs font-bold px-2 py-1 bg-black dark:bg-white text-white dark:text-black rounded">
+                {questions.length} Qs
               </span>
-            </h3>
-            <div className="w-full bg-gray-200 dark:bg-gray-800 h-1 mt-2">
-              <div
-                className="bg-black dark:bg-white h-full transition-[width] duration-500"
-                style={{ width: `${progressPercentage}%` }}
-              />
             </div>
-          </div>
 
-          {/* Question Navigator */}
-          <div className="bg-white dark:bg-slate-900 rounded-none border border-black dark:border-white p-6 shadow-none">
-            <h3 className="text-sm font-bold text-black dark:text-white uppercase tracking-widest mb-4 border-b border-black dark:border-white pb-2">
-              Questions
-            </h3>
-            <div className="max-h-[280px] overflow-y-auto pr-1 -mr-1">
-              <div className="grid grid-cols-5 gap-2">
-                {questions.map((q, i) => {
-                  const isAnswered = answers[q.id] !== undefined;
-                  const isCurrent = i === currentIndex;
-                  const wasChecked = checkedAnswers[q.id];
+            {/* Scrollable Topic List */}
+            <div className="flex-1 overflow-y-auto p-0 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700">
+              {groupedQuestions.topicOrder.map((topicName) => {
+                const indices = groupedQuestions.groups[topicName];
+                const isExpanded = expandedTopics.has(topicName);
+                const isActiveTopic = indices.includes(currentIndex);
+                const completedCount = indices.filter(
+                  (i) => checkedAnswers[questions[i].id]
+                ).length;
 
-                  let btnClass =
-                    "bg-transparent text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 border border-transparent";
-
-                  if (isCurrent) {
-                    btnClass =
-                      "bg-black dark:bg-white text-white dark:text-black border border-black dark:border-white";
-                  } else if (wasChecked) {
-                    btnClass =
-                      "bg-gray-100 dark:bg-gray-800 text-black dark:text-white border border-gray-300 dark:border-gray-600";
-                  }
-
-                  return (
+                return (
+                  <div
+                    key={topicName}
+                    className={`border-b border-gray-200 dark:border-gray-800 last:border-b-0 ${
+                      isActiveTopic ? "bg-blue-50/50 dark:bg-blue-900/10" : ""
+                    }`}
+                  >
                     <button
-                      key={q.id}
-                      onClick={() => setCurrentIndex(i)}
-                      className={`size-9 rounded-sm font-serif font-bold text-sm flex items-center justify-center transition-[background-color,border-color,color] duration-200 ${btnClass}`}
+                      onClick={() => toggleTopic(topicName)}
+                      className="w-full text-left p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors group"
                     >
-                      {i + 1}
+                      <div className="flex-1 pr-2">
+                        <div
+                          className={`font-bold text-sm uppercase tracking-wide mb-1 ${
+                            isActiveTopic
+                              ? "text-blue-600 dark:text-blue-400"
+                              : "text-gray-700 dark:text-gray-300"
+                          }`}
+                        >
+                          {topicName}
+                        </div>
+                        <div className="text-xs text-gray-400 flex items-center gap-2">
+                          <span>
+                            {completedCount}/{indices.length} done
+                          </span>
+                          <div className="h-1 w-12 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-blue-500 transition-all duration-300"
+                              style={{
+                                width: `${
+                                  (completedCount / indices.length) * 100
+                                }%`,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      <div
+                        className={`text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-200 transition-transform duration-200 ${
+                          isExpanded ? "rotate-180" : ""
+                        }`}
+                      >
+                        <ChevronDown className="size-4" />
+                      </div>
                     </button>
-                  );
-                })}
-              </div>
+
+                    {/* Questions Grid */}
+                    {isExpanded && (
+                      <div className="p-4 pt-0 grid grid-cols-5 gap-2 animate-in slide-in-from-top-2 duration-200">
+                        {indices.map((idx) => {
+                          const q = questions[idx];
+                          const isCurrent = idx === currentIndex;
+                          const wasChecked = checkedAnswers[q.id];
+                          const isAnswered = !!answers[q.id];
+                          const isCorrect =
+                            wasChecked && answers[q.id] === q.answer;
+
+                          let btnClass =
+                            "bg-white dark:bg-slate-900 text-gray-500 border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500";
+
+                          if (isCurrent) {
+                            btnClass =
+                              "bg-black dark:bg-white text-white dark:text-black border-black dark:border-white ring-2 ring-offset-1 ring-black dark:ring-white dark:ring-offset-slate-900 z-10";
+                          } else if (wasChecked) {
+                            btnClass = isCorrect
+                              ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"
+                              : "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 border-red-200 dark:border-red-800";
+                          } else if (isAnswered) {
+                            btnClass =
+                              "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600";
+                          }
+
+                          return (
+                            <button
+                              key={q.id}
+                              onClick={() => {
+                                setCurrentIndex(idx);
+                                // Scroll question into view if needed? No, user action handles navigation
+                              }}
+                              className={`aspect-square rounded-md border text-xs font-bold flex items-center justify-center transition-all duration-200 ${btnClass}`}
+                              title={`Question ${idx + 1}`}
+                            >
+                              {idx + 1}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
 
-            <div className="mt-6 pt-4 border-t border-black dark:border-white">
+            {/* Footer */}
+            <div className="p-4 border-t-2 border-black dark:border-white bg-gray-50 dark:bg-slate-800">
               <Button
                 variant="ghost"
                 className="w-full justify-center text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 font-serif font-bold rounded-none border border-transparent hover:border-red-200"
-                onClick={() => router.push("/library")}
+                onClick={() => router.push(exitLink)}
               >
                 <LogOut className="mr-2 size-4" />
-                Exit Exam
+                Exit Session
               </Button>
             </div>
           </div>
@@ -406,17 +526,29 @@ export function PracticeSession({
             : ""
         }`}
       >
-        <div className="bg-white dark:bg-slate-900 shadow-none border border-gray-200 dark:border-gray-800 min-h-[800px] p-8 lg:p-16 relative flex flex-col font-serif">
+        <div className="bg-white dark:bg-slate-900 shadow-none border-2 border-gray-200 dark:border-gray-800 min-h-[800px] p-8 lg:p-16 relative flex flex-col font-serif">
           {/* Exam Header */}
-          <div className="flex justify-end items-end border-b-2 border-black dark:border-white pb-4 mb-12 text-black dark:text-white font-serif">
-            <div className="text-right text-sm">
-              <p>
-                Page {currentIndex + 1} of {questions.length}
+          <div className="flex justify-between items-end border-b-2 border-black dark:border-white pb-4 mb-12 text-black dark:text-white font-serif">
+            <div>
+              <h2 className="text-xl font-bold mb-1">
+                {questions[currentIndex].topic_id &&
+                topics[questions[currentIndex].topic_id]
+                  ? topics[questions[currentIndex].topic_id]
+                  : "General Question"}
+              </h2>
+              <p className="text-sm text-gray-500">
+                Question {currentIndex + 1} of {questions.length}
               </p>
             </div>
+            {mode === "practice" && enableTimer && (
+              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-sm text-xs font-serif bg-white dark:bg-slate-900">
+                <Timer className="size-3.5" />
+                <span className="font-mono">{formatTime(elapsedTime)}</span>
+              </div>
+            )}
           </div>
 
-          {/* Controls Overlay (Focus Mode, Timer etc - moved to absolute top right for minimal interference) */}
+          {/* Controls Overlay (Focus Mode etc) */}
           <div className="absolute top-4 right-4 flex items-center gap-4 print:hidden">
             <div
               className={`flex items-center gap-4 transition-opacity duration-300 ${
@@ -428,7 +560,9 @@ export function PracticeSession({
                 onClick={toggleFocusMode}
                 className="p-2 rounded-full transition-colors text-gray-400 hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-800 dark:hover:text-gray-300"
                 title={isFocusMode ? "Exit Focus Mode" : "Enter Focus Mode"}
-                aria-label={isFocusMode ? "Exit Focus Mode" : "Enter Focus Mode"}
+                aria-label={
+                  isFocusMode ? "Exit Focus Mode" : "Enter Focus Mode"
+                }
               >
                 {isFocusMode ? (
                   <Minimize2 className="size-5" />
@@ -437,13 +571,6 @@ export function PracticeSession({
                 )}
               </button>
 
-              {mode === "practice" && enableTimer && (
-                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-sm text-xs font-serif bg-white dark:bg-slate-900">
-                  <Timer className="size-3.5" />
-                  <span className="font-mono">{formatTime(elapsedTime)}</span>
-                </div>
-              )}
-
               <button
                 onClick={toggleBookmark}
                 className={`p-2 rounded-full transition-colors ${
@@ -451,7 +578,11 @@ export function PracticeSession({
                     ? "text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20"
                     : "text-gray-400 hover:bg-gray-100 dark:hover:bg-slate-800"
                 }`}
-                aria-label={bookmarks.has(currentQuestion.id) ? "Remove bookmark" : "Bookmark question"}
+                aria-label={
+                  bookmarks.has(currentQuestion.id)
+                    ? "Remove bookmark"
+                    : "Bookmark question"
+                }
               >
                 <Bookmark
                   className={`size-5 ${
@@ -465,7 +596,9 @@ export function PracticeSession({
                 disabled={isAddingMistake}
                 className="p-2 rounded-full transition-colors text-gray-400 hover:bg-gray-100 hover:text-gray-600 relative group"
                 title="Add to Mistakes"
-                aria-label={addedMistake ? "Remove from mistakes" : "Add to Mistakes"}
+                aria-label={
+                  addedMistake ? "Remove from mistakes" : "Add to Mistakes"
+                }
               >
                 {addedMistake ? (
                   <CheckCircle2 className="size-5 text-green-500" />

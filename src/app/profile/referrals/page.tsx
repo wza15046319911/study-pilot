@@ -69,7 +69,7 @@ export default async function ReferralsPage() {
   // Parallel data fetching
   const [referralCode, stats, referralBanks, userUnlocks] = await Promise.all([
     getOrCreateReferralCode(),
-    getReferralStats(),
+    getReferralStats(user.id),
     getReferralBanks(),
     getUserUnlocks(),
   ]);

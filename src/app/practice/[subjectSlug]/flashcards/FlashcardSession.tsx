@@ -4,20 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
-import { CodeBlock } from "@/components/ui/CodeBlock";
 import { Question, Profile, FlashcardReview } from "@/types/database";
 import {
   ChevronLeft,
   ChevronRight,
   RotateCw,
-  X,
-  Check,
   Zap,
-  Timer,
-  Award,
 } from "lucide-react";
 import { encodeId } from "@/lib/ids";
-import { getNextReviewIntervals, SRSItem } from "@/lib/srs";
 import { saveFlashcardReview } from "@/app/practice/actions";
 
 type ExtendedQuestion = Question & { review: FlashcardReview | null };
@@ -40,35 +34,18 @@ export default function FlashcardSession({
   const currentQuestion = questions[currentIndex];
   const [isFlipped, setIsFlipped] = useState(false);
 
-  // State for current card review settings
-  const currentInterval = currentQuestion.review?.interval_days || 0;
-  const currentEase = currentQuestion.review?.ease_factor || 2.5;
-  const currentRepetitions = currentQuestion.review?.repetitions || 0;
-
-  const nextIntervals = getNextReviewIntervals({
-    intervalDays: currentInterval,
-    easeFactor: currentEase,
-    repetitions: currentRepetitions,
-  });
-
-  const handleRate = async (quality: 0 | 3 | 4 | 5) => {
+  const handleRate = async (isCorrect: boolean) => {
     // 1. Record the answer for progress tracking
     const { recordAnswer } = await import("@/lib/actions/recordAnswer");
     await recordAnswer(
       currentQuestion.id,
-      quality >= 3 ? "correct" : "incorrect", // Simplified answer text
-      quality >= 3, // isCorrect: quality 3+ means pass
+      isCorrect ? "correct" : "incorrect",
+      isCorrect,
       "flashcard"
     );
 
-    // 2. Save SRS review to DB
-    await saveFlashcardReview(
-      currentQuestion.id,
-      quality,
-      currentInterval,
-      currentEase,
-      currentRepetitions
-    );
+    // 2. Save review to DB
+    await saveFlashcardReview(currentQuestion.id);
 
     // 3. Move to next card
     handleNext();
@@ -94,10 +71,6 @@ export default function FlashcardSession({
 
   const progress = Math.round(((currentIndex + 1) / questions.length) * 100);
 
-  const formatInterval = (days: number) => {
-    if (days < 1) return "<1d";
-    return `${Math.round(days)}d`;
-  };
 
   return (
     <div className="flex-grow w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col h-[calc(100vh-80px)]">
@@ -123,7 +96,7 @@ export default function FlashcardSession({
         </div>
         <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-sm font-medium">
           <Zap className="size-4" />
-          SRS Mode
+          Flashcards
         </div>
       </div>
 
@@ -198,61 +171,27 @@ export default function FlashcardSession({
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl mx-auto w-full">
+          <div className="grid grid-cols-2 gap-3 max-w-xl mx-auto w-full">
             <Button
               variant="outline"
-              className="h-auto py-3 flex flex-col gap-1 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-900/30 dark:hover:bg-red-900/20"
+              className="h-14 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 dark:border-red-900/30 dark:hover:bg-red-900/20"
               onClick={(e) => {
                 e.stopPropagation();
-                handleRate(0);
+                handleRate(false);
               }}
             >
-              <span className="font-bold">Again</span>
-              <span className="text-xs opacity-70">
-                {formatInterval(nextIntervals.again.intervalDays)}
-              </span>
+              Incorrect
             </Button>
 
             <Button
               variant="outline"
-              className="h-auto py-3 flex flex-col gap-1 border-orange-200 text-orange-600 hover:bg-orange-50 hover:border-orange-300 dark:border-orange-900/30 dark:hover:bg-orange-900/20"
+              className="h-14 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 dark:border-green-900/30 dark:hover:bg-green-900/20"
               onClick={(e) => {
                 e.stopPropagation();
-                handleRate(3);
+                handleRate(true);
               }}
             >
-              <span className="font-bold">Hard</span>
-              <span className="text-xs opacity-70">
-                {formatInterval(nextIntervals.hard.intervalDays)}
-              </span>
-            </Button>
-
-            <Button
-              variant="outline"
-              className="h-auto py-3 flex flex-col gap-1 border-blue-200 text-blue-600 hover:bg-blue-50 hover:border-blue-300 dark:border-blue-900/30 dark:hover:bg-blue-900/20"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRate(4);
-              }}
-            >
-              <span className="font-bold">Good</span>
-              <span className="text-xs opacity-70">
-                {formatInterval(nextIntervals.good.intervalDays)}
-              </span>
-            </Button>
-
-            <Button
-              variant="outline"
-              className="h-auto py-3 flex flex-col gap-1 border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 dark:border-green-900/30 dark:hover:bg-green-900/20"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRate(5);
-              }}
-            >
-              <span className="font-bold">Easy</span>
-              <span className="text-xs opacity-70">
-                {formatInterval(nextIntervals.easy.intervalDays)}
-              </span>
+              Correct
             </Button>
           </div>
         )}
