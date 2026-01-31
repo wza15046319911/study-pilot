@@ -313,7 +313,7 @@ export default function ExamSession({
 
       {/* Main Content - Paper Style with ALL Questions (Matching PracticeSession) */}
       <div
-        className={`flex-1 flex flex-col gap-6 order-1 lg:order-2 ${
+        className={`flex-1 flex flex-col gap-6 order-1 lg:order-2 min-w-0 ${
           isFocusMode
             ? "w-full max-w-5xl mx-auto transition-[width,margin] duration-500"
             : ""
@@ -370,13 +370,15 @@ export default function ExamSession({
                     <span className="font-bold text-lg select-none">
                       {index + 1}.
                     </span>
-                    <div className="flex-1 min-w-0">
-                      <LatexContent className="font-serif text-black dark:text-gray-100 text-lg leading-relaxed">
+                    <div className="flex-1 min-w-0 max-w-full">
+                      <LatexContent className="font-serif text-black dark:text-gray-100 text-lg leading-relaxed break-words">
                         {question.content}
                       </LatexContent>
                       {question.code_snippet && (
-                        <div className="mt-4 max-w-full overflow-x-auto">
-                          <CodeBlock code={question.code_snippet} />
+                        <div className="mt-4 w-full overflow-hidden rounded-lg">
+                          <div className="overflow-x-auto">
+                            <CodeBlock code={question.code_snippet} />
+                          </div>
                         </div>
                       )}
                     </div>
@@ -414,7 +416,7 @@ export default function ExamSession({
                                 {optionLabel}
                               </span>
                               <div
-                                className={`flex-1 font-serif text-lg leading-relaxed ${
+                                className={`flex-1 font-serif text-lg leading-relaxed break-words min-w-0 ${
                                   isSelected
                                     ? "text-blue-600 underline decoration-2 underline-offset-4"
                                     : "text-gray-900 dark:text-gray-100"

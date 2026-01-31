@@ -89,7 +89,7 @@ export function ExamPreviewContent({
         <div className="grid lg:grid-cols-12 gap-8 lg:gap-16">
           {/* Left Column: Visual Identity & Quick Actions */}
           <div className="lg:col-span-4 flex flex-col items-center">
-            <GlassPanel className="w-full aspect-[3/4] p-8 flex flex-col items-center justify-center text-center relative overflow-hidden bg-white/60 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800">
+            <GlassPanel className="w-full min-h-[500px] h-auto p-8 flex flex-col items-center justify-center text-center relative bg-white/60 dark:bg-slate-900/60 border-slate-200 dark:border-slate-800">
               {/* Background Glow */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-indigo-500/20 blur-[60px] rounded-full pointer-events-none" />
 
