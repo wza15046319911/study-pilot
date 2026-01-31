@@ -19,6 +19,7 @@ import { LanguageSwitcher } from "./LanguageSwitcher";
 import { useTranslations } from "next-intl";
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/Button";
+import { useAuthStore } from "@/stores/authStore";
 
 interface HeaderProps {
   showNav?: boolean;
@@ -30,12 +31,16 @@ interface HeaderProps {
   } | null;
 }
 
-export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
+export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const t = useTranslations("nav");
   const [mounted, setMounted] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const authUser = useAuthStore((state) => state.user);
+  const authIsAdmin = useAuthStore((state) => state.isAdmin);
+  const effectiveUser = user ?? authUser;
+  const effectiveIsAdmin = isAdmin ?? authIsAdmin;
 
   useEffect(() => {
     setMounted(true);
@@ -217,7 +222,7 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                 </div>
               </div>
 
-              {user ? (
+              {effectiveUser ? (
                 <>
                   <div className="group relative focus-within:opacity-100 focus-within:visible">
                     <Link
@@ -227,16 +232,16 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                       <div className="text-right hidden sm:block">
                         <div className="flex items-center justify-end gap-1">
                           <p className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                            {user.username}
+                            {effectiveUser.username}
                           </p>
-                          {user.is_vip && (
+                          {effectiveUser.is_vip && (
                             <Crown
                               className="size-3 text-amber-500 fill-amber-500"
                               strokeWidth={2.5}
                             />
                           )}
                         </div>
-                        {user.is_vip && (
+                        {effectiveUser.is_vip && (
                           <p className="text-[10px] font-bold text-amber-500 uppercase tracking-wider leading-none">
                             VIP Member
                           </p>
@@ -245,17 +250,19 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                       <div className="relative">
                         <div
                           className={`bg-center bg-no-repeat bg-cover rounded-full size-10 border-2 shadow-sm cursor-pointer transition-all ${
-                            user.is_vip
+                            effectiveUser.is_vip
                               ? "border-amber-400 dark:border-amber-500 ring-2 ring-amber-100 dark:ring-amber-900/30"
                               : "border-white dark:border-gray-700 bg-slate-100 dark:bg-slate-800 group-hover:ring-2 group-hover:ring-slate-200 dark:group-hover:ring-slate-700"
                           }`}
                           style={
-                            user.avatar_url
-                              ? { backgroundImage: `url("${user.avatar_url}")` }
+                            effectiveUser.avatar_url
+                              ? {
+                                  backgroundImage: `url("${effectiveUser.avatar_url}")`,
+                                }
                               : undefined
                           }
                         />
-                        {user.is_vip && (
+                        {effectiveUser.is_vip && (
                           <div className="absolute -top-1.5 -right-1.5 bg-amber-500 text-white p-0.5 rounded-full ring-2 ring-white dark:ring-slate-900">
                             <Crown className="size-2.5 fill-white" />
                           </div>
@@ -295,6 +302,15 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                             <Gift className="size-4 text-green-500" />
                             Referrals
                           </Link>
+                          {effectiveIsAdmin && (
+                            <Link
+                              href="/admin"
+                              className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition-colors"
+                            >
+                              <AlertCircle className="size-4" />
+                              Admin Panel
+                            </Link>
+                          )}
                         </div>
 
                         <div className="p-1.5 border-t border-gray-100 dark:border-gray-800">
@@ -363,22 +379,24 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
 
             <div className="space-y-6">
               {/* User Section (Mobile) */}
-              {user ? (
+              {effectiveUser ? (
                 <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-4">
                   <div className="flex items-center gap-3 mb-4">
                     <div
                       className="bg-center bg-no-repeat bg-cover rounded-full size-10 border border-slate-200 dark:border-slate-700"
                       style={
-                        user.avatar_url
-                          ? { backgroundImage: `url("${user.avatar_url}")` }
+                        effectiveUser.avatar_url
+                          ? {
+                              backgroundImage: `url("${effectiveUser.avatar_url}")`,
+                            }
                           : undefined
                       }
                     />
                     <div>
                       <p className="font-bold text-slate-900 dark:text-white">
-                        {user.username}
+                        {effectiveUser.username}
                       </p>
-                      {user.is_vip && (
+                      {effectiveUser.is_vip && (
                         <p className="text-xs text-amber-500 font-bold uppercase">
                           VIP Member
                         </p>
@@ -410,6 +428,16 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                       <AlertCircle className="size-4 text-red-500" />
                       {t("mistakes")}
                     </Link>
+                    {effectiveIsAdmin && (
+                      <Link
+                        href="/admin"
+                        className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                      >
+                        <AlertCircle className="size-4" />
+                        Admin Panel
+                      </Link>
+                    )}
                   </div>
                 </div>
               ) : (
@@ -530,7 +558,7 @@ export function Header({ showNav = true, isAdmin = false, user }: HeaderProps) {
                 </div>
               </div>
 
-              {user && (
+              {effectiveUser && (
                 <div className="pt-2 px-3">
                   <Link
                     href="/login"

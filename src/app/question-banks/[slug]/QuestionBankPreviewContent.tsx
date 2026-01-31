@@ -204,7 +204,7 @@ export function QuestionBankPreviewContent({
                     {activeUsers}
                   </div>
                   <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
-                    Active
+                    Active Users
                   </div>
                 </div>
               </div>

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/CountdownTimer";
 import { CheckoutButton } from "@/components/payment/CheckoutButton";
 import { FAQSection } from "@/components/common/FAQSection";
-
+import { Footer } from "@/components/layout/Footer";
 
 // Beta Promotion Config
 const BETA_END_DATE = new Date("2026-02-06T23:59:59+11:00"); // Feb 6, 2026 AEST
@@ -41,14 +41,15 @@ export function PricingContent() {
       features: [
         "Access to public question banks",
         "Standard practice mode",
-        "Basic progress tracking",
         "10 questions per session",
+        "Explanations",
+        "Progress tracking",
+        "Mistake tracking",
       ],
       notIncluded: [
         "Premium question banks",
-        "Mock exams",
-        "AI-powered explanations",
-        "Mistake analysis",
+        "Premium Mock exams",
+        "PDF exam export",
       ],
       cta: "Get Started",
       variant: "default",
@@ -60,69 +61,33 @@ export function PricingContent() {
       originalPrice: NORMAL_PRICE,
       period: "one-time",
       popular: true,
-      description: "Limited time beta offer. Full lifetime access.",
+      description: "Limited time offer. Full lifetime access.",
       features: [
         "Unlock ALL subjects forever",
         "Unlimited mock exams",
-        "AI-powered explanations",
         "Immersive study mode",
-        "Advanced mistake analysis",
+        "Flashcard study mode",
+        "Mistake analysis",
         "PDF exam export",
         "Early access to new features",
       ],
       cta: "Join Beta",
       variant: "primary",
     },
-    {
-      name: "Standard",
-      price: NORMAL_PRICE,
-      period: "one-time",
-      popular: false,
-      description: "Standard lifetime price after beta ends.",
-      features: [
-        "Unlock ALL subjects forever",
-        "Unlimited mock exams",
-        "AI-powered explanations",
-        "Immersive study mode",
-        "Advanced mistake analysis",
-        "PDF exam export",
-        "All future updates free",
-      ],
-      cta: "Standard Access",
-      variant: "default",
-    },
   ];
 
   return (
     <main className="flex-grow w-full pt-20 pb-20 px-4">
       <section className="max-w-7xl mx-auto text-center mb-16">
-        {/* Beta Badge */}
-        {isPromoActive && mounted ? (
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 mb-6 animate-pulse">
-            <Sparkles className="size-4 text-amber-500" />
-            <span className="text-sm font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wide">
-              🚀 Internal Beta Special - Limited Time!
-            </span>
-          </div>
-        ) : null}
-
         <h1 className="text-4xl md:text-6xl font-black mb-6 dark:text-white tracking-tight">
           Simple, Transparent Pricing
         </h1>
         <p className="text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
           Choose the plan that fits your study needs. No hidden fees.
         </p>
-
-        {/* Countdown Timer */}
-        {isPromoActive && mounted ? (
-          <div className="mt-8 inline-flex items-center gap-3 px-6 py-3 rounded-2xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
-            <Clock className="size-5 text-blue-600 dark:text-blue-400" />
-            <CountdownTimer targetDate={BETA_END_DATE} />
-          </div>
-        ) : null}
       </section>
 
-      <section className="max-w-7xl mx-auto grid md:grid-cols-3 gap-8 px-4 items-start">
+      <section className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 px-4 items-start">
         {tiers.map((tier) => (
           <GlassPanel
             key={tier.name}
@@ -162,11 +127,11 @@ export function PricingContent() {
                 </span>
               </div>
               {tier.period ? (
-                  <span className="text-sm font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">
-                    {tier.period}
-                  </span>
-                ) : null}
-              
+                <span className="text-sm font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded-md">
+                  {tier.period}
+                </span>
+              ) : null}
+
               {/* Savings Badge */}
               {tier.popular && isPromoActive ? (
                 <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-sm font-bold mt-2">
@@ -212,7 +177,10 @@ export function PricingContent() {
                 {tier.cta}
               </CheckoutButton>
             ) : tier.name === "Standard" ? (
-               <button disabled className="w-full py-4 rounded-xl font-bold transition-all duration-200 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700">
+              <button
+                disabled
+                className="w-full py-4 rounded-xl font-bold transition-all duration-200 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700"
+              >
                 Coming Soon
               </button>
             ) : (
@@ -234,7 +202,7 @@ export function PricingContent() {
       </section>
 
       {/* Comparison Table */}
-      <section className="max-w-6xl mx-auto px-4 mt-24 mb-16">
+      <section className="max-w-4xl mx-auto px-4 mt-24 mb-16">
         <h2 className="text-3xl font-bold text-center mb-12 dark:text-white">
           Compare Features
         </h2>
@@ -243,17 +211,14 @@ export function PricingContent() {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 dark:bg-white/5 border-b border-gray-200 dark:border-gray-800">
-                  <th className="p-6 text-sm font-semibold text-slate-500 dark:text-slate-400 w-1/4">
+                  <th className="p-6 text-sm font-semibold text-slate-500 dark:text-slate-400 w-1/3">
                     Features
                   </th>
-                  <th className="p-6 text-lg font-bold text-slate-900 dark:text-white w-1/4 text-center">
+                  <th className="p-6 text-lg font-bold text-slate-900 dark:text-white w-1/3 text-center">
                     Free
                   </th>
-                  <th className="p-6 text-lg font-bold text-blue-600 dark:text-blue-400 w-1/4 text-center">
+                  <th className="p-6 text-lg font-bold text-blue-600 dark:text-blue-400 w-1/3 text-center">
                     Beta Access
-                  </th>
-                  <th className="p-6 text-lg font-bold text-slate-700 dark:text-slate-300 w-1/4 text-center">
-                    Standard
                   </th>
                 </tr>
               </thead>
@@ -263,74 +228,59 @@ export function PricingContent() {
                     Question Bank Access
                   </td>
                   <td className="p-6 text-center text-gray-600 dark:text-gray-400">
-                    Basic Questions Only
+                    Public Banks Only
                   </td>
                   <td className="p-6 text-center font-bold text-blue-600 dark:text-blue-400">
-                    Unlimited Access
-                  </td>
-                   <td className="p-6 text-center font-medium text-slate-700 dark:text-slate-300">
-                    Unlimited Access
+                    All Subjects & Premium
                   </td>
                 </tr>
                 <tr>
                   <td className="p-6 font-medium dark:text-gray-200">
-                    Explanations
+                    Questions per Session
                   </td>
                   <td className="p-6 text-center text-gray-600 dark:text-gray-400">
-                    Basic
+                    Limit 10
                   </td>
                   <td className="p-6 text-center font-bold text-blue-600 dark:text-blue-400">
-                    Detailed &amp; AI-Powered
-                  </td>
-                  <td className="p-6 text-center font-medium text-slate-700 dark:text-slate-300">
-                    Detailed &amp; AI-Powered
-                  </td>
-                </tr>
-                <tr>
-                  <td className="p-6 font-medium dark:text-gray-200">
-                    Practice Exams
-                  </td>
-                  <td className="p-6 text-center text-gray-600 dark:text-gray-400">
-                    1 per subject
-                  </td>
-                  <td className="p-6 text-center font-bold text-blue-600 dark:text-blue-400">
-                    Unlimited
-                  </td>
-                  <td className="p-6 text-center font-medium text-slate-700 dark:text-slate-300">
                     Unlimited
                   </td>
                 </tr>
                 <tr>
                   <td className="p-6 font-medium dark:text-gray-200">
-                    Mistake Book History
+                    Practice Modes
                   </td>
                   <td className="p-6 text-center text-gray-600 dark:text-gray-400">
-                    Last 50 questions
+                    Standard Only
                   </td>
                   <td className="p-6 text-center font-bold text-blue-600 dark:text-blue-400">
-                    Unlimited History
-                  </td>
-                   <td className="p-6 text-center font-medium text-slate-700 dark:text-slate-300">
-                    Unlimited History
+                    Standard, Immersive & Flashcard
                   </td>
                 </tr>
                 <tr>
                   <td className="p-6 font-medium dark:text-gray-200">
-                    Flashcards
+                    Mock Exams
                   </td>
-                  <td className="p-6 text-center text-gray-600 dark:text-gray-400">
-                    Limited Sets
+                  <td className="p-6 text-center text-gray-400 text-2xl">
+                    &minus;
                   </td>
                   <td className="p-6 text-center font-bold text-blue-600 dark:text-blue-400">
                     Unlimited
                   </td>
-                  <td className="p-6 text-center font-medium text-slate-700 dark:text-slate-300">
-                    Unlimited
+                </tr>
+                <tr>
+                  <td className="p-6 font-medium dark:text-gray-200">
+                    Mistake Analysis
+                  </td>
+                  <td className="p-6 text-center text-gray-600 dark:text-gray-400">
+                    Basic Tracking
+                  </td>
+                  <td className="p-6 text-center font-bold text-blue-600 dark:text-blue-400">
+                    Advanced Analytics
                   </td>
                 </tr>
                 <tr className="bg-gray-50/30 dark:bg-white/5">
                   <td className="p-6 font-medium dark:text-gray-200">
-                    Immersive Flow Mode
+                    PDF Exam Export
                   </td>
                   <td className="p-6 text-center text-gray-400 text-2xl">
                     <span className="sr-only">Not Included</span>
@@ -341,48 +291,17 @@ export function PricingContent() {
                       <CheckCircle2 className="size-6 text-blue-600 dark:text-blue-400" />
                     </div>
                   </td>
-                   <td className="p-6 text-center text-slate-700 dark:text-slate-300 text-2xl">
-                    <div className="flex justify-center">
-                      <CheckCircle2 className="size-6 text-slate-700 dark:text-slate-300" />
-                    </div>
-                  </td>
                 </tr>
                 <tr className="bg-gray-50/30 dark:bg-white/5">
                   <td className="p-6 font-medium dark:text-gray-200">
-                    Performance Analytics
+                    New Features
                   </td>
                   <td className="p-6 text-center text-gray-400 text-2xl">
                     <span className="sr-only">Not Included</span>
                     &minus;
                   </td>
-                  <td className="p-6 text-center text-blue-600 dark:text-blue-400 text-2xl">
-                    <div className="flex justify-center">
-                      <CheckCircle2 className="size-6 text-blue-600 dark:text-blue-400" />
-                    </div>
-                  </td>
-                   <td className="p-6 text-center text-slate-700 dark:text-slate-300 text-2xl">
-                    <div className="flex justify-center">
-                      <CheckCircle2 className="size-6 text-slate-700 dark:text-slate-300" />
-                    </div>
-                  </td>
-                </tr>
-                <tr className="bg-gray-50/30 dark:bg-white/5">
-                  <td className="p-6 font-medium dark:text-gray-200">
-                    Future Updates
-                  </td>
-                  <td className="p-6 text-center text-gray-400 text-2xl">
-                    <span className="sr-only">Not Included</span>
-                    &minus;
-                  </td>
-                  <td className="p-6 text-center text-blue-600 dark:text-blue-400 text-2xl">
-                    <div className="flex justify-center">
-                      <CheckCircle2 className="size-6 text-blue-600 dark:text-blue-400" />
-                    </div>
-                  </td>
-                   <td className="p-6 text-center text-slate-700 dark:text-slate-300 text-2xl">
-                    <div className="flex justify-center">
-                      <CheckCircle2 className="size-6 text-slate-700 dark:text-slate-300" />
-                    </div>
+                  <td className="p-6 text-center font-medium text-blue-600 dark:text-blue-400">
+                    Early Access
                   </td>
                 </tr>
               </tbody>
@@ -391,39 +310,11 @@ export function PricingContent() {
         </GlassPanel>
       </section>
 
-
       {/* Pricing FAQ Section */}
-      <FAQSection
-        items={[
-          {
-            question: "Can I cancel my subscription anytime?",
-            answer:
-              "Absolutely. If you choose a subscription plan (future), you can cancel anytime. For our current Lifetime Access deal, it's a one-time payment with no recurring fees.",
-          },
-          {
-            question: "Do you offer student discounts?",
-            answer:
-              "Our pricing is already optimized for students. The Lifetime Access plan is priced to be affordable for a student budget, equivalent to the cost of a few coffees.",
-          },
-          {
-            question: "What payment methods do you accept?",
-            answer:
-              "We accept all major credit cards (Visa, Mastercard, Amex), Apple Pay, and Google Pay through our secure payment processor Stripe.",
-          },
-          {
-            question: "Is there a money-back guarantee?",
-            answer:
-              "Yes! We offer a full 30-day money-back guarantee. If you're not satisfied with StudyPilot for any reason, just contact us for a full refund.",
-          },
-          {
-            question: "What happens after the early bird promotion ends?",
-            answer:
-              "Once the early bird promotion ends, correct pricing will revert to the regular price. We recommend locking in the lifetime deal now to save over 60%.",
-          },
-        ]}
-        className="mt-16 bg-white/50 dark:bg-black/20"
-      />
+      <FAQSection className="mt-16 bg-white/50 dark:bg-black/20" />
+
+      {/* Footer */}
+      <Footer />
     </main>
   );
 }
-

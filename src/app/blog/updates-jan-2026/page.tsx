@@ -1,8 +1,6 @@
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { Header } from "@/components/layout/Header";
 import { BlogFooter } from "@/components/blog/BlogFooter";
-import { createClient } from "@/lib/supabase/server";
-import { Profile } from "@/types/database";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
@@ -13,31 +11,9 @@ export const metadata = {
 };
 
 export default async function ProductUpdatePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let userData = null;
-  if (user) {
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-    const profile = profileData as Profile | null;
-    userData = {
-      username: profile?.username || user.email?.split("@")[0] || "User",
-      avatar_url: profile?.avatar_url ?? undefined,
-      is_vip: profile?.is_vip || false,
-    };
-  } else {
-    userData = { username: "Guest", is_vip: false };
-  }
-
   return (
     <div className="relative min-h-screen flex flex-col bg-white dark:bg-slate-950">
-      <Header user={userData} />
+      <Header />
 
       <main className="flex-grow w-full max-w-7xl mx-auto px-4 md:px-8 py-12">
         <Link

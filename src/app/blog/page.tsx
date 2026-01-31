@@ -2,8 +2,6 @@ import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { Header } from "@/components/layout/Header";
 import { BlogFooter } from "@/components/blog/BlogFooter";
 import { getAllBlogPosts } from "@/lib/blog-content";
-import { createClient } from "@/lib/supabase/server";
-import { Profile } from "@/types/database";
 import Link from "next/link";
 import { BentoGrid, BentoGridItem } from "@/components/aceternity/bento-grid";
 import { cn } from "@/lib/utils";
@@ -15,36 +13,12 @@ export const metadata = {
 };
 
 export default async function BlogIndexPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  let userData = null;
-  if (user) {
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    const profile = profileData as Profile | null;
-
-    userData = {
-      username: profile?.username || user.email?.split("@")[0] || "User",
-      avatar_url: profile?.avatar_url ?? undefined,
-      is_vip: profile?.is_vip || false,
-    };
-  } else {
-    userData = { username: "Guest", is_vip: false };
-  }
-
   const posts = getAllBlogPosts();
 
   return (
     <div className="relative min-h-screen flex flex-col bg-[#f0f4fc] dark:bg-slate-950 overflow-x-hidden selection:bg-blue-500/30">
       <AmbientBackground />
-      <Header user={userData} />
+      <Header />
 
       <main className="flex-grow w-full max-w-7xl mx-auto px-4 md:px-6 py-20 relative z-10">
         <div className="flex flex-col gap-16">

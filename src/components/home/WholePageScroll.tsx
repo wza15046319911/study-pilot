@@ -7,18 +7,18 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { SplashScreen } from "./SplashScreen";
 import { ImpactStats } from "./ImpactStats";
-import {
-  // Database,
-  // BookOpen,
-  // Activity,
-  // GraduationCap,
-} from "lucide-react";
+import {} from // Database,
+// BookOpen,
+// Activity,
+// GraduationCap,
+"lucide-react";
 import { FAQSection } from "@/components/common/FAQSection";
 import { AnimatedTestimonials } from "@/components/aceternity/animated-testimonials";
 import { FlipWords } from "@/components/aceternity/flip-words";
 import { StatefulButton } from "@/components/ui/stateful-button";
 import { TimelineSection } from "./TimelineSection";
 import { FeatureCarousel } from "./FeatureCarousel";
+import { Footer } from "@/components/layout/Footer";
 
 // ... (Subject and Props interfaces same as before)
 interface Subject {
@@ -79,7 +79,6 @@ interface WholePageScrollProps {
       questions: string;
     };
   };
-  faqs: { question: string; answer: string }[];
 }
 
 const testimonials = [
@@ -113,15 +112,12 @@ const testimonials = [
   },
 ];
 
-export function WholePageScroll({
-  user,
-  faqs,
-}: WholePageScrollProps) {
+export function WholePageScroll({ user }: WholePageScrollProps) {
   const router = useRouter();
 
   const handleStartPractice = async () => {
     // Simulate async operation if needed, or just navigation delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     router.push(user ? "/library" : "/login");
   };
 
@@ -157,7 +153,7 @@ export function WholePageScroll({
         </section>
 
         {/* FAQ Section */}
-        <FAQSection items={faqs} className="bg-background" />
+        <FAQSection className="bg-background" />
 
         {/* CTA Section */}
         <section className="py-32 bg-background text-foreground relative overflow-hidden">
@@ -177,11 +173,11 @@ export function WholePageScroll({
                 harder. Start your free trial today.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-                <StatefulButton 
+                <StatefulButton
                   onClick={handleStartPractice}
                   className="rounded-full bg-primary text-white font-bold text-lg px-8 py-4 h-14 min-w-[200px]"
                 >
-                   {user ? "Start to Practice" : "Create Free Account"}
+                  {user ? "Start to Practice" : "Create Free Account"}
                 </StatefulButton>
               </div>
             </motion.div>
@@ -189,84 +185,8 @@ export function WholePageScroll({
         </section>
 
         {/* Footer */}
-        <footer className="py-16 bg-card border-t border-border">
-          <div className="max-w-6xl mx-auto px-6">
-            <div className="grid md:grid-cols-4 gap-12 mb-12">
-              <div className="col-span-2">
-                <div className="flex items-center gap-3 mb-6">
-                  <Image
-                    src="/study-pilot-icon.png"
-                    alt="StudyPilot"
-                    width={32}
-                    height={32}
-                    className="rounded-lg"
-                  />
-                  <span className="font-bold text-xl text-foreground">
-                    StudyPilot
-                  </span>
-                </div>
-                <p className="text-muted-foreground max-w-sm">
-                  The AI-powered study companion that helps you master any
-                  subject faster with personalized learning paths.
-                </p>
-              </div>
-              <div>
-                <h4 className="font-bold mb-4">Product</h4>
-                <ul className="space-y-3 text-sm text-gray-500">
-                  <li>
-                    <Link href="/library" className="hover:text-primary">
-                      Library
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/pricing" className="hover:text-primary">
-                      Pricing
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/faq" className="hover:text-primary">
-                      FAQ
-                    </Link>
-                  </li>
-                  {/* <li>
-                    <Link href="/blog" className="hover:text-primary">
-                      Blog
-                    </Link>
-                  </li> */}
-                </ul>
-              </div>
-              <div>
-                <h4 className="font-bold mb-4">Company</h4>
-                <ul className="space-y-3 text-sm text-muted-foreground">
-                  <li>
-                    <Link href="/about" className="hover:text-primary">
-                      About
-                    </Link>
-                  </li>
-                  <li>
-                    <Link href="/contact" className="hover:text-primary">
-                      Contact
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-
-            <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-6">
-              <div className="text-sm text-muted-foreground">
-                © 2026 StudyPilot Inc. All rights reserved.
-              </div>
-              <div className="flex gap-6 text-sm text-muted-foreground">
-                <Link href="/terms" className="hover:text-primary">
-                  Terms
-                </Link>
-                <Link href="/privacy" className="hover:text-primary">
-                  Privacy
-                </Link>
-              </div>
-            </div>
-          </div>
-        </footer>
+        {/* Footer */}
+        <Footer />
       </div>
     </>
   );

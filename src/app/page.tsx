@@ -44,9 +44,7 @@ export default async function Home() {
 
   const subjectsPromise = supabase
     .from("subjects")
-    .select(
-      "id, name, slug, icon, description, question_count, is_new, is_hot",
-    )
+    .select("id, name, slug, icon, description, question_count, is_new, is_hot")
     .order("name");
 
   const totalQuestionsPromise = supabase
@@ -91,17 +89,13 @@ export default async function Home() {
       !!process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL;
   }
 
-  const [
-    subjectsResult,
-    totalQuestionsResult,
-    totalBanksResult,
-    translations,
-  ] = await Promise.all([
-    subjectsPromise,
-    totalQuestionsPromise,
-    totalBanksPromise,
-    translationsPromise,
-  ]);
+  const [subjectsResult, totalQuestionsResult, totalBanksResult, translations] =
+    await Promise.all([
+      subjectsPromise,
+      totalQuestionsPromise,
+      totalBanksPromise,
+      translationsPromise,
+    ]);
 
   const subjects = (subjectsResult.data || []) as Subject[];
   const t = translations[0];
@@ -184,13 +178,11 @@ export default async function Home() {
         itemType="https://schema.org/WebPage"
       >
         <header>
-          <h1 itemProp="name">
-            StudyPilot - Exam Practice Platform
-          </h1>
+          <h1 itemProp="name">StudyPilot - Exam Practice Platform</h1>
           <p itemProp="description">
             Master your university exams with StudyPilot's question banks,
-            spaced repetition flashcards, and smart mistake tracking.
-            Practice smarter for midterms and finals with{" "}
+            spaced repetition flashcards, and smart mistake tracking. Practice
+            smarter for midterms and finals with{" "}
             {totalQuestions?.toLocaleString() || "10,000"}+ curated questions
             across {subjects.length} subjects.
           </p>
@@ -205,8 +197,8 @@ export default async function Home() {
               explanations.
             </li>
             <li>
-              <strong>Detailed Explanations:</strong> Learn from clear, structured
-              explanations to understand why an answer is correct.
+              <strong>Detailed Explanations:</strong> Learn from clear,
+              structured explanations to understand why an answer is correct.
             </li>
             <li>
               <strong>Spaced Repetition:</strong> Scientifically-proven
@@ -297,7 +289,6 @@ export default async function Home() {
         isAdmin={isAdmin}
         subjects={subjects}
         content={content}
-        faqs={homepageFaqs}
       />
     </>
   );

@@ -23,10 +23,6 @@ export default function AboutPage() {
       <main className="flex-grow w-full">
         {/* Hero Section */}
         <section className="relative h-[40vh] min-h-[400px] w-full flex items-center justify-center overflow-hidden bg-white dark:bg-black">
-          <Spotlight
-            className="-top-40 left-0 md:left-60 md:-top-20"
-            fill="blue"
-          />
           <div className="relative z-10 text-center px-4 max-w-4xl mx-auto">
             <h1 className="text-4xl md:text-7xl font-bold bg-clip-text text-transparent bg-gradient-to-b from-neutral-900 to-neutral-600 dark:from-neutral-50 dark:to-neutral-400 mb-6">
               About StudyPilot

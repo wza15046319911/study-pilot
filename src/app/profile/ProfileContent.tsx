@@ -175,13 +175,6 @@ export function ProfileContent({
         <Users className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
       ),
     },
-    {
-      label: "Settings",
-      href: "/settings",
-      icon: (
-        <Settings className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
-      ),
-    },
   ];
 
   if (isAdmin) {

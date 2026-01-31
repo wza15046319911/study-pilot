@@ -7,54 +7,8 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
-import { createClient } from "@/lib/supabase/server";
-import { Profile } from "@/types/database";
 
 export default async function ContactPage() {
-  const supabase = await createClient();
-
-  // Check for session
-  let user = null;
-  try {
-    const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser();
-    user = authUser;
-  } catch (error) {
-    console.error("Auth error:", error);
-  }
-
-  let userData = null;
-  let isAdmin = false;
-
-  if (user) {
-    // Fetch profile
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    const profile = profileData as Profile | null;
-
-    userData = {
-      username:
-        profile?.username ||
-        user.user_metadata?.name ||
-        user.email?.split("@")[0] ||
-        "User",
-      avatar_url:
-        profile?.avatar_url ||
-        user.user_metadata?.avatar_url ||
-        user.user_metadata?.picture ||
-        undefined,
-      is_vip: profile?.is_vip || false,
-    };
-
-    isAdmin =
-      !!process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL;
-  }
-
   const faqs = [
     {
       q: "How do I unlock premium features?",
@@ -76,7 +30,7 @@ export default async function ContactPage() {
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-slate-50 dark:bg-slate-950">
-      <Header showNav={true} user={userData} isAdmin={isAdmin} />
+      <Header showNav={true} />
 
       <main className="flex-grow w-full max-w-7xl mx-auto px-6 py-24">
         {/* Hero Section */}

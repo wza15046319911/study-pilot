@@ -23,6 +23,7 @@ import {
   BookOpen,
   Hash,
 } from "lucide-react";
+import { LatexContent } from "@/components/ui/LatexContent";
 
 interface MistakeData {
   id: number;
@@ -88,12 +89,12 @@ export default function MistakesClient({
       .join(",");
 
     const firstMistake = mistakes.find(
-      (m) => m.questions.subject_id === firstSubjectId
+      (m) => m.questions.subject_id === firstSubjectId,
     );
 
     if (firstMistake) {
       router.push(
-        `/practice/${firstMistake.questions.subjects.slug}?mode=mistakes&questions=${questionIds}`
+        `/practice/${firstMistake.questions.subjects.slug}?mode=mistakes&questions=${questionIds}`,
       );
     }
   };
@@ -120,7 +121,7 @@ export default function MistakesClient({
     return mistakes.filter(
       (m) =>
         m.questions.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.questions.content.toLowerCase().includes(searchQuery.toLowerCase())
+        m.questions.content.toLowerCase().includes(searchQuery.toLowerCase()),
     );
   }, [mistakes, searchQuery]);
 
@@ -144,12 +145,6 @@ export default function MistakesClient({
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-900/30 mb-4">
-            <AlertTriangle className="size-3.5 text-red-600 dark:text-red-500" />
-            <span className="text-xs font-semibold text-red-700 dark:text-red-400 uppercase tracking-wide">
-              Review Needed
-            </span>
-          </div>
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">
             Mistake Book
           </h1>
@@ -160,14 +155,14 @@ export default function MistakesClient({
 
         {mistakes.length > 0 && (
           <div className="flex gap-3">
-            <Button
+            {/* <Button
               variant="outline"
               onClick={() => setShowExportModal(true)}
               className="rounded-xl border-gray-200 dark:border-gray-700"
             >
               <Download className="size-4 mr-2" />
               Export
-            </Button>
+            </Button> */}
             <Button
               onClick={handlePracticeAll}
               size="lg"
@@ -252,7 +247,7 @@ export default function MistakesClient({
           {/* Content for Each Subject */}
           {subjects.map((subject: any) => {
             const subjectMistakes = filteredMistakes.filter(
-              (m) => m.questions.subject_id === subject.id
+              (m) => m.questions.subject_id === subject.id,
             );
             return (
               <TabsContent
@@ -329,33 +324,63 @@ function MistakeCard({
             <RotateCw className="size-3" />
             {mistake.error_count} Attempts
           </span>
-          <span className="text-xs text-gray-400 font-medium">
-            {mistake.questions.type.replace("_", " ")}
-          </span>
-          {mistake.questions.topics && (
-            <span className="px-2 py-1 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 text-xs font-semibold rounded flex items-center gap-1">
-              <BookOpen className="size-3" />
-              {mistake.questions.topics.name}
-            </span>
-          )}
-          {mistake.questions.tags &&
-            mistake.questions.tags.map((tag) => (
-              <span
-                key={tag}
-                className="px-2 py-1 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 text-xs font-semibold rounded flex items-center gap-1"
-              >
-                <Hash className="size-3" />
-                {tag}
-              </span>
-            ))}
         </div>
         <div>
           <h4 className="font-semibold text-lg text-gray-900 dark:text-white mb-2">
             {mistake.questions.title}
           </h4>
           <div className="text-sm text-gray-500 leading-relaxed mb-4">
-            {mistake.questions.content}
+            <LatexContent>{mistake.questions.content}</LatexContent>
           </div>
+          {/* Render Options if available */}
+          {(() => {
+            let options: any[] = [];
+            if (Array.isArray(mistake.questions.options)) {
+              options = mistake.questions.options;
+            } else if (
+              typeof mistake.questions.options === "string" &&
+              mistake.questions.options
+            ) {
+              try {
+                options = JSON.parse(mistake.questions.options);
+              } catch (e) {
+                console.error("Failed to parse options", e);
+              }
+            }
+
+            if (options && options.length > 0) {
+              return (
+                <div className="space-y-2 mt-4 pl-1">
+                  {options.map((option, idx) => {
+                    const derivedLabel =
+                      typeof option === "string"
+                        ? String.fromCharCode(65 + idx)
+                        : option?.label || String.fromCharCode(65 + idx);
+                    const derivedContent =
+                      typeof option === "string"
+                        ? option
+                        : (option?.content ??
+                          option?.label ??
+                          JSON.stringify(option));
+
+                    return (
+                      <div key={idx} className="flex items-start gap-3 text-sm">
+                        <span
+                          className={`shrink-0 size-6 flex items-center justify-center rounded-full font-bold text-xs border bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700`}
+                        >
+                          {derivedLabel}
+                        </span>
+                        <div className="flex-1 text-gray-600 dark:text-gray-400">
+                          <LatexContent>{derivedContent}</LatexContent>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            }
+            return null;
+          })()}
         </div>
       </div>
 
