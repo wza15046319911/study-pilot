@@ -3,34 +3,18 @@ import {
   MessageCircle,
   MapPin,
   Clock,
-  HelpCircle,
-  ChevronDown,
 } from "lucide-react";
 import { Header } from "@/components/layout/Header";
+import { FAQSection } from "@/components/common/FAQSection";
+import { Footer } from "@/components/layout/Footer";
+import { getHeaderUser } from "@/lib/auth/getHeaderUser";
 
 export default async function ContactPage() {
-  const faqs = [
-    {
-      q: "How do I unlock premium features?",
-      a: "You can upgrade to StudyPilot Premium from the pricing page. We offer a simple one-time payment for lifetime access.",
-    },
-    {
-      q: "Can I get a refund?",
-      a: "Yes, we offer a 30-day money-back guarantee if you're not satisfied with StudyPilot.",
-    },
-    {
-      q: "Do you offer student discounts?",
-      a: "Our standard pricing is already optimized for students, but look out for our seasonal Early Bird specials!",
-    },
-    {
-      q: "How can I report a question error?",
-      a: "Every question has a report button. You can flag issues directly there and our team will review it within 24 hours.",
-    },
-  ];
+  const headerUser = await getHeaderUser();
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-slate-50 dark:bg-slate-950">
-      <Header showNav={true} />
+      <Header showNav={true} user={headerUser} />
 
       <main className="flex-grow w-full max-w-7xl mx-auto px-6 py-24">
         {/* Hero Section */}
@@ -106,78 +90,53 @@ export default async function ContactPage() {
           </div>
         </div>
 
-        {/* Office & FAQ Section - 2 Columns */}
-        <div className="grid lg:grid-cols-12 gap-20">
-          {/* Left: Office Info */}
-          <div className="lg:col-span-4 space-y-12">
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                <MapPin className="size-5 text-slate-400" />
-                Office
-              </h3>
-              <div className="bg-slate-100 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
-                <p className="font-bold text-slate-900 dark:text-white mb-2">
-                  StudyPilot HQ
-                </p>
-                <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
-                  Melbourne, Victoria
-                  <br />
-                  Australia
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-                <Clock className="size-5 text-slate-400" />
-                Hours
-              </h3>
-              <div className="bg-slate-100 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Mon - Fri</span>
-                    <span className="font-bold text-slate-900 dark:text-white">
-                      9am - 6pm AEST
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Weekend</span>
-                    <span className="font-bold text-slate-900 dark:text-white">
-                      Closed
-                    </span>
-                  </div>
-                </div>
-              </div>
+        {/* Office Info */}
+        <div className="grid md:grid-cols-2 gap-12">
+          <div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+              <MapPin className="size-5 text-slate-400" />
+              Office
+            </h3>
+            <div className="bg-slate-100 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
+              <p className="font-bold text-slate-900 dark:text-white mb-2">
+                StudyPilot HQ
+              </p>
+              <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
+                Melbourne, Victoria
+                <br />
+                Australia
+              </p>
             </div>
           </div>
 
-          {/* Right: FAQ */}
-          <div className="lg:col-span-8">
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-8 flex items-center gap-3">
-              <HelpCircle className="size-6 text-slate-400" />
-              Frequently Asked Questions
+          <div>
+            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
+              <Clock className="size-5 text-slate-400" />
+              Hours
             </h3>
-
-            <div className="space-y-4">
-              {faqs.map((faq, i) => (
-                <div
-                  key={i}
-                  className="bg-white dark:bg-slate-900/50 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden"
-                >
-                  <div className="p-6">
-                    <h4 className="font-bold text-lg text-slate-900 dark:text-white mb-2">
-                      {faq.q}
-                    </h4>
-                    <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                      {faq.a}
-                    </p>
-                  </div>
+            <div className="bg-slate-100 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Mon - Fri</span>
+                  <span className="font-bold text-slate-900 dark:text-white">
+                    9am - 6pm AEST
+                  </span>
                 </div>
-              ))}
+                <div className="flex justify-between text-sm">
+                  <span className="text-slate-500">Weekend</span>
+                  <span className="font-bold text-slate-900 dark:text-white">
+                    Closed
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
+
+        <FAQSection className="mt-24" />
       </main>
+
+      <Footer />
     </div>
   );
 }

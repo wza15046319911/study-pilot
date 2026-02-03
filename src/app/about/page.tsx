@@ -1,7 +1,6 @@
-"use client";
-
 import { Header } from "@/components/layout/Header";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
+import { Footer } from "@/components/layout/Footer";
 import { Spotlight } from "@/components/aceternity/spotlight";
 import {
   Code,
@@ -13,12 +12,15 @@ import {
   Zap,
 } from "lucide-react";
 import Image from "next/image";
+import { getHeaderUser } from "@/lib/auth/getHeaderUser";
 
-export default function AboutPage() {
+export default async function AboutPage() {
+  const headerUser = await getHeaderUser();
+
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-slate-50 dark:bg-black">
       {/* <AmbientBackground /> */}
-      <Header showNav={true} />
+      <Header showNav={true} user={headerUser} />
 
       <main className="flex-grow w-full">
         {/* Hero Section */}
@@ -167,6 +169,8 @@ export default function AboutPage() {
            </div>
         </section>
       </main>
+
+      <Footer />
     </div>
   );
 }

@@ -41,6 +41,11 @@ interface PracticeSessionProps {
   enableTimer?: boolean;
   isGuest?: boolean;
   exitLink?: string;
+  homeworkId?: number;
+  homeworkMode?: "practice" | "immersive" | "flashcards";
+  weeklyPracticeId?: number;
+  weeklyPracticeMode?: "practice" | "immersive" | "flashcards";
+  showTopics?: boolean;
 }
 
 export function PracticeSession({
@@ -51,6 +56,11 @@ export function PracticeSession({
   enableTimer = true,
   isGuest = false,
   exitLink = "/library",
+  homeworkId,
+  homeworkMode = "practice",
+  weeklyPracticeId,
+  weeklyPracticeMode = "practice",
+  showTopics = true,
 }: PracticeSessionProps) {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -361,6 +371,42 @@ export function PracticeSession({
         } as any)
         .eq("id", user.id);
 
+      if (homeworkId) {
+        const answeredCount = Object.keys(answers).length;
+        try {
+          const { submitHomework } = await import("@/app/homework/actions");
+          await submitHomework({
+            homeworkId,
+            answeredCount,
+            correctCount,
+            totalCount: questions.length,
+            durationSeconds: elapsedTime,
+            mode: homeworkMode,
+          });
+        } catch (homeworkError) {
+          console.error("Failed to submit homework:", homeworkError);
+        }
+      }
+
+      if (weeklyPracticeId) {
+        const answeredCount = Object.keys(answers).length;
+        try {
+          const { submitWeeklyPractice } = await import(
+            "@/app/weekly-practice/actions"
+          );
+          await submitWeeklyPractice({
+            weeklyPracticeId,
+            answeredCount,
+            correctCount,
+            totalCount: questions.length,
+            durationSeconds: elapsedTime,
+            mode: weeklyPracticeMode,
+          });
+        } catch (weeklyError) {
+          console.error("Failed to submit weekly practice:", weeklyError);
+        }
+      }
+
       // Show results modal
       setFinalScore(correctCount);
       setShowResults(true);
@@ -384,7 +430,7 @@ export function PracticeSession({
       }`}
     >
       {/* Left Sidebar - Topic Navigation (Only in Practice Mode and NOT in Focus Mode) */}
-      {mode === "practice" && !isFocusMode && (
+      {mode === "practice" && !isFocusMode && showTopics && (
         <aside className="w-full lg:w-80 flex flex-col gap-0 shrink-0 order-2 lg:order-1 lg:sticky lg:top-8 lg:self-start font-serif h-[calc(100vh-6rem)]">
           <div className="bg-white dark:bg-slate-900 border-2 border-black dark:border-white flex flex-col h-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
             {/* Header */}

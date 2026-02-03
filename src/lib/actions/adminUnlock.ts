@@ -1,6 +1,6 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
 // Search users by email or username
@@ -9,13 +9,42 @@ export async function searchUsers(query: string) {
 
   const supabase = await createClient();
 
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("id, username, avatar_url")
+  const { data: profiles } = await (supabase.from("profiles") as any)
+    .select("id, username, avatar_url, is_vip")
     .ilike("username", `%${query}%`)
     .limit(10);
 
-  return profiles || [];
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return ((profiles as any[]) || []).map((profile: any) => ({
+      ...profile,
+      email: null,
+    }));
+  }
+
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.listUsers({
+    page: 1,
+    perPage: 1000,
+  });
+
+  if (error) {
+    return ((profiles as any[]) || []).map((profile: any) => ({
+      ...profile,
+      email: null,
+    }));
+  }
+
+  const emailMap = new Map<string, string>();
+  (data?.users || []).forEach((user) => {
+    if (user.id && user.email) {
+      emailMap.set(user.id, user.email);
+    }
+  });
+
+  return ((profiles as any[]) || []).map((profile: any) => ({
+    ...profile,
+    email: emailMap.get(profile.id) || null,
+  }));
 }
 
 // Get user's current unlocks
@@ -30,7 +59,7 @@ export async function getUserUnlocksAdmin(userId: string) {
       unlock_type,
       created_at,
       bank:question_banks!bank_id(id, title, slug)
-    `
+    `,
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false });
@@ -43,8 +72,7 @@ export async function grantBankAccess(userId: string, bankId: number) {
   const supabase = await createClient();
 
   // Check if already unlocked
-  const { data: existing } = await supabase
-    .from("user_bank_unlocks")
+  const { data: existing } = await (supabase.from("user_bank_unlocks") as any)
     .select("id")
     .eq("user_id", userId)
     .eq("bank_id", bankId)
@@ -73,8 +101,7 @@ export async function grantBankAccess(userId: string, bankId: number) {
 export async function revokeBankAccess(unlockId: number) {
   const supabase = await createClient();
 
-  const { error } = await supabase
-    .from("user_bank_unlocks")
+  const { error } = await (supabase.from("user_bank_unlocks") as any)
     .delete()
     .eq("id", unlockId);
 
@@ -117,7 +144,7 @@ export async function getAllUnlocks(page = 1, limit = 20) {
       user:profiles!user_id(username, avatar_url),
       bank:question_banks!bank_id(title)
     `,
-      { count: "exact" }
+      { count: "exact" },
     )
     .order("created_at", { ascending: false })
     .range(offset, offset + limit - 1);

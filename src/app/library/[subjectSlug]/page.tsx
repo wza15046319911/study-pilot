@@ -13,6 +13,25 @@ interface PageProps {
   }>;
 }
 
+type WeeklyPracticeItem = {
+  id: number;
+  title: string;
+  slug: string | null;
+  description: string | null;
+  week_start: string | null;
+  subject: {
+    name: string;
+    slug: string | null;
+  } | null;
+  items?: { count: number }[] | null;
+  latestSubmission?: {
+    submitted_at: string;
+    answered_count: number;
+    correct_count: number;
+    total_count: number;
+  } | null;
+};
+
 export async function generateMetadata(props: PageProps) {
   const params = await props.params;
   const supabase = await createClient();
@@ -80,6 +99,9 @@ export default async function SubjectPage(props: PageProps) {
     );
   }
 
+  const showWeeklyPractice =
+    subject.slug === "introduction-to-software-programming";
+
   const profilePromise = supabase
     .from("profiles")
     .select("id, username, avatar_url, is_vip")
@@ -107,7 +129,7 @@ export default async function SubjectPage(props: PageProps) {
       price,
       subject_id,
       items:question_bank_items(count)
-    `
+    `,
     )
     .eq("subject_id", subject.id)
     .eq("is_published", true)
@@ -133,6 +155,28 @@ export default async function SubjectPage(props: PageProps) {
     .select("id, exam_type, exam_date")
     .eq("subject_id", subject.id);
 
+  const weeklyPracticesPromise = showWeeklyPractice
+    ? supabase
+        .from("weekly_practices")
+        .select(
+          `
+          id,
+          title,
+          slug,
+          description,
+          week_start,
+          subject:subjects (
+            name,
+            slug
+          ),
+          items:weekly_practice_items(count)
+        `,
+        )
+        .eq("is_published", true)
+        .eq("subject_id", subject.id)
+        .order("week_start", { ascending: false })
+    : Promise.resolve({ data: [] as WeeklyPracticeItem[] });
+
   const [
     profileResult,
     examsResult,
@@ -141,6 +185,7 @@ export default async function SubjectPage(props: PageProps) {
     examUnlocksResult,
     questionCountResult,
     examDatesResult,
+    weeklyPracticesResult,
   ] = await Promise.all([
     profilePromise,
     examsPromise,
@@ -149,13 +194,17 @@ export default async function SubjectPage(props: PageProps) {
     examUnlocksPromise,
     questionCountPromise,
     examDatesPromise,
+    weeklyPracticesPromise,
   ]);
 
   const profile = profileResult.data as { is_vip?: boolean } | null;
   const isVip = profile?.is_vip || false;
 
   const userData = {
-    username: (profileResult.data as any)?.username || user.email?.split("@")[0] || "User",
+    username:
+      (profileResult.data as any)?.username ||
+      user.email?.split("@")[0] ||
+      "User",
     avatar_url: (profileResult.data as any)?.avatar_url ?? undefined,
     is_vip: isVip,
   };
@@ -171,6 +220,36 @@ export default async function SubjectPage(props: PageProps) {
   const banks = banksResult.data || [];
   const questionCount = questionCountResult.count || 0;
   const examDates = examDatesResult.data || [];
+
+  const weeklyPractices =
+    (weeklyPracticesResult.data as WeeklyPracticeItem[]) || [];
+
+  const weeklyPracticeIds = weeklyPractices
+    .map((practice) => practice.id)
+    .filter(Boolean);
+
+  const { data: submissions } =
+    showWeeklyPractice && weeklyPracticeIds.length
+      ? await (supabase.from("weekly_practice_submissions") as any)
+          .select(
+            "weekly_practice_id, submitted_at, answered_count, correct_count, total_count",
+          )
+          .eq("user_id", user.id)
+          .in("weekly_practice_id", weeklyPracticeIds)
+          .order("submitted_at", { ascending: false })
+      : { data: [] as any[] };
+
+  const latestSubmissionMap = new Map<number, any>();
+  (submissions || []).forEach((submission: any) => {
+    if (!latestSubmissionMap.has(submission.weekly_practice_id)) {
+      latestSubmissionMap.set(submission.weekly_practice_id, submission);
+    }
+  });
+
+  const weeklyPracticesWithProgress = weeklyPractices.map((practice) => ({
+    ...practice,
+    latestSubmission: latestSubmissionMap.get(practice.id) || null,
+  }));
 
   return (
     <div className="relative min-h-screen flex flex-col bg-[#f0f4fc] dark:bg-slate-900 overflow-x-hidden">
@@ -203,6 +282,7 @@ export default async function SubjectPage(props: PageProps) {
           unlockedExamIds={unlockedExamIds}
           questionCount={questionCount}
           examDates={examDates}
+          weeklyPractices={weeklyPracticesWithProgress}
         />
       </main>
     </div>

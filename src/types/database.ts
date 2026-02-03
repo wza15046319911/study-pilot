@@ -608,6 +608,224 @@ export interface Database {
           created_at?: string;
         };
       };
+      homeworks: {
+        Row: {
+          id: number;
+          uuid: string;
+          title: string;
+          slug: string | null;
+          description: string | null;
+          subject_id: number;
+          is_premium: boolean;
+          is_published: boolean;
+          due_at: string | null;
+          allowed_modes: string[];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          uuid?: string;
+          title: string;
+          slug?: string | null;
+          description?: string | null;
+          subject_id: number;
+          is_premium?: boolean;
+          is_published?: boolean;
+          due_at?: string | null;
+          allowed_modes?: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: number;
+          uuid?: string;
+          title?: string;
+          slug?: string | null;
+          description?: string | null;
+          subject_id?: number;
+          is_premium?: boolean;
+          is_published?: boolean;
+          due_at?: string | null;
+          allowed_modes?: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      homework_items: {
+        Row: {
+          id: number;
+          homework_id: number;
+          question_id: number;
+          order_index: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          homework_id: number;
+          question_id: number;
+          order_index: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          homework_id?: number;
+          question_id?: number;
+          order_index?: number;
+          created_at?: string;
+        };
+      };
+      homework_assignments: {
+        Row: {
+          id: number;
+          homework_id: number;
+          user_id: string;
+          assigned_at: string;
+          completed_at: string | null;
+        };
+        Insert: {
+          id?: number;
+          homework_id: number;
+          user_id: string;
+          assigned_at?: string;
+          completed_at?: string | null;
+        };
+        Update: {
+          id?: number;
+          homework_id?: number;
+          user_id?: string;
+          assigned_at?: string;
+          completed_at?: string | null;
+        };
+      };
+      homework_submissions: {
+        Row: {
+          id: number;
+          homework_id: number;
+          user_id: string;
+          submitted_at: string;
+          answered_count: number;
+          correct_count: number;
+          total_count: number;
+          mode: string;
+        };
+        Insert: {
+          id?: number;
+          homework_id: number;
+          user_id: string;
+          submitted_at?: string;
+          answered_count?: number;
+          correct_count?: number;
+          total_count?: number;
+          mode?: string;
+        };
+        Update: {
+          id?: number;
+          homework_id?: number;
+          user_id?: string;
+          submitted_at?: string;
+          answered_count?: number;
+          correct_count?: number;
+          total_count?: number;
+          mode?: string;
+        };
+      };
+      weekly_practices: {
+        Row: {
+          id: number;
+          uuid: string;
+          title: string;
+          slug: string | null;
+          description: string | null;
+          subject_id: number;
+          week_start: string | null;
+          is_published: boolean;
+          allowed_modes: string[];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          uuid?: string;
+          title: string;
+          slug?: string | null;
+          description?: string | null;
+          subject_id: number;
+          week_start?: string | null;
+          is_published?: boolean;
+          allowed_modes?: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: number;
+          uuid?: string;
+          title?: string;
+          slug?: string | null;
+          description?: string | null;
+          subject_id?: number;
+          week_start?: string | null;
+          is_published?: boolean;
+          allowed_modes?: string[];
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      weekly_practice_items: {
+        Row: {
+          id: number;
+          weekly_practice_id: number;
+          question_id: number;
+          order_index: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          weekly_practice_id: number;
+          question_id: number;
+          order_index: number;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          weekly_practice_id?: number;
+          question_id?: number;
+          order_index?: number;
+          created_at?: string;
+        };
+      };
+      weekly_practice_submissions: {
+        Row: {
+          id: number;
+          weekly_practice_id: number;
+          user_id: string;
+          submitted_at: string;
+          answered_count: number;
+          correct_count: number;
+          total_count: number;
+          mode: string;
+        };
+        Insert: {
+          id?: number;
+          weekly_practice_id: number;
+          user_id: string;
+          submitted_at?: string;
+          answered_count?: number;
+          correct_count?: number;
+          total_count?: number;
+          mode?: string;
+        };
+        Update: {
+          id?: number;
+          weekly_practice_id?: number;
+          user_id?: string;
+          submitted_at?: string;
+          answered_count?: number;
+          correct_count?: number;
+          total_count?: number;
+          mode?: string;
+        };
+      };
       referral_codes: {
         Row: {
           id: number;
@@ -776,6 +994,19 @@ export type QuestionBank =
   Database["public"]["Tables"]["question_banks"]["Row"];
 export type QuestionBankItem =
   Database["public"]["Tables"]["question_bank_items"]["Row"];
+export type Homework = Database["public"]["Tables"]["homeworks"]["Row"];
+export type HomeworkItem =
+  Database["public"]["Tables"]["homework_items"]["Row"];
+export type HomeworkAssignment =
+  Database["public"]["Tables"]["homework_assignments"]["Row"];
+export type HomeworkSubmission =
+  Database["public"]["Tables"]["homework_submissions"]["Row"];
+export type WeeklyPractice =
+  Database["public"]["Tables"]["weekly_practices"]["Row"];
+export type WeeklyPracticeItem =
+  Database["public"]["Tables"]["weekly_practice_items"]["Row"];
+export type WeeklyPracticeSubmission =
+  Database["public"]["Tables"]["weekly_practice_submissions"]["Row"];
 export type ReferralCode =
   Database["public"]["Tables"]["referral_codes"]["Row"];
 export type Referral = Database["public"]["Tables"]["referrals"]["Row"];

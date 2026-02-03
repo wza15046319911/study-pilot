@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { InputHTMLAttributes, forwardRef, useId } from "react";
+import { InputHTMLAttributes, forwardRef, useEffect, useId, useState } from "react";
 import { AlertCircle } from "lucide-react";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -13,9 +13,18 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className, icon, error, helperText, id, ...props }, ref) => {
     const generatedId = useId();
-    const inputId = id || generatedId;
-    const errorId = `${inputId}-error`;
-    const helperId = `${inputId}-helper`;
+    const [inputId, setInputId] = useState<string | undefined>(id);
+
+    useEffect(() => {
+      if (!id) {
+        setInputId(generatedId);
+      } else {
+        setInputId(id);
+      }
+    }, [id, generatedId]);
+
+    const errorId = inputId ? `${inputId}-error` : undefined;
+    const helperId = inputId ? `${inputId}-helper` : undefined;
 
     return (
       <div className="w-full space-y-1.5">

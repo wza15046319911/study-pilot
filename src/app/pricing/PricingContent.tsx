@@ -77,7 +77,8 @@ export function PricingContent() {
   ];
 
   return (
-    <main className="flex-grow w-full pt-20 pb-20 px-4">
+    <>
+      <main className="flex-grow w-full pt-20 pb-20 px-4">
       <section className="max-w-7xl mx-auto text-center mb-16">
         <h1 className="text-4xl md:text-6xl font-black mb-6 dark:text-white tracking-tight">
           Simple, Transparent Pricing
@@ -313,8 +314,9 @@ export function PricingContent() {
       {/* Pricing FAQ Section */}
       <FAQSection className="mt-16 bg-white/50 dark:bg-black/20" />
 
-      {/* Footer */}
+      </main>
+
       <Footer />
-    </main>
+    </>
   );
 }

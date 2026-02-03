@@ -4,7 +4,8 @@ import { useEffect, useRef } from "react";
 import katex from "katex";
 
 interface LatexContentProps {
-  children: string;
+  children?: string;
+  content?: string;
   className?: string;
 }
 
@@ -12,7 +13,11 @@ interface LatexContentProps {
  * Renders text with LaTeX expressions.
  * Supports inline math ($...$) and display math ($$...$$).
  */
-export function LatexContent({ children, className }: LatexContentProps) {
+export function LatexContent({
+  children,
+  content,
+  className,
+}: LatexContentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
   const escapeHtml = (value: string) =>
@@ -26,7 +31,7 @@ export function LatexContent({ children, className }: LatexContentProps) {
   useEffect(() => {
     if (!containerRef.current) return;
 
-    const source = children || "";
+    const source = children || content || "";
     const parts: string[] = [];
     const regex = /\$\$[\s\S]+?\$\$|\$[^$]+\$/g;
     let lastIndex = 0;
@@ -46,7 +51,7 @@ export function LatexContent({ children, className }: LatexContentProps) {
           katex.renderToString(tex.trim(), {
             displayMode: isDisplay,
             throwOnError: false,
-          })
+          }),
         );
       } catch {
         parts.push('<span class="text-red-500">[LaTeX Error]</span>');
@@ -60,7 +65,7 @@ export function LatexContent({ children, className }: LatexContentProps) {
     }
 
     containerRef.current.innerHTML = parts.join("");
-  }, [children]);
+  }, [children, content]);
 
   return <div ref={containerRef} className={className} />;
 }

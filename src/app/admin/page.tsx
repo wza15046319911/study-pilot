@@ -1,6 +1,14 @@
 import Link from "next/link";
 import { GlassPanel } from "@/components/ui/GlassPanel";
-import { Upload, FileText, Settings, BookOpen, Library } from "lucide-react";
+import {
+  Upload,
+  FileText,
+  Settings,
+  BookOpen,
+  Library,
+  ClipboardCheck,
+  CalendarCheck,
+} from "lucide-react";
 
 export default function AdminDashboard() {
   const adminLinks = [
@@ -38,6 +46,20 @@ export default function AdminDashboard() {
       href: "/admin/question-banks",
       icon: <Library className="size-8 text-cyan-500" />,
       color: "bg-cyan-100 dark:bg-cyan-900/30",
+    },
+    {
+      title: "Homework",
+      description: "Assign homework to premium students.",
+      href: "/admin/homework",
+      icon: <ClipboardCheck className="size-8 text-emerald-500" />,
+      color: "bg-emerald-100 dark:bg-emerald-900/30",
+    },
+    {
+      title: "Weekly Practice",
+      description: "Publish short public weekly practice sets.",
+      href: "/admin/weekly-practice",
+      icon: <CalendarCheck className="size-8 text-indigo-500" />,
+      color: "bg-indigo-100 dark:bg-indigo-900/30",
     },
   ];
 

@@ -18,6 +18,7 @@ import {
   ChevronRight,
   Clock,
 } from "lucide-react";
+import { UserWeeklyPracticeClient } from "@/app/profile/weekly-practice/UserWeeklyPracticeClient";
 
 interface SubjectContentProps {
   subject: {
@@ -33,7 +34,27 @@ interface SubjectContentProps {
   unlockedExamIds: Set<number>;
   questionCount: number;
   examDates: any[];
+  weeklyPractices?: WeeklyPracticeItem[];
 }
+
+type WeeklyPracticeItem = {
+  id: number;
+  title: string;
+  slug: string | null;
+  description: string | null;
+  week_start: string | null;
+  subject: {
+    name: string;
+    slug: string | null;
+  } | null;
+  items?: { count: number }[] | null;
+  latestSubmission?: {
+    submitted_at: string;
+    answered_count: number;
+    correct_count: number;
+    total_count: number;
+  } | null;
+};
 
 export function SubjectContent({
   subject,
@@ -44,6 +65,7 @@ export function SubjectContent({
   unlockedExamIds,
   questionCount,
   examDates,
+  weeklyPractices,
 }: SubjectContentProps) {
   const router = useRouter();
   const [showPremiumModal, setShowPremiumModal] = useState(false);
@@ -54,6 +76,8 @@ export function SubjectContent({
     .filter((d) => d.dateObj > new Date())
     .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime())[0];
 
+  const isWeeklyPracticeSubject =
+    subject.slug === "introduction-to-software-programming";
 
   const practiceCards = [
     {
@@ -162,45 +186,64 @@ export function SubjectContent({
 
           {/* Practice Tab Content */}
           <TabsContent value="practice" className="mt-8">
-            <div className="space-y-8">
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                  <Play className="size-6 text-blue-600 dark:text-blue-400" />
-                  Practice Zone
-                </h2>
-                <span className="hidden md:inline-block text-sm text-slate-500">
-                  Start solving problems to master your skills.
-                </span>
-              </div>
+            {isWeeklyPracticeSubject ? (
+              <div className="space-y-8">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                    <Play className="size-6 text-blue-600 dark:text-blue-400" />
+                    Weekly Practice
+                  </h2>
+                  <span className="hidden md:inline-block text-sm text-slate-500">
+                    Stay on track with curated weekly sets.
+                  </span>
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {practiceCards.map((card) => (
-                  <Link key={card.href} href={card.href}>
-                    <div className="group h-full cursor-pointer p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:shadow-xl hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300">
-                      <div className="flex flex-col h-full">
-                        <div className="size-16 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                          {card.icon}
-                        </div>
-                        <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
-                          {card.title}
-                        </h3>
-                        <p className="text-slate-600 dark:text-slate-400 mb-6 flex-grow leading-relaxed">
-                          {card.title === "Quick Practice"
-                            ? "Jump straight into a session with 10 random questions. Best for daily consistency."
-                            : "Distraction-free, infinite flow of questions. Focus purely on problem solving."}
-                        </p>
-                        <div className="flex items-center text-blue-600 dark:text-blue-400 font-bold text-sm group-hover:gap-2 transition-[gap]">
-                          {card.title === "Quick Practice"
-                            ? "Start Session"
-                            : "Enter Flow"}{" "}
-                          <ChevronRight className="size-4 ml-2" />
+                <UserWeeklyPracticeClient
+                  initialData={weeklyPractices || []}
+                  showSummary={false}
+                />
+              </div>
+            ) : (
+              <div className="space-y-8">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
+                    <Play className="size-6 text-blue-600 dark:text-blue-400" />
+                    Practice Zone
+                  </h2>
+                  <span className="hidden md:inline-block text-sm text-slate-500">
+                    Start solving problems to master your skills.
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {practiceCards.map((card) => (
+                    <Link key={card.href} href={card.href}>
+                      <div className="group h-full cursor-pointer p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:shadow-xl hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300">
+                        <div className="flex flex-col h-full">
+                          <div className="size-16 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                            {card.icon}
+                          </div>
+                          <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                            {card.title}
+                          </h3>
+                          <p className="text-slate-600 dark:text-slate-400 mb-6 flex-grow leading-relaxed">
+                            {card.title === "Quick Practice"
+                              ? "Jump straight into a session with 10 random questions. Best for daily consistency."
+                              : "Distraction-free, infinite flow of questions. Focus purely on problem solving."}
+                          </p>
+                          <div className="flex items-center text-blue-600 dark:text-blue-400 font-bold text-sm group-hover:gap-2 transition-[gap]">
+                            {card.title === "Quick Practice"
+                              ? "Start Session"
+                              : "Enter Flow"}{" "}
+                            <ChevronRight className="size-4 ml-2" />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </Link>
-                ))}
+                    </Link>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </TabsContent>
 
           {/* Question Banks Tab Content */}
