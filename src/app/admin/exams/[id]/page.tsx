@@ -18,23 +18,36 @@ export default async function EditExamPage({ params }: PageProps) {
     redirect("/login");
   }
 
-  // Fetch exam details
-  const { data: exam, error } = await supabase
+  const examPromise = supabase
     .from("exams")
     .select("*")
     .eq("id", id)
     .single();
 
-  if (error || !exam) {
-    notFound();
-  }
-
-  // Fetch associated question IDs
-  const { data: fetchExamQuestions } = await supabase
+  const examQuestionsPromise = supabase
     .from("exam_questions")
     .select("question_id, order_index")
     .eq("exam_id", id)
     .order("order_index");
+
+  const subjectsPromise = supabase
+    .from("subjects")
+    .select("id, name")
+    .order("name");
+
+  const [
+    { data: exam, error },
+    { data: fetchExamQuestions },
+    { data: subjects },
+  ] = await Promise.all([
+    examPromise,
+    examQuestionsPromise,
+    subjectsPromise,
+  ]);
+
+  if (error || !exam) {
+    notFound();
+  }
 
   const examQuestions = fetchExamQuestions as any[] | null;
 
@@ -51,17 +64,14 @@ export default async function EditExamPage({ params }: PageProps) {
 
     // Sort questions to match order_index
     if (questionsData) {
+      const questionMap = new Map(
+        questionsData.map((question) => [question.id, question]),
+      );
       questions = examQuestions
-        .map((eq) => questionsData.find((q) => q.id === eq.question_id))
+        .map((eq) => questionMap.get(eq.question_id))
         .filter(Boolean);
     }
   }
-
-  // Fetch subjects for dropdown
-  const { data: subjects } = await supabase
-    .from("subjects")
-    .select("id, name")
-    .order("name");
 
   // Combine data for builder
   const initialData = {

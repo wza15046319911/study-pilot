@@ -20,15 +20,30 @@ export default async function EditHomeworkPage(props: PageProps) {
     redirect("/login");
   }
 
-  const { data: subjects } = await supabase
+  const subjectsPromise = supabase
     .from("subjects")
     .select("id, name")
     .order("name");
 
-  const { data: homework } = await (supabase.from("homeworks") as any)
+  const homeworkPromise = (supabase.from("homeworks") as any)
     .select("*")
-    .eq("id", id)
-    .single();
+    .eq("slug", id)
+    .maybeSingle();
+
+  let [{ data: subjects }, homeworkResult] = await Promise.all([
+    subjectsPromise,
+    homeworkPromise,
+  ]);
+
+  let homework = homeworkResult.data;
+
+  if (!homework) {
+    const fallbackResult = await (supabase.from("homeworks") as any)
+      .select("*")
+      .eq("id", id)
+      .maybeSingle();
+    homework = fallbackResult.data;
+  }
 
   if (!homework) {
     redirect("/admin/homework");
@@ -37,7 +52,7 @@ export default async function EditHomeworkPage(props: PageProps) {
   const { data: items } = await supabase
     .from("homework_items")
     .select("question:questions(*)")
-    .eq("homework_id", id)
+    .eq("homework_id", homework.id)
     .order("order_index");
 
   const questions = (items || []).map((item: any) => item.question);

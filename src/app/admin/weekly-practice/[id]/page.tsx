@@ -20,25 +20,28 @@ export default async function EditWeeklyPracticePage(props: PageProps) {
     redirect("/login");
   }
 
-  const { data: subjects } = await supabase
+  const subjectsPromise = supabase
     .from("subjects")
     .select("id, name")
     .order("name");
 
-  const { data: practice } = await (supabase.from("weekly_practices") as any)
+  const practicePromise = (supabase.from("weekly_practices") as any)
     .select("*")
     .eq("id", id)
     .single();
 
-  if (!practice) {
-    redirect("/admin/weekly-practice");
-  }
-
-  const { data: items } = await supabase
+  const itemsPromise = supabase
     .from("weekly_practice_items")
     .select("question:questions(*)")
     .eq("weekly_practice_id", id)
     .order("order_index");
+
+  const [{ data: subjects }, { data: practice }, { data: items }] =
+    await Promise.all([subjectsPromise, practicePromise, itemsPromise]);
+
+  if (!practice) {
+    redirect("/admin/weekly-practice");
+  }
 
   const questions = (items || []).map((item: any) => item.question);
 

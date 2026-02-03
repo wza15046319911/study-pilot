@@ -1,24 +1,41 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { motion } from "framer-motion";
 import { SplashScreen } from "./SplashScreen";
 import { ImpactStats } from "./ImpactStats";
-import {} from // Database,
-// BookOpen,
-// Activity,
-// GraduationCap,
-"lucide-react";
 import { FAQSection } from "@/components/common/FAQSection";
-import { AnimatedTestimonials } from "@/components/aceternity/animated-testimonials";
-import { FlipWords } from "@/components/aceternity/flip-words";
 import { StatefulButton } from "@/components/ui/stateful-button";
-import { TimelineSection } from "./TimelineSection";
-import { FeatureCarousel } from "./FeatureCarousel";
 import { Footer } from "@/components/layout/Footer";
+
+const AnimatedTestimonials = dynamic(
+  () =>
+    import("@/components/aceternity/animated-testimonials").then(
+      (module) => module.AnimatedTestimonials,
+    ),
+  { ssr: false },
+);
+
+const FlipWords = dynamic(
+  () =>
+    import("@/components/aceternity/flip-words").then(
+      (module) => module.FlipWords,
+    ),
+  { ssr: false },
+);
+
+const TimelineSection = dynamic(
+  () =>
+    import("./TimelineSection").then((module) => module.TimelineSection),
+  { ssr: false },
+);
+
+const FeatureCarousel = dynamic(
+  () =>
+    import("./FeatureCarousel").then((module) => module.FeatureCarousel),
+  { ssr: false },
+);
 
 // ... (Subject and Props interfaces same as before)
 interface Subject {

@@ -90,7 +90,8 @@ const getStatus = (daysLeft: number | null) => {
   if (daysLeft < 0) {
     return {
       label: "Overdue",
-      className: "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300",
+      className:
+        "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300",
       accent: "border-rose-300 dark:border-rose-700",
       icon: Flame,
     };
@@ -141,6 +142,28 @@ const formatDueDate = (dueAt: string | null) => {
   }).format(date);
 };
 
+const getTimeProgress = (assignedAt: string, dueAt: string | null) => {
+  if (!dueAt) return null;
+  const start = new Date(assignedAt).getTime();
+  const end = new Date(dueAt).getTime();
+  const now = new Date().getTime();
+
+  if (Number.isNaN(start) || Number.isNaN(end)) return null;
+
+  const totalDuration = end - start;
+  const elapsed = now - start;
+
+  if (totalDuration <= 0) return { percent: 100, color: "bg-red-500" };
+
+  const percent = Math.max(0, Math.min(100, (elapsed / totalDuration) * 100));
+
+  let color = "bg-emerald-500";
+  if (percent > 80) color = "bg-red-500";
+  else if (percent > 50) color = "bg-orange-500";
+
+  return { percent, color };
+};
+
 export function UserHomeworkClient({ initialData }: UserHomeworkClientProps) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
@@ -157,9 +180,12 @@ export function UserHomeworkClient({ initialData }: UserHomeworkClientProps) {
       const daysLeft = getDaysLeft(homework.due_at);
       if (filter === "all") return true;
       if (filter === "overdue") return daysLeft !== null && daysLeft < 0;
-      if (filter === "due_1") return daysLeft !== null && daysLeft <= 1 && daysLeft >= 0;
-      if (filter === "due_3") return daysLeft !== null && daysLeft <= 3 && daysLeft >= 0;
-      if (filter === "due_7") return daysLeft !== null && daysLeft <= 7 && daysLeft >= 0;
+      if (filter === "due_1")
+        return daysLeft !== null && daysLeft <= 1 && daysLeft >= 0;
+      if (filter === "due_3")
+        return daysLeft !== null && daysLeft <= 3 && daysLeft >= 0;
+      if (filter === "due_7")
+        return daysLeft !== null && daysLeft <= 7 && daysLeft >= 0;
       return true;
     });
   }, [initialData, query, filter]);
@@ -267,7 +293,8 @@ export function UserHomeworkClient({ initialData }: UserHomeworkClientProps) {
                     <div className="mt-3">
                       <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                         <span>
-                          Progress: {answeredCount}/{totalCount || totalQuestions} answered
+                          Progress: {answeredCount}/
+                          {totalCount || totalQuestions} answered
                         </span>
                         <span>{progressPercent}%</span>
                       </div>
@@ -279,40 +306,70 @@ export function UserHomeworkClient({ initialData }: UserHomeworkClientProps) {
                       </div>
                     </div>
 
-                    <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
-                      {latestSubmission ? (
-                        <span>
-                          Last submitted:{" "}
-                          {new Intl.DateTimeFormat("en-AU", {
-                            dateStyle: "medium",
-                            timeStyle: "short",
-                          }).format(new Date(latestSubmission.submitted_at))} · Score{" "}
-                          {latestSubmission.correct_count}/
-                          {latestSubmission.total_count}
-                        </span>
-                      ) : (
-                        <span>No submission yet.</span>
-                      )}
-                    </div>
+                    {/* Time Progress Bar */}
+                    {(() => {
+                      const timeProgress = getTimeProgress(
+                        assignment.assigned_at,
+                        homework.due_at,
+                      );
+                      if (timeProgress) {
+                        return (
+                          <div className="mt-4">
+                            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+                              <span className="flex items-center gap-1.5">
+                                <Flame className="size-3 text-orange-500" />
+                                Time Elapsed
+                              </span>
+                              <span>{Math.round(timeProgress.percent)}%</span>
+                            </div>
+                            <div className="h-1.5 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                              <div
+                                className={`h-full ${timeProgress.color} transition-all duration-300`}
+                                style={{
+                                  width: `${timeProgress.percent}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
                   </div>
 
-                  <div className="flex flex-wrap gap-3 lg:flex-col lg:items-end">
-                    {allowedModes.map((mode) => {
-                      const config = modeMap[mode as keyof typeof modeMap];
-                      if (!config || !homework.slug) return null;
-                      const Icon = config.icon;
-                      return (
-                        <Link
-                          key={mode}
-                          href={`/homework/${homework.slug}/${config.route}`}
-                          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-colors ${config.className}`}
-                        >
-                          <Icon className="size-3" />
-                          {config.label}
-                        </Link>
-                      );
-                    })}
+                  <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+                    {latestSubmission ? (
+                      <span>
+                        Last submitted:{" "}
+                        {new Intl.DateTimeFormat("en-AU", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        }).format(new Date(latestSubmission.submitted_at))}{" "}
+                        · Score {latestSubmission.correct_count}/
+                        {latestSubmission.total_count}
+                      </span>
+                    ) : (
+                      <span>No submission yet.</span>
+                    )}
                   </div>
+                </div>
+
+                <div className="flex flex-wrap gap-3 lg:flex-col lg:items-end">
+                  {allowedModes.map((mode) => {
+                    const config = modeMap[mode as keyof typeof modeMap];
+                    if (!config || !homework.slug) return null;
+                    const Icon = config.icon;
+                    return (
+                      <Link
+                        key={mode}
+                        href={`/homework/${homework.slug}/${config.route}`}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-colors ${config.className}`}
+                      >
+                        <Icon className="size-3" />
+                        {config.label}
+                      </Link>
+                    );
+                  })}
                 </div>
               </div>
             );

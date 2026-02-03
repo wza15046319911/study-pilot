@@ -20,6 +20,7 @@ import { deleteHomework } from "./actions";
 interface HomeworkRow {
   id: number;
   title: string;
+  slug: string | null;
   description: string | null;
   due_at: string | null;
   is_published: boolean;
@@ -44,7 +45,7 @@ const formatDueDate = (dueAt: string | null) => {
 export function HomeworksClient({ homeworks }: HomeworksClientProps) {
   const router = useRouter();
   const [homeworkToDelete, setHomeworkToDelete] = useState<HomeworkRow | null>(
-    null
+    null,
   );
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -58,7 +59,7 @@ export function HomeworksClient({ homeworks }: HomeworksClientProps) {
     } catch (error) {
       alert(
         "Failed to delete homework: " +
-          (error instanceof Error ? error.message : "Unknown error")
+          (error instanceof Error ? error.message : "Unknown error"),
       );
     } finally {
       setIsDeleting(false);
@@ -148,7 +149,11 @@ export function HomeworksClient({ homeworks }: HomeworksClientProps) {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Link href={`/admin/homework/${homework.id}`}>
+                          <Link
+                            href={`/admin/homework/${
+                              homework.slug || homework.id
+                            }`}
+                          >
                             <Button
                               variant="ghost"
                               size="sm"

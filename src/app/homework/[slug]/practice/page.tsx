@@ -151,6 +151,7 @@ export default async function HomeworkPracticePage(props: PageProps) {
         exitLink="/profile/homework"
         homeworkId={homework.id}
         homeworkMode="practice"
+        showTopics={false}
       />
     </div>
   );
