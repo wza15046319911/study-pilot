@@ -19,6 +19,16 @@ interface BookmarkWithQuestion {
   questions: QuestionSummary;
 }
 
+interface HomeworkAssignmentWithDetails {
+  id: number;
+  completed_at: string | null;
+  homeworks: {
+    id: number;
+    title: string;
+    due_at: string | null;
+  } | null;
+}
+
 export default async function ProfilePage() {
   const supabase = await createClient();
 
@@ -138,6 +148,22 @@ export default async function ProfilePage() {
     .eq("user_id", user.id)
     .order("added_at", { ascending: false });
 
+  // Fetch homework assignments to calculate stats
+  const homeworkAssignmentsPromise = supabase
+    .from("homework_assignments")
+    .select(
+      `
+      id,
+      completed_at,
+      homeworks (
+        id,
+        title,
+        due_at
+      )
+    `,
+    )
+    .eq("user_id", user.id);
+
   const userExamsPromise = supabase
     .from("user_exam_collections")
     .select(
@@ -173,6 +199,7 @@ export default async function ProfilePage() {
     referralStatsResult,
     userProgressResult,
     userQuestionBanksResult,
+    homeworkAssignmentsResult,
     userExamsResult,
   ] = await Promise.all([
     profilePromise,
@@ -184,10 +211,15 @@ export default async function ProfilePage() {
     referralStatsPromise,
     userProgressPromise,
     userQuestionBanksPromise,
+    homeworkAssignmentsPromise,
     userExamsPromise,
   ]);
 
-  const referralStats = referralStatsResult || { totalReferrals: 0, unusedReferrals: 0, unlockedBanks: 0 };
+  const referralStats = referralStatsResult || {
+    totalReferrals: 0,
+    unusedReferrals: 0,
+    unlockedBanks: 0,
+  };
 
   const profile = profileResult.data as Profile | null;
 
@@ -215,6 +247,16 @@ export default async function ProfilePage() {
     ? []
     : userQuestionBanksResult.data || [];
   const userExams = userExamsResult.error ? [] : userExamsResult.data || [];
+
+  const homeworkAssignments = (homeworkAssignmentsResult.data ||
+    []) as HomeworkAssignmentWithDetails[];
+
+  // Calculate homework stats
+  const homeworkStats = {
+    assigned: homeworkAssignments.length,
+    graded: homeworkAssignments.filter((h) => h.completed_at).length,
+    due: homeworkAssignments.filter((h) => !h.completed_at).length,
+  };
 
   // --- Analytics Aggregation ---
 
@@ -360,6 +402,7 @@ export default async function ProfilePage() {
           accessibleBanks={accessibleBanks}
           userQuestionBanks={userQuestionBanks}
           userExams={userExams}
+          homeworkStats={homeworkStats}
           isAdmin={userData.is_admin || false}
         />
       </main>

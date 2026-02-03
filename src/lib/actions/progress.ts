@@ -24,7 +24,7 @@ export async function syncUserProgress() {
           subject_id,
           topic_id
         )
-      `
+      `,
       )
       .eq("user_id", user.id)) as {
       data: { is_correct: boolean; question: any }[] | null;
@@ -75,32 +75,54 @@ export async function syncUserProgress() {
       }
     }
 
+    const updatedAt = new Date().toISOString();
+
     // 3. Update user_progress table
-    for (const [subjectId, stats] of subjectProgress.entries()) {
-      await supabase.from("user_progress").upsert(
-        {
-          user_id: user.id,
-          subject_id: subjectId,
-          completed_count: stats.completed,
-          correct_count: stats.correct,
-          updated_at: new Date().toISOString(),
-        } as any,
-        { onConflict: "user_id,subject_id" }
+    const subjectRows = Array.from(subjectProgress.entries()).map(
+      ([subjectId, stats]) => ({
+        user_id: user.id,
+        subject_id: subjectId,
+        completed_count: stats.completed,
+        correct_count: stats.correct,
+        updated_at: updatedAt,
+      }),
+    );
+
+    // 4. Update topic_progress table
+    const topicRows = Array.from(topicProgress.entries()).map(
+      ([topicId, stats]) => ({
+        user_id: user.id,
+        topic_id: topicId,
+        completed_count: stats.completed,
+        correct_count: stats.correct,
+        updated_at: updatedAt,
+      }),
+    );
+
+    const updates: Promise<any>[] = [];
+
+    if (subjectRows.length > 0) {
+      updates.push(
+        Promise.resolve(
+          supabase
+            .from("user_progress")
+            .upsert(subjectRows as any, { onConflict: "user_id,subject_id" }),
+        ),
       );
     }
 
-    // 4. Update topic_progress table
-    for (const [topicId, stats] of topicProgress.entries()) {
-      await supabase.from("topic_progress").upsert(
-        {
-          user_id: user.id,
-          topic_id: topicId,
-          completed_count: stats.completed,
-          correct_count: stats.correct,
-          updated_at: new Date().toISOString(),
-        } as any,
-        { onConflict: "user_id,topic_id" }
+    if (topicRows.length > 0) {
+      updates.push(
+        Promise.resolve(
+          supabase
+            .from("topic_progress")
+            .upsert(topicRows as any, { onConflict: "user_id,topic_id" }),
+        ),
       );
+    }
+
+    if (updates.length > 0) {
+      await Promise.all(updates);
     }
 
     revalidatePath("/profile");
