@@ -608,6 +608,73 @@ export interface Database {
           created_at?: string;
         };
       };
+      past_exams: {
+        Row: {
+          id: number;
+          uuid: string;
+          subject_id: number;
+          year: number;
+          semester: number;
+          title: string | null;
+          is_published: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: number;
+          uuid?: string;
+          subject_id: number;
+          year: number;
+          semester: number;
+          title?: string | null;
+          is_published?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: number;
+          uuid?: string;
+          subject_id?: number;
+          year?: number;
+          semester?: number;
+          title?: string | null;
+          is_published?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      past_exam_questions: {
+        Row: {
+          id: number;
+          past_exam_id: number;
+          order_index: number;
+          question_type: string;
+          content: string | null;
+          answer: string;
+          explanation: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          past_exam_id: number;
+          order_index?: number;
+          question_type: string;
+          content?: string | null;
+          answer: string;
+          explanation?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          past_exam_id?: number;
+          order_index?: number;
+          question_type?: string;
+          content?: string | null;
+          answer?: string;
+          explanation?: string | null;
+          created_at?: string;
+        };
+      };
       homeworks: {
         Row: {
           id: number;
@@ -994,6 +1061,9 @@ export type QuestionBank =
   Database["public"]["Tables"]["question_banks"]["Row"];
 export type QuestionBankItem =
   Database["public"]["Tables"]["question_bank_items"]["Row"];
+export type PastExam = Database["public"]["Tables"]["past_exams"]["Row"];
+export type PastExamQuestion =
+  Database["public"]["Tables"]["past_exam_questions"]["Row"];
 export type Homework = Database["public"]["Tables"]["homeworks"]["Row"];
 export type HomeworkItem =
   Database["public"]["Tables"]["homework_items"]["Row"];

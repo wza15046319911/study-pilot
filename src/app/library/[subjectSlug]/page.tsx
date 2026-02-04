@@ -177,6 +177,22 @@ export default async function SubjectPage(props: PageProps) {
         .order("week_start", { ascending: false })
     : Promise.resolve({ data: [] as WeeklyPracticeItem[] });
 
+  const pastExamsPromise = supabase
+    .from("past_exams")
+    .select(
+      `
+      id,
+      year,
+      semester,
+      title,
+      questions:past_exam_questions(count)
+    `,
+    )
+    .eq("subject_id", subject.id)
+    .eq("is_published", true)
+    .order("year", { ascending: false })
+    .order("semester", { ascending: false });
+
   const [
     profileResult,
     examsResult,
@@ -186,6 +202,7 @@ export default async function SubjectPage(props: PageProps) {
     questionCountResult,
     examDatesResult,
     weeklyPracticesResult,
+    pastExamsResult,
   ] = await Promise.all([
     profilePromise,
     examsPromise,
@@ -195,6 +212,7 @@ export default async function SubjectPage(props: PageProps) {
     questionCountPromise,
     examDatesPromise,
     weeklyPracticesPromise,
+    pastExamsPromise,
   ]);
 
   const profile = profileResult.data as { is_vip?: boolean } | null;
@@ -251,6 +269,14 @@ export default async function SubjectPage(props: PageProps) {
     latestSubmission: latestSubmissionMap.get(practice.id) || null,
   }));
 
+  const pastExams = (pastExamsResult.data || []).map((exam: any) => ({
+    id: exam.id,
+    year: exam.year,
+    semester: exam.semester,
+    title: exam.title,
+    questionCount: exam.questions?.[0]?.count || 0,
+  }));
+
   return (
     <div className="relative min-h-screen flex flex-col bg-[#f0f4fc] dark:bg-slate-900 overflow-x-hidden">
       <AmbientBackground />
@@ -283,6 +309,7 @@ export default async function SubjectPage(props: PageProps) {
           questionCount={questionCount}
           examDates={examDates}
           weeklyPractices={weeklyPracticesWithProgress}
+          pastExams={pastExams}
         />
       </main>
     </div>

@@ -1,9 +1,4 @@
-import {
-  Mail,
-  MessageCircle,
-  MapPin,
-  Clock,
-} from "lucide-react";
+import { Mail, MessageCircle, MapPin, Clock } from "lucide-react";
 import { Header } from "@/components/layout/Header";
 import { FAQSection } from "@/components/common/FAQSection";
 import { Footer } from "@/components/layout/Footer";
@@ -85,49 +80,6 @@ export default async function ContactPage() {
                 <span className="font-bold text-slate-900 dark:text-white">
                   Add Official Account
                 </span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Office Info */}
-        <div className="grid md:grid-cols-2 gap-12">
-          <div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-              <MapPin className="size-5 text-slate-400" />
-              Office
-            </h3>
-            <div className="bg-slate-100 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
-              <p className="font-bold text-slate-900 dark:text-white mb-2">
-                StudyPilot HQ
-              </p>
-              <p className="text-slate-500 dark:text-slate-400 leading-relaxed">
-                Melbourne, Victoria
-                <br />
-                Australia
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
-              <Clock className="size-5 text-slate-400" />
-              Hours
-            </h3>
-            <div className="bg-slate-100 dark:bg-slate-900/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-800">
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Mon - Fri</span>
-                  <span className="font-bold text-slate-900 dark:text-white">
-                    9am - 6pm AEST
-                  </span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-slate-500">Weekend</span>
-                  <span className="font-bold text-slate-900 dark:text-white">
-                    Closed
-                  </span>
-                </div>
               </div>
             </div>
           </div>

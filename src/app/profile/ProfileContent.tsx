@@ -335,9 +335,6 @@ export function ProfileContent({
                         ? formatTimeAgo(user.last_practice_date)
                         : "No recent activity"}
                     </span>
-                    <span className="font-medium text-indigo-600 dark:text-indigo-400">
-                      Updated
-                    </span>
                   </div>
 
                   <Link

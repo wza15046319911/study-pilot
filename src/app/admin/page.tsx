@@ -41,6 +41,13 @@ export default function AdminDashboard() {
       color: "bg-amber-100 dark:bg-amber-900/30",
     },
     {
+      title: "Past Exam Answers",
+      description: "Manage past exam answer keys by year and semester.",
+      href: "/admin/past-exams",
+      icon: <FileText className="size-8 text-rose-500" />,
+      color: "bg-rose-100 dark:bg-rose-900/30",
+    },
+    {
       title: "Question Banks",
       description: "Create and manage custom question banks.",
       href: "/admin/question-banks",

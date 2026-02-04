@@ -12,6 +12,7 @@ import { LatexContent } from "@/components/ui/LatexContent";
 import { ResultsModal } from "@/components/ui/ResultsModal";
 import { FeedbackButton } from "@/components/question/FeedbackButton";
 import { HandwriteCanvas } from "@/components/ui/HandwriteCanvas";
+import { PenCircle } from "@/components/ui/PenCircle";
 import {
   TrendingUp,
   Timer,
@@ -66,7 +67,7 @@ export function PracticeSession({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string>>({});
   const [checkedAnswers, setCheckedAnswers] = useState<Record<number, boolean>>(
-    {}
+    {},
   );
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -96,7 +97,7 @@ export function PracticeSession({
       document.removeEventListener("fullscreenchange", handleFullscreenChange);
       document.removeEventListener(
         "webkitfullscreenchange",
-        handleFullscreenChange
+        handleFullscreenChange,
       );
     };
   }, []);
@@ -137,7 +138,7 @@ export function PracticeSession({
         .eq("user_id", user.id)
         .in(
           "question_id",
-          questions.map((q) => q.id)
+          questions.map((q) => q.id),
         );
 
       if (data) {
@@ -317,7 +318,7 @@ export function PracticeSession({
           last_wrong_answer: answer,
           last_error_at: new Date().toISOString(),
         } as any,
-        { onConflict: "user_id,question_id" }
+        { onConflict: "user_id,question_id" },
       );
 
       if (upsertError) {
@@ -391,9 +392,8 @@ export function PracticeSession({
       if (weeklyPracticeId) {
         const answeredCount = Object.keys(answers).length;
         try {
-          const { submitWeeklyPractice } = await import(
-            "@/app/weekly-practice/actions"
-          );
+          const { submitWeeklyPractice } =
+            await import("@/app/weekly-practice/actions");
           await submitWeeklyPractice({
             weeklyPracticeId,
             answeredCount,
@@ -451,7 +451,7 @@ export function PracticeSession({
                 const isExpanded = expandedTopics.has(topicName);
                 const isActiveTopic = indices.includes(currentIndex);
                 const completedCount = indices.filter(
-                  (i) => checkedAnswers[questions[i].id]
+                  (i) => checkedAnswers[questions[i].id],
                 ).length;
 
                 return (
@@ -568,13 +568,13 @@ export function PracticeSession({
           mode === "standalone"
             ? "w-full max-w-4xl"
             : isFocusMode
-            ? "w-full max-w-5xl mx-auto transition-[width,margin] duration-500"
-            : ""
+              ? "w-full max-w-5xl mx-auto transition-[width,margin] duration-500"
+              : ""
         }`}
       >
         <div className="bg-white dark:bg-slate-900 shadow-none border-2 border-gray-200 dark:border-gray-800 min-h-[800px] p-8 lg:p-16 relative flex flex-col font-serif">
           {/* Exam Header */}
-          <div className="flex justify-between items-end border-b-2 border-black dark:border-white pb-4 mb-12 text-black dark:text-white font-serif">
+          <div className="flex flex-wrap items-end justify-between gap-3 border-b-2 border-black dark:border-white pb-4 mb-12 text-black dark:text-white font-serif">
             <div>
               <h2 className="text-xl font-bold mb-1">
                 {questions[currentIndex].topic_id &&
@@ -586,12 +586,25 @@ export function PracticeSession({
                 Question {currentIndex + 1} of {questions.length}
               </p>
             </div>
-            {mode === "practice" && enableTimer && (
-              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-sm text-xs font-serif bg-white dark:bg-slate-900">
-                <Timer className="size-3.5" />
-                <span className="font-mono">{formatTime(elapsedTime)}</span>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              {mode === "practice" && enableTimer && (
+                <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-sm text-xs font-serif bg-white dark:bg-slate-900">
+                  <Timer className="size-3.5" />
+                  <span className="font-mono">{formatTime(elapsedTime)}</span>
+                </div>
+              )}
+              {mode === "practice" && (!showTopics || isFocusMode) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 font-serif font-bold"
+                  onClick={() => router.push(exitLink)}
+                >
+                  <LogOut className="mr-2 size-4" />
+                  Exit Session
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Controls Overlay (Focus Mode etc) */}
@@ -738,7 +751,7 @@ export function PracticeSession({
                               }`}
                             >
                               <span
-                                className={`font-serif font-medium text-lg min-w-[32px] pt-1 ${
+                                className={`relative inline-flex items-center justify-center w-10 h-10 mt-0.5 font-serif font-medium text-lg ${
                                   isSelected || shouldShowCorrect
                                     ? "font-bold"
                                     : ""
@@ -746,19 +759,25 @@ export function PracticeSession({
                                   isCorrect
                                     ? "text-green-600"
                                     : isWrong
-                                    ? "text-red-600"
-                                    : "text-gray-700 dark:text-gray-300"
+                                      ? "text-red-600"
+                                      : "text-gray-700 dark:text-gray-300"
                                 }`}
                               >
-                                {optionLabel}
+                                <span className="relative z-10">
+                                  {optionLabel}
+                                </span>
+                                {/* Pen Circle Animation for Selected Option */}
+                                {isSelected && !isChecked && (
+                                  <PenCircle className="text-blue-600 dark:text-blue-400 -inset-1" />
+                                )}
                               </span>
                               <div
-                                className={`flex-1 font-serif text-lg leading-relaxed ${
+                                className={`flex-1 font-serif text-lg leading-relaxed z-10 ${
                                   isCorrect
                                     ? "text-green-600"
                                     : isWrong
-                                    ? "text-red-600"
-                                    : "text-gray-900 dark:text-gray-100"
+                                      ? "text-red-600"
+                                      : "text-gray-900 dark:text-gray-100"
                                 } ${
                                   isSelected
                                     ? "underline decoration-2 underline-offset-4"
@@ -784,7 +803,7 @@ export function PracticeSession({
                               </div>
                             </div>
                           );
-                        }
+                        },
                       )}
                     </div>
                   ) : currentQuestion.type === "handwrite" ? (

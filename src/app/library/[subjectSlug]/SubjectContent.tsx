@@ -5,6 +5,7 @@ import { useState } from "react";
 import { QuestionBankItem } from "@/components/question-bank/QuestionBankItem";
 import { PremiumModal } from "@/components/ui/PremiumModal";
 import { CountdownTimer } from "@/components/ui/CountdownTimer";
+import { GlassPanel } from "@/components/ui/GlassPanel";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Link from "next/link";
@@ -17,6 +18,7 @@ import {
   BookOpen,
   ChevronRight,
   Clock,
+  Archive,
 } from "lucide-react";
 import { UserWeeklyPracticeClient } from "@/app/profile/weekly-practice/UserWeeklyPracticeClient";
 
@@ -35,6 +37,7 @@ interface SubjectContentProps {
   questionCount: number;
   examDates: any[];
   weeklyPractices?: WeeklyPracticeItem[];
+  pastExams?: PastExamListItem[];
 }
 
 type WeeklyPracticeItem = {
@@ -56,6 +59,17 @@ type WeeklyPracticeItem = {
   } | null;
 };
 
+type PastExamListItem = {
+  id: number;
+  year: number;
+  semester: number;
+  title: string | null;
+  questionCount: number;
+};
+
+const getSemesterLabel = (semester: number) =>
+  semester === 1 ? "上学期" : "下学期";
+
 export function SubjectContent({
   subject,
   exams,
@@ -66,6 +80,7 @@ export function SubjectContent({
   questionCount,
   examDates,
   weeklyPractices,
+  pastExams,
 }: SubjectContentProps) {
   const router = useRouter();
   const [showPremiumModal, setShowPremiumModal] = useState(false);
@@ -103,6 +118,19 @@ export function SubjectContent({
     // },
   ];
 
+  const groupedPastExams = (pastExams || []).reduce(
+    (acc, exam) => {
+      if (!acc[exam.year]) acc[exam.year] = [];
+      acc[exam.year].push(exam);
+      return acc;
+    },
+    {} as Record<number, PastExamListItem[]>,
+  );
+
+  const sortedYears = Object.keys(groupedPastExams)
+    .map((year) => parseInt(year, 10))
+    .sort((a, b) => b - a);
+
   return (
     <div className="py-12 space-y-12">
       <PremiumModal
@@ -115,9 +143,6 @@ export function SubjectContent({
       {/* Hero Section */}
       <section className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center gap-6">
-          <div className="size-20 bg-white dark:bg-slate-900 rounded-3xl flex items-center justify-center shadow-sm border border-slate-200 dark:border-slate-800 text-6xl">
-            {subject.icon}
-          </div>
           <div>
             <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
               {subject.name}
@@ -179,6 +204,18 @@ export function SubjectContent({
               {exams.length > 0 && (
                 <span className="ml-2 text-xs opacity-70 bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full">
                   {exams.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger
+              value="past-exams"
+              className="data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 dark:data-[state=active]:text-blue-400 dark:data-[state=active]:border-blue-400 bg-transparent text-slate-500 dark:text-slate-400 border-b-2 border-transparent px-4 py-3 rounded-none font-semibold text-base hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+            >
+              <Archive className="size-5 mr-2" />
+              Past Exams
+              {pastExams && pastExams.length > 0 && (
+                <span className="ml-2 text-xs opacity-70 bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full">
+                  {pastExams.length}
                 </span>
               )}
             </TabsTrigger>
@@ -327,6 +364,70 @@ export function SubjectContent({
                   <p className="text-slate-500">
                     We're still adding mock exams for this subject. Check back
                     soon!
+                  </p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* Past Exams Tab Content */}
+          <TabsContent value="past-exams" className="mt-8">
+            <div className="space-y-8">
+              {pastExams && pastExams.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {sortedYears.map((year) => {
+                    const examsForYear = groupedPastExams[year] || [];
+                    const sortedSemesters = [...examsForYear].sort(
+                      (a, b) => a.semester - b.semester,
+                    );
+
+                    return (
+                      <GlassPanel
+                        key={year}
+                        className="p-6 bg-white/70 dark:bg-slate-900/70 border-slate-200 dark:border-slate-800"
+                      >
+                        <div className="flex items-start justify-between gap-4 mb-6">
+                          <div>
+                            <div className="text-xs uppercase tracking-[0.3em] text-amber-500 font-semibold">
+                              Archive
+                            </div>
+                            <div className="text-3xl font-black text-slate-900 dark:text-white mt-2">
+                              {year}
+                            </div>
+                          </div>
+                          <div className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
+                            Answer Key
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          {sortedSemesters.map((exam) => (
+                            <Link
+                              key={exam.id}
+                              href={`/library/${subject.slug}/past-exams/${exam.year}/${exam.semester}`}
+                              className="group inline-flex items-center gap-2 px-4 py-2 rounded-full border border-amber-200/70 dark:border-amber-800/60 bg-amber-50/60 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 text-sm font-semibold hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
+                              title={exam.title || undefined}
+                            >
+                              {getSemesterLabel(exam.semester)}
+                              <span className="text-xs font-mono text-amber-700/70 dark:text-amber-200/70">
+                                {exam.questionCount}题
+                              </span>
+                              <ChevronRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </Link>
+                          ))}
+                        </div>
+                      </GlassPanel>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="max-w-md mx-auto text-center py-20 px-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
+                  <Archive className="size-12 text-slate-300 mx-auto mb-4" />
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                    No Past Exams Yet
+                  </h3>
+                  <p className="text-slate-500">
+                    Past exam answer keys will appear here once published.
                   </p>
                 </div>
               )}

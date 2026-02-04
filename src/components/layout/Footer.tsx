@@ -22,7 +22,7 @@ export function Footer() {
               </span>
             </div>
             <p className="text-muted-foreground max-w-sm">
-              The AI-powered study companion that helps you master any subject
+              The study companion that helps you master any subject
               faster with personalized learning paths.
             </p>
           </div>

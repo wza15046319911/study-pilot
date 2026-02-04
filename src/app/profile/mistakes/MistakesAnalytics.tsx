@@ -57,7 +57,7 @@ export function MistakesAnalytics({ mistakes }: MistakesAnalyticsProps) {
   if (mistakes.length === 0) return null;
 
   return (
-    <div className="grid md:grid-cols-2 gap-6 mb-8">
+    <div className="grid grid-cols-1 gap-6 mb-8">
       {/* Weakest Topics */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
