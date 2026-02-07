@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-vanish-input";
 // import { SubjectGrid } from "./SubjectGrid";
 import { Subject } from "@/types/database";
@@ -9,9 +10,47 @@ import { motion } from "framer-motion";
 
 interface LibraryContentProps {
   subjects: Subject[];
+  subjectStatsById: Record<
+    number,
+    {
+      weeklyPracticeCount: number;
+      questionBankCount: number;
+      mockExamCount: number;
+    }
+  >;
 }
 
-export function LibraryContent({ subjects }: LibraryContentProps) {
+const toSearchToken = (value: string) =>
+  value.toLowerCase().replace(/[\s_-]+/g, "");
+
+const getSearchableVariants = (subject: Subject): string[] => {
+  const baseValues = [subject.name, subject.slug, subject.uuid ?? ""].filter(
+    Boolean,
+  ) as string[];
+
+  const variants = new Set<string>();
+
+  for (const value of baseValues) {
+    const lowerValue = value.toLowerCase();
+    variants.add(lowerValue);
+    variants.add(toSearchToken(lowerValue));
+
+    // Expand patterns like "csse1001/7030" so "csse7030" can match too.
+    const slashCodePattern = /([a-z]{2,})(\d{4})\s*\/\s*(\d{4})/gi;
+    for (const match of lowerValue.matchAll(slashCodePattern)) {
+      const [, prefix, firstCode, secondCode] = match;
+      variants.add(`${prefix}${firstCode}`);
+      variants.add(`${prefix}${secondCode}`);
+    }
+  }
+
+  return Array.from(variants);
+};
+
+export function LibraryContent({
+  subjects,
+  subjectStatsById,
+}: LibraryContentProps) {
   const router = useRouter();
   const [showComingSoon, setShowComingSoon] = useState(false);
 
@@ -24,6 +63,7 @@ export function LibraryContent({ subjects }: LibraryContentProps) {
   ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    void e;
     // Reset coming soon state when user types
     if (showComingSoon) {
       setShowComingSoon(false);
@@ -34,16 +74,18 @@ export function LibraryContent({ subjects }: LibraryContentProps) {
     e.preventDefault();
     const inputElement = e.currentTarget.querySelector("input");
     if (!inputElement) return;
-    const searchValue = inputElement.value.toLowerCase().trim();
+    const rawSearchValue = inputElement.value.toLowerCase().trim();
+    const normalizedSearchValue = toSearchToken(rawSearchValue);
 
-    if (!searchValue) return;
+    if (!rawSearchValue) return;
 
     // Find matching subject
-    const foundSubject = subjects.find(
-      (sub) =>
-        sub.name.toLowerCase().includes(searchValue) ||
-        sub.slug.toLowerCase().includes(searchValue) ||
-        (sub.uuid && sub.uuid.toLowerCase().includes(searchValue)),
+    const foundSubject = subjects.find((sub) =>
+      getSearchableVariants(sub).some(
+        (variant) =>
+          variant.includes(rawSearchValue) ||
+          variant.includes(normalizedSearchValue),
+      ),
     );
 
     if (foundSubject) {
@@ -76,6 +118,77 @@ export function LibraryContent({ subjects }: LibraryContentProps) {
           />
         </div>
 
+        <section className="max-w-4xl mx-auto mb-10 text-left">
+          <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm p-6 md:p-8 shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
+                  Available Subjects
+                </p>
+                <h2 className="text-xl md:text-2xl font-serif font-semibold text-slate-900 dark:text-white mt-1">
+                  Pick a subject to start learning
+                </h2>
+              </div>
+              <span className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                {subjects.length} subjects
+              </span>
+            </div>
+
+            {subjects.length > 0 ? (
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {subjects.map((subject, index) => {
+                  const stats = subjectStatsById[subject.id] || {
+                    weeklyPracticeCount: 0,
+                    questionBankCount: 0,
+                    mockExamCount: 0,
+                  };
+
+                  return (
+                  <motion.div
+                    key={subject.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{
+                      duration: 0.25,
+                      delay: Math.min(index * 0.03, 0.18),
+                    }}
+                  >
+                    <Link
+                      href={`/library/${subject.slug}`}
+                      className="group flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/40 p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-white dark:hover:bg-slate-900"
+                    >
+                      <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-900/30 text-lg">
+                        {subject.icon || "📚"}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                          {subject.name}
+                        </p>
+                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
+                          <span>{stats.weeklyPracticeCount} weekly</span>
+                          <span aria-hidden className="text-slate-300 dark:text-slate-600">
+                            •
+                          </span>
+                          <span>{stats.questionBankCount} banks</span>
+                          <span aria-hidden className="text-slate-300 dark:text-slate-600">
+                            •
+                          </span>
+                          <span>{stats.mockExamCount} exams</span>
+                        </div>
+                      </div>
+                    </Link>
+                  </motion.div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
+                No subjects available yet. Please check back soon.
+              </p>
+            )}
+          </div>
+        </section>
+
         {showComingSoon && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
@@ -87,7 +200,7 @@ export function LibraryContent({ subjects }: LibraryContentProps) {
               Course Coming Soon
             </h3>
             <p className="text-slate-600 dark:text-slate-400">
-              We couldn't find a matching course in our library right now. We
+              We could not find a matching course in our library right now. We
               are constantly adding new materials!
             </p>
           </motion.div>

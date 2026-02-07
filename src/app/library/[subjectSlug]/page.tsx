@@ -184,6 +184,7 @@ export default async function SubjectPage(props: PageProps) {
       id,
       year,
       semester,
+      created_at,
       title,
       questions:past_exam_questions(count)
     `,
@@ -191,7 +192,8 @@ export default async function SubjectPage(props: PageProps) {
     .eq("subject_id", subject.id)
     .eq("is_published", true)
     .order("year", { ascending: false })
-    .order("semester", { ascending: false });
+    .order("semester", { ascending: false })
+    .order("created_at", { ascending: false });
 
   const [
     profileResult,
@@ -273,6 +275,7 @@ export default async function SubjectPage(props: PageProps) {
     id: exam.id,
     year: exam.year,
     semester: exam.semester,
+    createdAt: exam.created_at,
     title: exam.title,
     questionCount: exam.questions?.[0]?.count || 0,
   }));

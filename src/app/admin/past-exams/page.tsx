@@ -58,7 +58,7 @@ export default async function PastExamsAdminPage() {
             Past Exam Answers
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2">
-            Manage past exam answer keys by subject, year, and semester.
+            Manage past exam answer keys by subject, year, semester, and paper.
           </p>
         </div>
         <Link href="/admin/past-exams/create">

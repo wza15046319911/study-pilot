@@ -1,44 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import { GlassPanel } from "@/components/ui/GlassPanel";
-import {
-  CheckCircle2,
-  XCircle,
-  Zap,
-  ShieldCheck,
-} from "lucide-react";
-import {
-  isPromotionActive,
-} from "@/components/ui/CountdownTimer";
+import { CheckCircle2, XCircle, Zap, ShieldCheck } from "lucide-react";
+import { isPromotionActive } from "@/components/ui/CountdownTimer";
 import { CheckoutButton } from "@/components/payment/CheckoutButton";
 import { FAQSection } from "@/components/common/FAQSection";
 import { Footer } from "@/components/layout/Footer";
 
 // Beta Promotion Config
 const BETA_END_DATE = new Date("2026-02-06T23:59:59+11:00"); // Feb 6, 2026 AEST
-const BETA_PRICE = "A$19.9";
-const NORMAL_PRICE = "A$49.9";
+const BETA_PRICE = "$19.9";
+const NORMAL_PRICE = "$49.9";
 
 export function PricingContent() {
-  const [isPromoActive, setIsPromoActive] = useState(true);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    setIsPromoActive(isPromotionActive(BETA_END_DATE));
-  }, []);
+  const isPromoActive = isPromotionActive(BETA_END_DATE);
 
   const tiers = [
     {
       name: "Free",
-      price: "A$0",
+      price: "$0",
       description: "Perfect for getting started",
       features: [
         "Access to public question banks",
         "Standard practice mode",
-        "10 questions per session",
         "Explanations",
         "Progress tracking",
         "Mistake tracking",
@@ -64,6 +49,7 @@ export function PricingContent() {
         "Unlimited mock exams",
         "Immersive study mode",
         "Flashcard study mode",
+        "Homework",
         "Mistake analysis",
         "PDF exam export",
         "Early access to new features",
@@ -117,7 +103,7 @@ export function PricingContent() {
                   <span
                     className={`text-5xl font-black tracking-tight ${
                       tier.popular
-                        ? "text-green-600 dark:text-green-400"
+                        ? "text-transparent bg-clip-text bg-gradient-to-r from-blue-600 via-cyan-500 to-blue-500 dark:from-blue-300 dark:via-cyan-300 dark:to-blue-400 will-change-transform motion-safe:animate-price-pulse"
                         : "text-slate-900 dark:text-white"
                     }`}
                   >
@@ -132,7 +118,7 @@ export function PricingContent() {
 
                 {/* Savings Badge */}
                 {tier.popular && isPromoActive ? (
-                  <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 text-sm font-bold mt-2">
+                  <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm font-bold mt-2 ring-1 ring-amber-300/60 dark:ring-amber-500/40">
                     <Zap className="size-3" />
                     Save 80%!
                   </div>
@@ -234,13 +220,14 @@ export function PricingContent() {
                   </tr>
                   <tr>
                     <td className="p-6 font-medium dark:text-gray-200">
-                      Questions per Session
+                      Homework
                     </td>
                     <td className="p-6 text-center text-gray-600 dark:text-gray-400">
-                      Limit 10
+                      <span className="sr-only">Not Included</span>
+                      &minus;
                     </td>
                     <td className="p-6 text-center font-bold text-blue-600 dark:text-blue-400">
-                      Unlimited
+                      Included
                     </td>
                   </tr>
                   <tr>
@@ -258,11 +245,11 @@ export function PricingContent() {
                     <td className="p-6 font-medium dark:text-gray-200">
                       Mock Exams
                     </td>
-                    <td className="p-6 text-center text-gray-400 text-2xl">
-                      &minus;
+                    <td className="p-6 text-center text-gray-600 dark:text-gray-400">
+                      Public Exams Only
                     </td>
                     <td className="p-6 text-center font-bold text-blue-600 dark:text-blue-400">
-                      Unlimited
+                      All Exams
                     </td>
                   </tr>
                   <tr>

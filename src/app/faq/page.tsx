@@ -1,7 +1,8 @@
 import { Header } from "@/components/layout/Header";
 import { BlogFooter } from "@/components/blog/BlogFooter";
 import { FAQJsonLd } from "@/components/seo/JsonLd";
-import { ChevronDown } from "lucide-react";
+import { FAQSection } from "@/components/common/FAQSection";
+import { getHeaderUser } from "@/lib/auth/getHeaderUser";
 import Link from "next/link";
 
 export const metadata = {
@@ -48,13 +49,15 @@ const faqs = [
   },
 ];
 
-export default function FAQPage() {
+export default async function FAQPage() {
+  const headerUser = await getHeaderUser();
+
   return (
     <>
       <FAQJsonLd faqs={faqs} />
 
       <div className="relative min-h-screen flex flex-col bg-white dark:bg-slate-950">
-        <Header user={null} />
+        <Header showNav={true} user={headerUser} />
 
         <main className="flex-grow w-full max-w-7xl mx-auto px-4 md:px-8 py-12">
           <div className="max-w-3xl mx-auto">
@@ -80,27 +83,7 @@ export default function FAQPage() {
                 </p>
               </header>
 
-              {/* FAQ Accordion */}
-              <div className="space-y-4">
-                {faqs.map((faq, index) => (
-                  <details
-                    key={index}
-                    className="group bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-100 dark:border-slate-800 overflow-hidden"
-                  >
-                    <summary className="flex items-center justify-between p-6 cursor-pointer list-none select-none">
-                      <h2 className="text-lg font-bold text-slate-900 dark:text-white pr-4">
-                        {faq.question}
-                      </h2>
-                      <ChevronDown className="size-5 text-slate-400 group-open:rotate-180 transition-transform flex-shrink-0" />
-                    </summary>
-                    <div className="px-6 pb-6 pt-0">
-                      <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-                        {faq.answer}
-                      </p>
-                    </div>
-                  </details>
-                ))}
-              </div>
+              <FAQSection showTitle={false} className="py-0" />
             </article>
           </div>
         </main>

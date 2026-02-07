@@ -18,6 +18,7 @@ import {
   Archive,
 } from "lucide-react";
 import { UserWeeklyPracticeClient } from "@/app/profile/weekly-practice/UserWeeklyPracticeClient";
+import { encodeId } from "@/lib/ids";
 
 interface SubjectContentProps {
   subject: {
@@ -60,12 +61,13 @@ type PastExamListItem = {
   id: number;
   year: number;
   semester: number;
+  createdAt?: string;
   title: string | null;
   questionCount: number;
 };
 
 const getSemesterLabel = (semester: number) =>
-  semester === 1 ? "上学期" : "下学期";
+  semester === 1 ? "Semester 1" : "Semester 2";
 
 export function SubjectContent({
   subject,
@@ -116,11 +118,12 @@ export function SubjectContent({
 
   const groupedPastExams = (pastExams || []).reduce(
     (acc, exam) => {
-      if (!acc[exam.year]) acc[exam.year] = [];
-      acc[exam.year].push(exam);
+      if (!acc[exam.year]) acc[exam.year] = {};
+      if (!acc[exam.year][exam.semester]) acc[exam.year][exam.semester] = [];
+      acc[exam.year][exam.semester].push(exam);
       return acc;
     },
-    {} as Record<number, PastExamListItem[]>,
+    {} as Record<number, Record<number, PastExamListItem[]>>,
   );
 
   const sortedYears = Object.keys(groupedPastExams)
@@ -364,10 +367,10 @@ export function SubjectContent({
               {pastExams && pastExams.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {sortedYears.map((year) => {
-                    const examsForYear = groupedPastExams[year] || [];
-                    const sortedSemesters = [...examsForYear].sort(
-                      (a, b) => a.semester - b.semester,
-                    );
+                    const examsBySemester = groupedPastExams[year] || {};
+                    const sortedSemesters = Object.keys(examsBySemester)
+                      .map((semester) => parseInt(semester, 10))
+                      .sort((a, b) => b - a);
 
                     return (
                       <GlassPanel
@@ -388,21 +391,45 @@ export function SubjectContent({
                           </div>
                         </div>
 
-                        <div className="flex flex-wrap gap-2">
-                          {sortedSemesters.map((exam) => (
-                            <Link
-                              key={exam.id}
-                              href={`/library/${subject.slug}/past-exams/${exam.year}/${exam.semester}`}
-                              className="group inline-flex items-center gap-2 px-4 py-2 rounded-full border border-amber-200/70 dark:border-amber-800/60 bg-amber-50/60 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 text-sm font-semibold hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
-                              title={exam.title || undefined}
-                            >
-                              {getSemesterLabel(exam.semester)}
-                              <span className="text-xs font-mono text-amber-700/70 dark:text-amber-200/70">
-                                {exam.questionCount}题
-                              </span>
-                              <ChevronRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </Link>
-                          ))}
+                        <div className="space-y-4">
+                          {sortedSemesters.map((semester) => {
+                            const examsInSemester = [
+                              ...(examsBySemester[semester] || []),
+                            ].sort((a, b) => {
+                              const aTime = a.createdAt
+                                ? new Date(a.createdAt).getTime()
+                                : 0;
+                              const bTime = b.createdAt
+                                ? new Date(b.createdAt).getTime()
+                                : 0;
+                              return bTime - aTime;
+                            });
+
+                            return (
+                              <div key={`${year}-${semester}`}>
+                                <div className="text-xs font-bold uppercase tracking-[0.18em] text-amber-700/80 dark:text-amber-300/80 mb-2">
+                                  {getSemesterLabel(semester)}
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  {examsInSemester.map((exam, index) => (
+                                    <Link
+                                      key={exam.id}
+                                      href={`/library/${subject.slug}/past-exams/${exam.year}/${exam.semester}/${encodeId(exam.id)}`}
+                                      className="group inline-flex items-center gap-2 px-4 py-2 rounded-full border border-amber-200/70 dark:border-amber-800/60 bg-amber-50/60 dark:bg-amber-900/20 text-amber-800 dark:text-amber-200 text-sm font-semibold hover:bg-amber-100 dark:hover:bg-amber-900/40 transition-colors"
+                                      title={exam.title || undefined}
+                                    >
+                                      {exam.title?.trim() ||
+                                        `Paper ${index + 1}`}
+                                      <span className="text-xs font-mono text-amber-700/70 dark:text-amber-200/70">
+                                        {exam.questionCount}题
+                                      </span>
+                                      <ChevronRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    </Link>
+                                  ))}
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       </GlassPanel>
                     );

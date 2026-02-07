@@ -630,7 +630,7 @@ export function ProfileContent({
               <div className="grid grid-cols-1 gap-8 mb-8">
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
                   <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                    Daily Activity
+                    Daily Trends
                   </h3>
                   <DailyTrendChart data={dailyActivity} />
                 </div>

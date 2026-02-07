@@ -29,6 +29,23 @@ interface HomeworkAssignmentWithDetails {
   } | null;
 }
 
+interface HomeworkPreviewItem {
+  id: number;
+  title: string;
+  dueAt: string | null;
+  completedAt: string | null;
+}
+
+interface AccessibleBank {
+  id: number;
+  title: string;
+  slug: string | null;
+  subjects: Subject;
+  is_premium: boolean;
+  unlock_type: "free" | "premium" | "referral" | "paid";
+  access_status: "Free" | "Unlocked" | "Premium";
+}
+
 export default async function ProfilePage() {
   const supabase = await createClient();
 
@@ -261,6 +278,36 @@ export default async function ProfilePage() {
     due: homeworkAssignments.filter((h) => !h.completed_at).length,
   };
 
+  const homeworkPreview: HomeworkPreviewItem[] = homeworkAssignments
+    .flatMap((assignment) => {
+      if (!assignment.homeworks) return [];
+
+      return [
+        {
+          id: assignment.homeworks.id,
+          title: assignment.homeworks.title,
+          dueAt: assignment.homeworks.due_at,
+          completedAt: assignment.completed_at,
+        },
+      ];
+    })
+    .sort((a, b) => {
+      if (!!a.completedAt !== !!b.completedAt) {
+        return a.completedAt ? 1 : -1;
+      }
+
+      if (a.dueAt && b.dueAt) {
+        return (
+          new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime()
+        );
+      }
+
+      if (a.dueAt) return -1;
+      if (b.dueAt) return 1;
+      return 0;
+    })
+    .slice(0, 3);
+
   // --- Analytics Aggregation ---
 
   // 1. Daily Activity (Last 30 Days)
@@ -349,7 +396,7 @@ export default async function ProfilePage() {
         : 0,
   };
 
-  const accessibleBanks: any[] = [];
+  const accessibleBanks: AccessibleBank[] = [];
 
   // Fallback profile if not found (should be handled by trigger, but just in case)
   // Also merge auth metadata avatar if profile doesn't have one
@@ -406,6 +453,7 @@ export default async function ProfilePage() {
           userQuestionBanks={userQuestionBanks}
           userExams={userExams}
           homeworkStats={homeworkStats}
+          homeworkPreview={homeworkPreview}
           isAdmin={userData.is_admin || false}
         />
       </main>

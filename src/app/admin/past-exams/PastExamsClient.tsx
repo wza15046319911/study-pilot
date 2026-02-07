@@ -33,7 +33,7 @@ interface PastExamsClientProps {
 }
 
 const getSemesterLabel = (semester: number) =>
-  semester === 1 ? "上学期" : "下学期";
+  semester === 1 ? "Semester 1" : "Semester 2";
 
 export function PastExamsClient({ groupedPastExams }: PastExamsClientProps) {
   const router = useRouter();

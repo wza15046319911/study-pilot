@@ -87,8 +87,8 @@ export default function PastExamBuilder({
   );
 
   const semesterOptions = [
-    { value: "1", label: "上学期" },
-    { value: "2", label: "下学期" },
+    { value: "1", label: "Semester 1" },
+    { value: "2", label: "Semester 2" },
   ];
 
   const addQuestion = () => {
@@ -188,7 +188,7 @@ export default function PastExamBuilder({
             {initialData ? "Edit Past Exam" : "Create Past Exam"}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1">
-            Capture answer keys by subject, year, and semester.
+            Capture answer keys by subject, year, semester, and paper.
           </p>
         </div>
       </div>
@@ -250,8 +250,12 @@ export default function PastExamBuilder({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="mt-2"
-                  placeholder="2023 上学期答案解析"
+                  placeholder="2023 Semester 1 Answer Key"
                 />
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  Tip: set a distinct title when the same semester has multiple
+                  papers.
+                </p>
               </div>
 
               <div className="flex items-center justify-between pt-2">

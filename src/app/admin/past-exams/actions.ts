@@ -2,6 +2,7 @@
 
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { encodeId } from "@/lib/ids";
 
 interface UpsertPastExamInput {
   pastExamId?: number;
@@ -113,6 +114,11 @@ export async function upsertPastExam(input: UpsertPastExamInput) {
     revalidatePath(
       `/library/${currentSlug}/past-exams/${input.year}/${input.semester}`,
     );
+    if (pastExamId) {
+      revalidatePath(
+        `/library/${currentSlug}/past-exams/${input.year}/${input.semester}/${encodeId(pastExamId)}`,
+      );
+    }
   }
 
   if (!pastExamId) {

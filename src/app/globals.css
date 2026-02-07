@@ -6,6 +6,8 @@
 html {
   font-size: 125%; /* approx 20px base size (increased from 17px) */
   color-scheme: light dark;
+  text-size-adjust: 100%;
+  -webkit-text-size-adjust: 100%;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -63,9 +65,9 @@ html {
   --color-primary-dark: var(--primary-dark);
   --color-background-light: var(--background-light);
   --color-background-dark: var(--background-dark);
-  --font-sans: "Lexend", "Noto Sans SC", sans-serif;
+  --font-sans: var(--font-lexend), var(--font-noto-sans-sc), sans-serif;
   --font-serif: "Times New Roman", Times, serif;
-  --font-mono: "Maple Mono", "Fira Code", monospace;
+  --font-mono: "Maple Mono", var(--font-fira-code), monospace;
 
   /* Semantic Utilities */
   --color-background: var(--background);
@@ -102,6 +104,7 @@ html {
   --animate-slide: slide var(--speed) ease-in-out infinite alternate;
   --animate-first: moveFirst 4s infinite alternate;
   --animate-beam-path: beamPath 4s infinite linear;
+  --animate-price-pulse: pricePulse 2.6s ease-in-out infinite;
   
   @keyframes aurora {
     from {
@@ -165,6 +168,17 @@ html {
     }
     100% {
       stroke-dashoffset: -1000;
+    }
+  }
+
+  @keyframes pricePulse {
+    0%, 100% {
+      filter: drop-shadow(0 2px 12px rgba(37, 99, 235, 0.35));
+      transform: scale(1);
+    }
+    50% {
+      filter: drop-shadow(0 6px 18px rgba(56, 189, 248, 0.45));
+      transform: scale(1.04);
     }
   }
 }
@@ -257,7 +271,7 @@ html {
 
 /* Base Styles */
 body {
-  font-family: "Lexend", "Noto Sans SC", sans-serif;
+  font-family: var(--font-sans);
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }

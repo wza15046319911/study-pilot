@@ -10,6 +10,7 @@ interface FAQItem {
 interface FAQSectionProps {
   title?: string;
   className?: string;
+  showTitle?: boolean;
 }
 
 const FAQS: FAQItem[] = [
@@ -53,13 +54,16 @@ const FAQS: FAQItem[] = [
 export function FAQSection({
   title = "Frequently Asked Questions",
   className = "",
+  showTitle = true,
 }: FAQSectionProps) {
   return (
     <section className={`py-12 md:py-20 ${className}`}>
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
-        <h2 className="text-3xl md:text-4xl font-bold text-center text-slate-900 dark:text-white mb-10 tracking-tight">
-          {title}
-        </h2>
+        {showTitle && (
+          <h2 className="text-3xl md:text-4xl font-bold text-center text-slate-900 dark:text-white mb-10 tracking-tight">
+            {title}
+          </h2>
+        )}
 
         <div className="space-y-4">
           {FAQS.map((faq, index) => (

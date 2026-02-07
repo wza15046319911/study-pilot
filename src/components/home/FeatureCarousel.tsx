@@ -4,8 +4,9 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FeatureQuestionBank } from "./features/FeatureQuestionBank";
 import { FeatureMockExam } from "./features/FeatureMockExam";
-import { FeatureMistakes } from "./features/FeatureMistakes";
-import { FeatureAnalysis } from "./features/FeatureAnalysis";
+import { FeatureWeeklyPractice } from "./features/FeatureWeeklyPractice";
+import { FeatureHomework } from "./features/FeatureHomework";
+import { FeatureMistakeAnalysis } from "./features/FeatureMistakeAnalysis";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 
 const features = [
@@ -18,24 +19,31 @@ const features = [
   },
   {
     id: "mock",
-    title: "Mock Exams",
+    title: "Mock Exam",
     description: "Simulate real exam conditions with strict timing and varied question types. Identify gaps and build confidence before the big day.",
     component: <FeatureMockExam />,
     color: "bg-purple-500",
   },
   {
-    id: "mistakes",
-    title: "Smart Mistake Book",
-    description: "Automatically tracks your mistakes and identifies weak points. Review and retry until you turn every weakness into a strength.",
-    component: <FeatureMistakes />,
-    color: "bg-red-500",
+    id: "weekly-practice",
+    title: "Weekly Practice",
+    description: "Follow a weekly study rhythm with focused tasks and topic targets. Build consistency and keep your momentum all semester.",
+    component: <FeatureWeeklyPractice />,
+    color: "bg-emerald-500",
   },
   {
-    id: "analysis",
-    title: "Performance Analytics",
-    description: "Visualize your progress and accuracy. Use multi-dimensional charts to analyze strengths and weaknesses for a scientific study path.",
-    component: <FeatureAnalysis />,
-    color: "bg-green-500",
+    id: "homework",
+    title: "Homework",
+    description: "Complete assigned problem sets with clear deadlines and instant feedback. Stay on track and close gaps before they become risks.",
+    component: <FeatureHomework />,
+    color: "bg-amber-500",
+  },
+  {
+    id: "mistakes-analysis",
+    title: "Mistakes Analysis",
+    description: "Analyze recurring error patterns by topic and attempt history. Turn every wrong answer into a measurable improvement plan.",
+    component: <FeatureMistakeAnalysis />,
+    color: "bg-rose-500",
   },
 ];
 

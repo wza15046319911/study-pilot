@@ -24,7 +24,7 @@ interface PastExamAnswerContentProps {
 }
 
 const getSemesterLabel = (semester: number) =>
-  semester === 1 ? "上学期" : "下学期";
+  semester === 1 ? "Semester 1" : "Semester 2";
 
 const formatTypeLabel = (type: string) =>
   type
@@ -62,6 +62,7 @@ export function PastExamAnswerContent({
           <ChevronRight className="size-4" />
           <span className="text-slate-900 dark:text-white font-medium">
             {exam.year} {semesterLabel}
+            {exam.title?.trim() ? ` · ${exam.title}` : ""}
           </span>
         </div>
 
