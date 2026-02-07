@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { GlassPanel } from "@/components/ui/GlassPanel";
@@ -101,8 +101,20 @@ export function PracticeSession({
   const [isFocusMode, setIsFocusMode] = useState(false);
   const [topics, setTopics] = useState<Record<number, string>>({});
   const [expandedTopics, setExpandedTopics] = useState<Set<string>>(new Set());
+  const progressSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const isHydratingSessionRef = useRef(true);
+  const hasRestoredSessionRef = useRef(false);
 
   const supabase: any = createClient();
+
+  const sessionStorageKey = useMemo(() => {
+    const questionSignature = questions.map((q) => q.id).join("-");
+    if (homeworkId) return `practice-session:homework:${homeworkId}`;
+    if (weeklyPracticeId) return `practice-session:weekly:${weeklyPracticeId}`;
+    return `practice-session:subject:${subjectId}:${questionSignature}`;
+  }, [questions, homeworkId, weeklyPracticeId, subjectId]);
 
   // Handle Fullscreen changes (e.g. user presses Esc)
   useEffect(() => {
@@ -181,6 +193,173 @@ export function PracticeSession({
 
     return { function_name, test_cases };
   };
+
+  const getAnswerStats = (answerMap: Record<number, string>) => {
+    let answeredCount = 0;
+    let correctCount = 0;
+
+    for (const q of questions) {
+      const userAnswer = answerMap[q.id];
+      if (!userAnswer) continue;
+      answeredCount += 1;
+      if (isQuestionCorrect(q, userAnswer)) {
+        correctCount += 1;
+      }
+    }
+
+    return { answeredCount, correctCount };
+  };
+
+  const savePartialProgress = async (answerMap: Record<number, string>) => {
+    if (isGuest || (!homeworkId && !weeklyPracticeId)) return;
+
+    const { answeredCount, correctCount } = getAnswerStats(answerMap);
+    if (answeredCount === 0) return;
+
+    try {
+      if (homeworkId) {
+        const { saveHomeworkProgress } = await import("@/app/homework/actions");
+        await saveHomeworkProgress({
+          homeworkId,
+          answeredCount,
+          correctCount,
+          totalCount: questions.length,
+          durationSeconds: elapsedTime,
+          mode: homeworkMode,
+        });
+      }
+
+      if (weeklyPracticeId) {
+        const { saveWeeklyPracticeProgress } = await import(
+          "@/app/weekly-practice/actions"
+        );
+        await saveWeeklyPracticeProgress({
+          weeklyPracticeId,
+          answeredCount,
+          correctCount,
+          totalCount: questions.length,
+          durationSeconds: elapsedTime,
+          mode: weeklyPracticeMode,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to save partial progress:", error);
+    }
+  };
+
+  const flushProgressSave = async () => {
+    if (progressSaveTimeoutRef.current) {
+      clearTimeout(progressSaveTimeoutRef.current);
+      progressSaveTimeoutRef.current = null;
+    }
+    await savePartialProgress(answers);
+  };
+
+  const handleExitSession = async () => {
+    await flushProgressSave();
+    router.push(exitLink);
+  };
+
+  useEffect(() => {
+    if (hasRestoredSessionRef.current) return;
+    hasRestoredSessionRef.current = true;
+
+    try {
+      const raw = sessionStorage.getItem(sessionStorageKey);
+      if (!raw) {
+        return;
+      }
+
+      const parsed = JSON.parse(raw) as {
+        currentIndex?: number;
+        answers?: Record<string, unknown>;
+        checkedAnswers?: Record<string, unknown>;
+      };
+
+      const validQuestionIds = new Set(questions.map((q) => String(q.id)));
+
+      if (typeof parsed.currentIndex === "number") {
+        const safeIndex = Math.min(
+          Math.max(parsed.currentIndex, 0),
+          questions.length - 1,
+        );
+        setCurrentIndex(safeIndex);
+      }
+
+      if (parsed.answers && typeof parsed.answers === "object") {
+        const restoredAnswers = Object.fromEntries(
+          Object.entries(parsed.answers).filter(
+            ([questionId, value]) =>
+              validQuestionIds.has(questionId) && typeof value === "string",
+          ),
+        ) as Record<number, string>;
+        setAnswers(restoredAnswers);
+      }
+
+      if (parsed.checkedAnswers && typeof parsed.checkedAnswers === "object") {
+        const restoredCheckedAnswers = Object.fromEntries(
+          Object.entries(parsed.checkedAnswers).filter(
+            ([questionId, value]) =>
+              validQuestionIds.has(questionId) && typeof value === "boolean",
+          ),
+        ) as Record<number, boolean>;
+        setCheckedAnswers(restoredCheckedAnswers);
+      }
+    } catch (error) {
+      console.error("Failed to restore practice session progress:", error);
+    } finally {
+      isHydratingSessionRef.current = false;
+    }
+  }, [questions, sessionStorageKey]);
+
+  useEffect(() => {
+    if (isHydratingSessionRef.current) return;
+
+    try {
+      sessionStorage.setItem(
+        sessionStorageKey,
+        JSON.stringify({
+          currentIndex,
+          answers,
+          checkedAnswers,
+        }),
+      );
+    } catch (error) {
+      console.error("Failed to persist practice session progress:", error);
+    }
+  }, [sessionStorageKey, currentIndex, answers, checkedAnswers]);
+
+  useEffect(() => {
+    if (isHydratingSessionRef.current) return;
+    if (showResults || isSubmitting) return;
+    if (isGuest || (!homeworkId && !weeklyPracticeId)) return;
+    if (Object.keys(answers).length === 0) return;
+
+    if (progressSaveTimeoutRef.current) {
+      clearTimeout(progressSaveTimeoutRef.current);
+    }
+
+    progressSaveTimeoutRef.current = setTimeout(() => {
+      void savePartialProgress(answers);
+      progressSaveTimeoutRef.current = null;
+    }, 700);
+  }, [
+    answers,
+    showResults,
+    isSubmitting,
+    isGuest,
+    homeworkId,
+    weeklyPracticeId,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      if (progressSaveTimeoutRef.current) {
+        clearTimeout(progressSaveTimeoutRef.current);
+        progressSaveTimeoutRef.current = null;
+      }
+    };
+  }, []);
 
   // Fetch bookmarks
   useEffect(() => {
@@ -404,6 +583,11 @@ export function PracticeSession({
   };
 
   const finishPractice = async () => {
+    if (progressSaveTimeoutRef.current) {
+      clearTimeout(progressSaveTimeoutRef.current);
+      progressSaveTimeoutRef.current = null;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -461,6 +645,7 @@ export function PracticeSession({
       }
 
       // Show results modal
+      sessionStorage.removeItem(sessionStorageKey);
       setFinalScore(correctCount);
       setShowResults(true);
       setIsSubmitting(false);
@@ -605,7 +790,7 @@ export function PracticeSession({
               <Button
                 variant="ghost"
                 className="w-full justify-center text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 font-serif font-bold rounded-sm border border-transparent hover:border-red-200"
-                onClick={() => router.push(exitLink)}
+                onClick={handleExitSession}
               >
                 <LogOut className="mr-2 size-4" />
                 Exit Session
@@ -651,7 +836,7 @@ export function PracticeSession({
                   variant="ghost"
                   size="sm"
                   className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 font-serif font-bold"
-                  onClick={() => router.push(exitLink)}
+                  onClick={handleExitSession}
                 >
                   <LogOut className="mr-2 size-4" />
                   Exit Session
@@ -1023,6 +1208,7 @@ export function PracticeSession({
           subjectId={subjectId}
           onReviewMistakes={() => router.push("/profile/mistakes")}
           onPracticeAgain={() => {
+            sessionStorage.removeItem(sessionStorageKey);
             setShowResults(false);
             setCurrentIndex(0);
             setAnswers({});

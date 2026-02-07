@@ -28,3 +28,14 @@ export function decodeId(id: string): number | null {
   const decoded = sqids.decode(id);
   return decoded.length > 0 ? decoded[0] : null;
 }
+
+/**
+ * Prefer human-readable slug when available, otherwise use encoded short id.
+ */
+export function slugOrEncodedId(
+  slug: string | null | undefined,
+  id: number
+): string {
+  const normalizedSlug = slug?.trim();
+  return normalizedSlug ? normalizedSlug : encodeId(id);
+}

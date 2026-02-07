@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { PracticeSession } from "@/app/practice/[subjectSlug]/PracticeSession";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
+import { decodeId } from "@/lib/ids";
 
 interface PageProps {
   params: Promise<{
@@ -13,6 +14,7 @@ interface PageProps {
 export default async function WeeklyPracticeSessionPage(props: PageProps) {
   const params = await props.params;
   const { slug } = params;
+  const decodedWeeklyPracticeId = decodeId(slug);
   const supabase = await createClient();
 
   const {
@@ -23,13 +25,23 @@ export default async function WeeklyPracticeSessionPage(props: PageProps) {
     redirect(`/login?next=/weekly-practice/${slug}/practice`);
   }
 
-  const { data: weeklyPractice, error } = await (
+  let { data: weeklyPractice, error } = await (
     supabase.from("weekly_practices") as any
   )
     .select("id, slug, subject_id, allowed_modes")
     .eq("slug", slug)
     .eq("is_published", true)
     .maybeSingle();
+
+  if (!weeklyPractice && decodedWeeklyPracticeId !== null) {
+    const fallbackResult = await (supabase.from("weekly_practices") as any)
+      .select("id, slug, subject_id, allowed_modes")
+      .eq("id", decodedWeeklyPracticeId)
+      .eq("is_published", true)
+      .maybeSingle();
+    weeklyPractice = fallbackResult.data;
+    error = fallbackResult.error;
+  }
 
   if (!weeklyPractice || error) {
     return (

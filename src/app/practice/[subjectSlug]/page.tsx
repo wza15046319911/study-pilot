@@ -50,14 +50,25 @@ export default async function PracticePage(props: PageProps) {
     redirect("/library");
   }
 
-  // Fetch subject by slug
-  const { data: subjectData } = await supabase
+  let subject: { id: number; slug: string } | null = null;
+  const decodedSubjectId = decodeId(subjectSlug);
+
+  const { data: subjectBySlug } = await supabase
     .from("subjects")
     .select("id, slug")
     .eq("slug", subjectSlug)
-    .single();
+    .maybeSingle();
 
-  const subject = subjectData as { id: number; slug: string } | null;
+  subject = (subjectBySlug as { id: number; slug: string } | null) || null;
+
+  if (!subject && decodedSubjectId !== null) {
+    const { data: subjectById } = await supabase
+      .from("subjects")
+      .select("id, slug")
+      .eq("id", decodedSubjectId)
+      .maybeSingle();
+    subject = (subjectById as { id: number; slug: string } | null) || null;
+  }
 
   if (!subject) {
     return (
@@ -161,7 +172,7 @@ export default async function PracticePage(props: PageProps) {
           <NotFoundPage
             title="No Questions Found"
             description="We couldn't find any questions matching your filters."
-            backLink={`/practice/${subjectSlug}/setup`}
+            backLink={`/practice/${subject.slug}/setup`}
             backText="Adjust Filters"
           />
         </div>
@@ -238,7 +249,7 @@ export default async function PracticePage(props: PageProps) {
         user={sessionUser}
         subjectId={subject.id}
         enableTimer={searchParamsStr.timer !== "false"}
-        exitLink={`/library/${subjectSlug}`}
+        exitLink={`/library/${subject.slug}`}
       />
     </div>
   );

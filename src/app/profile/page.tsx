@@ -134,15 +134,16 @@ export default async function ProfilePage() {
       added_at,
       completion_count,
       last_completed_at,
-      question_banks (
-        id,
-        title,
-        slug,
-        subjects (
-          name,
-          slug
+        question_banks (
+          id,
+          title,
+          slug,
+          subjects (
+            id,
+            name,
+            slug
+          )
         )
-      )
     `,
     )
     .eq("user_id", user.id)
@@ -177,9 +178,11 @@ export default async function ProfilePage() {
       last_attempted_at,
       exams (
         id,
+        subject_id,
         title,
         slug,
         subjects (
+          id,
           name,
           slug
         )

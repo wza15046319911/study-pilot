@@ -4,6 +4,7 @@ import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
 import { Header } from "@/components/layout/Header";
 import { QuestionBankPreviewContent } from "@/app/question-banks/[slug]/QuestionBankPreviewContent";
+import { slugOrEncodedId } from "@/lib/ids";
 
 interface PageProps {
   params: Promise<{
@@ -181,6 +182,7 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
   const bankWithLibraryContext = {
     ...bank,
     libraryBasePath: `/library/${subjectSlug}/question-banks/${questionBankSlug}`,
+    routeId: slugOrEncodedId(bank.slug, bank.id),
   };
 
   return (

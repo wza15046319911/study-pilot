@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { PracticeSession } from "@/app/practice/[subjectSlug]/PracticeSession";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
+import { decodeId, slugOrEncodedId } from "@/lib/ids";
 
 interface PageProps {
   params: Promise<{
@@ -13,6 +14,7 @@ interface PageProps {
 export default async function QuestionBankPracticePage(props: PageProps) {
   const params = await props.params;
   const { slug } = params;
+  const decodedBankId = decodeId(slug);
   const supabase = await createClient();
 
   // Check Auth
@@ -25,12 +27,21 @@ export default async function QuestionBankPracticePage(props: PageProps) {
   }
 
   // Fetch Bank Metadata
-  const { data: bank, error: bankError } = await (
+  let { data: bank, error: bankError } = await (
     supabase.from("question_banks") as any
   )
     .select("id, slug, subject_id, is_premium, unlock_type")
     .eq("slug", slug)
     .maybeSingle();
+
+  if (!bank && decodedBankId !== null) {
+    const fallbackResult = await (supabase.from("question_banks") as any)
+      .select("id, slug, subject_id, is_premium, unlock_type")
+      .eq("id", decodedBankId)
+      .maybeSingle();
+    bank = fallbackResult.data;
+    bankError = fallbackResult.error;
+  }
 
   if (!bank || bankError) {
     return (
@@ -93,8 +104,10 @@ export default async function QuestionBankPracticePage(props: PageProps) {
     }
   }
 
+  const bankRouteId = slugOrEncodedId(bank.slug, bank.id);
+
   if (!isUnlocked) {
-    redirect(`/question-banks/${slug}`);
+    redirect(`/question-banks/${bankRouteId}`);
   }
 
   // Fetch Questions in Order
@@ -130,7 +143,7 @@ export default async function QuestionBankPracticePage(props: PageProps) {
           <NotFoundPage
             title="Empty Bank"
             description="This question bank has no questions yet."
-            backLink={`/question-banks/${slug}`}
+            backLink={`/question-banks/${bankRouteId}`}
             backText="Back to Preview"
           />
         </div>
@@ -164,7 +177,7 @@ export default async function QuestionBankPracticePage(props: PageProps) {
         user={sessionUser}
         subjectId={bank.subject_id}
         mode="practice"
-        exitLink={`/question-banks/${slug}`}
+        exitLink={`/question-banks/${bankRouteId}`}
       />
     </div>
   );

@@ -42,7 +42,7 @@ export function ExamPreviewContent({
   isUnlocked,
   libraryContext,
 }: ExamPreviewContentProps) {
-  const startLink = `/practice/${libraryContext.subjectSlug}/exam/${exam.slug}`;
+  const startLink = `/practice/${libraryContext.subjectSlug}/exam/${exam.routeId || exam.slug}`;
 
   // Use GraduationCap as the main icon for Exams
   const IconComponent = <GraduationCap className="size-20 text-indigo-500" />;

@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/AlertDialog";
 import { deleteExam } from "./actions";
+import { slugOrEncodedId } from "@/lib/ids";
 
 interface Exam {
   id: number;
@@ -104,7 +105,7 @@ export function ExamsClient({ groupedExams }: ExamsClientProps) {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {exams.map((exam) => (
                   <div key={exam.id} className="relative group">
-                    <Link href={`/admin/exams/${exam.id}`}>
+                    <Link href={`/admin/exams/${slugOrEncodedId(exam.slug, exam.id)}`}>
                       <GlassPanel className="p-6 hover:shadow-lg transition-shadow cursor-pointer h-full">
                         <div className="flex items-start justify-between mb-4">
                           <div>

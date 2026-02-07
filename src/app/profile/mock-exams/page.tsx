@@ -36,10 +36,12 @@ export default async function MockExamsPage() {
         last_attempted_at,
         exams (
           id,
+          subject_id,
           title,
           slug,
           duration_minutes,
           subjects (
+            id,
             name,
             slug
           )

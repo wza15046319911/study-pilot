@@ -4,6 +4,7 @@ import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { Header } from "@/components/layout/Header";
 import FlashcardSession from "@/app/practice/[subjectSlug]/flashcards/FlashcardSession";
 import { Profile, Question } from "@/types/database";
+import { decodeId } from "@/lib/ids";
 
 interface PageProps {
   params: Promise<{
@@ -14,6 +15,7 @@ interface PageProps {
 export default async function HomeworkFlashcardsPage(props: PageProps) {
   const params = await props.params;
   const { slug } = params;
+  const decodedHomeworkId = decodeId(slug);
   const supabase = await createClient();
 
   const {
@@ -24,11 +26,20 @@ export default async function HomeworkFlashcardsPage(props: PageProps) {
     redirect(`/login?next=/homework/${slug}/flashcards`);
   }
 
-  const { data: homework } = await (supabase.from("homeworks") as any)
+  let { data: homework } = await (supabase.from("homeworks") as any)
     .select("*, subject:subjects(*)")
     .eq("slug", slug)
     .eq("is_published", true)
     .maybeSingle();
+
+  if (!homework && decodedHomeworkId !== null) {
+    const fallbackResult = await (supabase.from("homeworks") as any)
+      .select("*, subject:subjects(*)")
+      .eq("id", decodedHomeworkId)
+      .eq("is_published", true)
+      .maybeSingle();
+    homework = fallbackResult.data;
+  }
 
   if (!homework) {
     redirect("/profile/homework");

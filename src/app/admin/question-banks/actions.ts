@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { encodeId, slugOrEncodedId } from "@/lib/ids";
 
 export async function createQuestionBank(data: {
   subjectId: number;
@@ -136,7 +137,8 @@ export async function updateQuestionBank(data: {
   }
 
   revalidatePath("/admin/question-banks");
-  revalidatePath(`/admin/question-banks/${data.bankId}`);
+  revalidatePath(`/admin/question-banks/${slugOrEncodedId(data.slug, data.bankId)}`);
+  revalidatePath(`/admin/question-banks/${encodeId(data.bankId)}`);
   return { success: true };
 }
 

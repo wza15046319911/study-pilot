@@ -4,6 +4,7 @@ import { Header } from "@/components/layout/Header";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { PracticeSetupContent } from "./PracticeSetupContent";
 import { Profile, Subject } from "@/types/database";
+import { decodeId } from "@/lib/ids";
 
 interface PageProps {
   params: Promise<{
@@ -39,14 +40,24 @@ export default async function SetupPage(props: PageProps) {
     redirect("/library");
   }
 
-  // Fetch subject details by Slug
-  const { data: subjectData } = await supabase
+  const decodedSubjectId = decodeId(subjectSlug);
+  let subject: Subject | null = null;
+
+  const { data: subjectBySlug } = await supabase
     .from("subjects")
     .select("*")
     .eq("slug", subjectSlug)
-    .single();
+    .maybeSingle();
+  subject = (subjectBySlug as Subject | null) || null;
 
-  const subject = subjectData as Subject | null;
+  if (!subject && decodedSubjectId !== null) {
+    const { data: subjectById } = await supabase
+      .from("subjects")
+      .select("*")
+      .eq("id", decodedSubjectId)
+      .maybeSingle();
+    subject = (subjectById as Subject | null) || null;
+  }
 
   if (!subject) {
     redirect("/library");

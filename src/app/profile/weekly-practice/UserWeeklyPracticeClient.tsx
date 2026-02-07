@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { slugOrEncodedId } from "@/lib/ids";
 import {
   Calendar,
   ChevronRight,
@@ -46,6 +47,22 @@ const formatWeek = (weekStart: string | null) => {
   }).format(date);
 };
 
+const isFullyCompleted = (
+  submission:
+    | {
+        answered_count: number;
+        total_count: number;
+      }
+    | null
+    | undefined,
+  totalQuestions: number,
+) => {
+  if (!submission) return false;
+  const targetCount = submission.total_count || totalQuestions;
+  if (targetCount <= 0) return false;
+  return submission.answered_count >= targetCount;
+};
+
 export function UserWeeklyPracticeClient({
   initialData,
   showSummary = true,
@@ -60,8 +77,12 @@ export function UserWeeklyPracticeClient({
 
     initialData.forEach((practice) => {
       const submission = practice.latestSubmission;
+      const totalQuestions =
+        submission?.total_count || practice.items?.[0]?.count || 0;
       if (submission) {
-        totalCompleted += 1;
+        if (isFullyCompleted(submission, totalQuestions)) {
+          totalCompleted += 1;
+        }
         totalAnswered += submission.answered_count;
         totalCorrect += submission.correct_count;
       }
@@ -83,8 +104,11 @@ export function UserWeeklyPracticeClient({
         subjectName.toLowerCase().includes(query.toLowerCase());
       if (!matchesQuery) return false;
       if (filter === "all") return true;
-      if (filter === "completed") return Boolean(practice.latestSubmission);
-      if (filter === "pending") return !practice.latestSubmission;
+      const submission = practice.latestSubmission;
+      const totalQuestions = submission?.total_count || practice.items?.[0]?.count || 0;
+      const completed = isFullyCompleted(submission, totalQuestions);
+      if (filter === "completed") return completed;
+      if (filter === "pending") return !completed;
       return true;
     });
   }, [initialData, query, filter]);
@@ -151,14 +175,17 @@ export function UserWeeklyPracticeClient({
       ) : (
         <div className="grid gap-6">
           {filtered.map((practice) => {
-            const totalQuestions = practice.items?.[0]?.count || 0;
             const submission = practice.latestSubmission;
+            const totalQuestions =
+              submission?.total_count || practice.items?.[0]?.count || 0;
             const answeredCount = submission?.answered_count || 0;
+            const isCompleted = isFullyCompleted(submission, totalQuestions);
+            const isInProgress = Boolean(submission) && !isCompleted;
             const progressPercent =
               totalQuestions > 0
                 ? Math.min(
                     100,
-                    Math.round((answeredCount / totalQuestions) * 100)
+                    Math.round((answeredCount / totalQuestions) * 100),
                   )
                 : 0;
 
@@ -181,12 +208,18 @@ export function UserWeeklyPracticeClient({
                       )}
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                          submission
+                          isCompleted
                             ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                            : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                            : isInProgress
+                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                              : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
                         }`}
                       >
-                        {submission ? "Completed" : "Not started"}
+                        {isCompleted
+                          ? "Completed"
+                          : isInProgress
+                            ? "In progress"
+                            : "Not started"}
                       </span>
                     </div>
 
@@ -228,15 +261,13 @@ export function UserWeeklyPracticeClient({
                   </div>
 
                   <div className="flex items-start justify-end">
-                    {practice.slug && (
-                      <Link
-                        href={`/weekly-practice/${practice.slug}/practice`}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors"
-                      >
-                        Start Session
-                        <ArrowUpRight className="size-3" />
-                      </Link>
-                    )}
+                    <Link
+                      href={`/weekly-practice/${slugOrEncodedId(practice.slug, practice.id)}/practice`}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors"
+                    >
+                      {isInProgress ? "Continue Session" : "Start Session"}
+                      <ArrowUpRight className="size-3" />
+                    </Link>
                   </div>
                 </div>
               </div>

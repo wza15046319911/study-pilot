@@ -27,6 +27,7 @@ import {
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { slugOrEncodedId } from "@/lib/ids";
 
 const DailyTrendChart = dynamic(
   () =>
@@ -117,6 +118,7 @@ interface ProfileContentProps {
     last_attempted_at: string | null;
     exams: {
       id: number;
+      subject_id: number;
       title: string;
       slug: string | null;
       duration_minutes: number;
@@ -611,7 +613,7 @@ export function ProfileContent({
                   userQuestionBanks.slice(0, 2).map((item) => (
                     <Link
                       key={item.id}
-                      href={`/library/${item.question_banks.subjects?.slug}/question-bank/${item.question_banks.slug || item.bank_id}`}
+                      href={`/question-banks/${slugOrEncodedId(item.question_banks.slug, item.bank_id)}`}
                       className="group p-5 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 hover:from-violet-100 hover:to-purple-100 dark:hover:from-violet-900/30 dark:hover:to-purple-900/30 transition-all duration-300 border border-violet-100 dark:border-violet-800/50 hover:border-violet-200 dark:hover:border-violet-700"
                     >
                       <div className="flex items-start justify-between mb-3">
@@ -677,7 +679,7 @@ export function ProfileContent({
                   userExams.slice(0, 2).map((item) => (
                     <Link
                       key={item.id}
-                      href={`/practice/${item.exams.subjects?.slug || "unknown"}/exam/${item.exams.slug || item.exam_id}`}
+                      href={`/practice/${slugOrEncodedId(item.exams.subjects?.slug, item.exams.subjects?.id || item.exams.subject_id)}/exam/${slugOrEncodedId(item.exams.slug, item.exam_id)}`}
                       className="group p-5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 hover:from-emerald-100 hover:to-teal-100 dark:hover:from-emerald-900/30 dark:hover:to-teal-900/30 transition-all duration-300 border border-emerald-100 dark:border-emerald-800/50 hover:border-emerald-200 dark:hover:border-emerald-700"
                     >
                       <div className="flex items-start justify-between mb-3">

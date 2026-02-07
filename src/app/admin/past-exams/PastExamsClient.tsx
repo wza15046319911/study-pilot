@@ -17,6 +17,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/AlertDialog";
 import { deletePastExam } from "./actions";
+import { encodeId } from "@/lib/ids";
 
 interface PastExamRow {
   id: number;
@@ -88,7 +89,7 @@ export function PastExamsClient({ groupedPastExams }: PastExamsClientProps) {
                   const questionCount = exam.items?.[0]?.count || 0;
                   return (
                     <div key={exam.id} className="relative group">
-                      <Link href={`/admin/past-exams/${exam.id}`}>
+                      <Link href={`/admin/past-exams/${encodeId(exam.id)}`}>
                         <GlassPanel className="p-6 hover:shadow-lg transition-shadow cursor-pointer h-full">
                           <div className="flex items-start justify-between mb-4">
                             <span className="text-xs font-medium px-2 py-1 rounded bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300">
@@ -115,7 +116,7 @@ export function PastExamsClient({ groupedPastExams }: PastExamsClientProps) {
                       </Link>
 
                       <div className="absolute bottom-4 right-4 flex items-center gap-2">
-                        <Link href={`/admin/past-exams/${exam.id}`}>
+                        <Link href={`/admin/past-exams/${encodeId(exam.id)}`}>
                           <Button
                             variant="ghost"
                             size="sm"

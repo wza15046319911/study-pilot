@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 import { Subject } from "@/types/database";
+import { slugOrEncodedId } from "@/lib/ids";
 
 interface UserQuestionBanksClientProps {
   initialData: Array<{
@@ -70,7 +71,7 @@ export function UserQuestionBanksClient({ initialData }: UserQuestionBanksClient
           {filteredData.map((item) => (
             <Link
               key={item.id}
-              href={`/question-banks/${item.question_banks.slug || item.bank_id}`}
+              href={`/question-banks/${slugOrEncodedId(item.question_banks.slug, item.bank_id)}`}
               className="group relative flex flex-col p-5 rounded-2xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-800 hover:border-violet-200 dark:hover:border-violet-800 transition-all duration-300 shadow-sm hover:shadow-md"
             >
               <div className="flex items-start justify-between mb-4">

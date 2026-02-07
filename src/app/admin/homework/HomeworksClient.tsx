@@ -5,6 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Edit2, Trash2, CalendarClock, Users } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { slugOrEncodedId } from "@/lib/ids";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -150,9 +151,7 @@ export function HomeworksClient({ homeworks }: HomeworksClientProps) {
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <Link
-                            href={`/admin/homework/${
-                              homework.slug || homework.id
-                            }`}
+                            href={`/admin/homework/${slugOrEncodedId(homework.slug, homework.id)}`}
                           >
                             <Button
                               variant="ghost"

@@ -1,6 +1,7 @@
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import PastExamBuilder from "../create/PastExamBuilder";
+import { decodeId } from "@/lib/ids";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -8,6 +9,7 @@ interface PageProps {
 
 export default async function EditPastExamPage({ params }: PageProps) {
   const { id } = await params;
+  const decodedId = decodeId(id);
   const supabase = await createClient();
 
   const {
@@ -20,16 +22,20 @@ export default async function EditPastExamPage({ params }: PageProps) {
 
   const adminClient = createAdminClient();
 
+  if (decodedId === null) {
+    notFound();
+  }
+
   const pastExamPromise = adminClient
     .from("past_exams")
     .select("*")
-    .eq("id", id)
+    .eq("id", decodedId)
     .single();
 
   const questionsPromise = adminClient
     .from("past_exam_questions")
     .select("*")
-    .eq("past_exam_id", id)
+    .eq("past_exam_id", decodedId)
     .order("order_index", { ascending: true });
 
   const subjectsPromise = adminClient

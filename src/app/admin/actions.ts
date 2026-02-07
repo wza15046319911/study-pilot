@@ -3,6 +3,7 @@
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { Database } from "@/types/database";
 import { revalidatePath } from "next/cache";
+import { encodeId } from "@/lib/ids";
 
 // --- Subjects ---
 
@@ -83,7 +84,7 @@ export async function upsertTopic(
 
   revalidatePath("/admin/subjects");
   // Topics might be used in practice setup, etc.
-  revalidatePath(`/practice/${data.subject_id}/setup`);
+  revalidatePath(`/practice/${encodeId(data.subject_id)}/setup`);
   return { success: true };
 }
 

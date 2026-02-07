@@ -4,6 +4,7 @@ import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
 import { Header } from "@/components/layout/Header";
 import { ExamPreviewContent } from "./ExamPreviewContent";
+import { decodeId, slugOrEncodedId } from "@/lib/ids";
 
 interface PageProps {
   params: Promise<{
@@ -33,6 +34,7 @@ export async function generateMetadata(props: PageProps) {
 export default async function LibraryExamPreviewPage(props: PageProps) {
   const params = await props.params;
   const { subjectSlug, examSlug } = params;
+  const decodedExamId = decodeId(examSlug);
   const supabase = await createClient();
 
   // Check Auth
@@ -63,7 +65,7 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
   }
 
   // Fetch Exam
-  const { data: exam, error: examError } = await (supabase.from("exams") as any)
+  let { data: exam, error: examError } = await (supabase.from("exams") as any)
     .select(
       [
         "id",
@@ -80,6 +82,28 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
     .eq("slug", examSlug)
     .eq("subject_id", subject.id)
     .maybeSingle();
+
+  if (!exam && decodedExamId !== null) {
+    const fallbackResult = await (supabase.from("exams") as any)
+      .select(
+        [
+          "id",
+          "slug",
+          "title",
+          "subject_id",
+          "exam_type",
+          "duration_minutes",
+          "unlock_type",
+          "is_premium",
+          "price",
+        ].join(", "),
+      )
+      .eq("id", decodedExamId)
+      .eq("subject_id", subject.id)
+      .maybeSingle();
+    exam = fallbackResult.data;
+    examError = fallbackResult.error;
+  }
 
   if (!exam || examError) {
     return (
@@ -166,7 +190,10 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
 
   return (
     <ExamPreviewContent
-      exam={exam}
+      exam={{
+        ...exam,
+        routeId: slugOrEncodedId(exam.slug, exam.id),
+      }}
       user={userData}
       difficultyCounts={difficultyCounts}
       sortedTopics={sortedTopics as any}

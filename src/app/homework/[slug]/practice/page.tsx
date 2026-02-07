@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { PracticeSession } from "@/app/practice/[subjectSlug]/PracticeSession";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
+import { decodeId } from "@/lib/ids";
 
 interface PageProps {
   params: Promise<{
@@ -13,6 +14,7 @@ interface PageProps {
 export default async function HomeworkPracticePage(props: PageProps) {
   const params = await props.params;
   const { slug } = params;
+  const decodedHomeworkId = decodeId(slug);
   const supabase = await createClient();
 
   const {
@@ -23,13 +25,23 @@ export default async function HomeworkPracticePage(props: PageProps) {
     redirect(`/login?next=/homework/${slug}/practice`);
   }
 
-  const { data: homework, error: homeworkError } = await (
+  let { data: homework, error: homeworkError } = await (
     supabase.from("homeworks") as any
   )
     .select("id, slug, subject_id, due_at, allowed_modes")
     .eq("slug", slug)
     .eq("is_published", true)
     .maybeSingle();
+
+  if (!homework && decodedHomeworkId !== null) {
+    const fallbackResult = await (supabase.from("homeworks") as any)
+      .select("id, slug, subject_id, due_at, allowed_modes")
+      .eq("id", decodedHomeworkId)
+      .eq("is_published", true)
+      .maybeSingle();
+    homework = fallbackResult.data;
+    homeworkError = fallbackResult.error;
+  }
 
   if (!homework || homeworkError) {
     return (

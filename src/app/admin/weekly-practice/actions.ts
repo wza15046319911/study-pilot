@@ -2,6 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { encodeId, slugOrEncodedId } from "@/lib/ids";
 
 export async function createWeeklyPractice(data: {
   subjectId: number;
@@ -115,7 +116,8 @@ export async function updateWeeklyPractice(data: {
   }
 
   revalidatePath("/admin/weekly-practice");
-  revalidatePath(`/admin/weekly-practice/${data.weeklyPracticeId}`);
+  revalidatePath(`/admin/weekly-practice/${slugOrEncodedId(data.slug, data.weeklyPracticeId)}`);
+  revalidatePath(`/admin/weekly-practice/${encodeId(data.weeklyPracticeId)}`);
   return { success: true };
 }
 

@@ -65,7 +65,7 @@ export default function BookmarksClient({
       .join(",");
 
     router.push(
-      `/practice/${firstSubjectId}?mode=bookmarks&questions=${questionIds}`
+      `/practice/${encodeId(firstSubjectId)}?mode=bookmarks&questions=${questionIds}`
     );
   };
 

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import HomeworkBuilder from "../HomeworkBuilder";
+import { decodeId } from "@/lib/ids";
 
 interface PageProps {
   params: Promise<{
@@ -11,6 +12,7 @@ interface PageProps {
 export default async function EditHomeworkPage(props: PageProps) {
   const params = await props.params;
   const { id } = params;
+  const decodedId = decodeId(id);
   const supabase = await createClient();
   const {
     data: { user },
@@ -30,7 +32,7 @@ export default async function EditHomeworkPage(props: PageProps) {
     .eq("slug", id)
     .maybeSingle();
 
-  let [{ data: subjects }, homeworkResult] = await Promise.all([
+  const [{ data: subjects }, homeworkResult] = await Promise.all([
     subjectsPromise,
     homeworkPromise,
   ]);
@@ -38,11 +40,13 @@ export default async function EditHomeworkPage(props: PageProps) {
   let homework = homeworkResult.data;
 
   if (!homework) {
-    const fallbackResult = await (supabase.from("homeworks") as any)
-      .select("*")
-      .eq("id", id)
-      .maybeSingle();
-    homework = fallbackResult.data;
+    if (decodedId !== null) {
+      const fallbackResult = await (supabase.from("homeworks") as any)
+        .select("*")
+        .eq("id", decodedId)
+        .maybeSingle();
+      homework = fallbackResult.data;
+    }
   }
 
   if (!homework) {

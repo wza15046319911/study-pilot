@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { slugOrEncodedId } from "@/lib/ids";
 import {
   CalendarClock,
   AlarmClock,
@@ -238,13 +239,19 @@ export function UserHomeworkClient({ initialData }: UserHomeworkClientProps) {
             const latestSubmission = assignment.latestSubmission;
             const answeredCount = latestSubmission?.answered_count || 0;
             const totalCount = latestSubmission?.total_count || totalQuestions;
+            const hasProgress = answeredCount > 0;
+            const isCompleted =
+              Boolean(assignment.completed_at) ||
+              (totalCount > 0 && answeredCount >= totalCount);
             const progressPercent =
               totalCount > 0
                 ? Math.min(100, Math.round((answeredCount / totalCount) * 100))
                 : 0;
-            const completionLabel = assignment.completed_at
+            const completionLabel = isCompleted
               ? "Completed"
-              : "Not submitted";
+              : hasProgress
+                ? "In progress"
+                : "Not submitted";
 
             return (
               <div
@@ -262,9 +269,11 @@ export function UserHomeworkClient({ initialData }: UserHomeworkClientProps) {
                       </span>
                       <span
                         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                          assignment.completed_at
+                          isCompleted
                             ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                            : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
+                            : hasProgress
+                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                              : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
                         }`}
                       >
                         {completionLabel}
@@ -357,12 +366,16 @@ export function UserHomeworkClient({ initialData }: UserHomeworkClientProps) {
                 <div className="flex flex-wrap gap-3 lg:flex-col lg:items-end">
                   {allowedModes.map((mode) => {
                     const config = modeMap[mode as keyof typeof modeMap];
-                    if (!config || !homework.slug) return null;
+                    if (!config) return null;
                     const Icon = config.icon;
+                    const homeworkRouteId = slugOrEncodedId(
+                      homework.slug,
+                      homework.id,
+                    );
                     return (
                       <Link
                         key={mode}
-                        href={`/homework/${homework.slug}/${config.route}`}
+                        href={`/homework/${homeworkRouteId}/${config.route}`}
                         className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold transition-colors ${config.className}`}
                       >
                         <Icon className="size-3" />

@@ -4,6 +4,7 @@ import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
 import { Header } from "@/components/layout/Header";
 import { QuestionBankPreviewContent } from "./QuestionBankPreviewContent";
+import { decodeId, slugOrEncodedId } from "@/lib/ids";
 
 interface PageProps {
   params: Promise<{
@@ -14,6 +15,7 @@ interface PageProps {
 export default async function QuestionBankPreviewPage(props: PageProps) {
   const params = await props.params;
   const { slug } = params;
+  const decodedBankId = decodeId(slug);
   const supabase = await createClient();
 
   // Check Auth
@@ -26,7 +28,7 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
   }
 
   // Fetch Bank + basic info
-  const { data: bank, error: bankError } = await (
+  let { data: bank, error: bankError } = await (
     supabase.from("question_banks") as any
   )
     .select(
@@ -44,6 +46,27 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
     )
     .eq("slug", slug)
     .maybeSingle();
+
+  if (!bank && decodedBankId !== null) {
+    const fallbackResult = await (supabase.from("question_banks") as any)
+      .select(
+        `
+      id,
+      title,
+      slug,
+      description,
+      subject_id,
+      unlock_type,
+      is_premium,
+      price,
+      allowed_modes
+    `,
+      )
+      .eq("id", decodedBankId)
+      .maybeSingle();
+    bank = fallbackResult.data;
+    bankError = fallbackResult.error;
+  }
 
   if (!bank || bankError) {
     return (
@@ -160,7 +183,10 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
 
   return (
     <QuestionBankPreviewContent
-      bank={bank}
+      bank={{
+        ...bank,
+        routeId: slugOrEncodedId(bank.slug, bank.id),
+      }}
       user={userData}
       difficultyCounts={difficultyCounts}
       sortedTopics={sortedTopics as any}

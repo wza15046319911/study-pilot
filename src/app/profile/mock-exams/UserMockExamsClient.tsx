@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 import { Subject } from "@/types/database";
+import { slugOrEncodedId } from "@/lib/ids";
 
 interface UserMockExamsClientProps {
   initialData: Array<{
@@ -24,6 +25,7 @@ interface UserMockExamsClientProps {
     last_attempted_at: string | null;
     exams: {
       id: number;
+      subject_id: number;
       title: string;
       slug: string | null;
       duration_minutes: number;
@@ -72,7 +74,7 @@ export function UserMockExamsClient({ initialData }: UserMockExamsClientProps) {
           {filteredData.map((item) => (
             <Link
               key={item.id}
-              href={`/practice/${item.exams.subjects?.slug || "unknown"}/exam/${item.exams.slug || item.exam_id}`}
+              href={`/practice/${slugOrEncodedId(item.exams.subjects?.slug, item.exams.subjects?.id || item.exams.subject_id)}/exam/${slugOrEncodedId(item.exams.slug, item.exam_id)}`}
               className="group relative flex flex-col p-5 rounded-2xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-800 hover:border-emerald-200 dark:hover:border-emerald-800 transition-all duration-300 shadow-sm hover:shadow-md"
             >
               <div className="flex items-start justify-between mb-4">

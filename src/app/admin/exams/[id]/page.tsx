@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect, notFound } from "next/navigation";
 import ExamBuilder from "../create/ExamBuilder";
+import { decodeId } from "@/lib/ids";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -8,6 +9,7 @@ interface PageProps {
 
 export default async function EditExamPage({ params }: PageProps) {
   const { id } = await params;
+  const decodedId = decodeId(id);
   const supabase = await createClient();
 
   const {
@@ -18,36 +20,36 @@ export default async function EditExamPage({ params }: PageProps) {
     redirect("/login");
   }
 
-  const examPromise = supabase
-    .from("exams")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  const examQuestionsPromise = supabase
-    .from("exam_questions")
-    .select("question_id, order_index")
-    .eq("exam_id", id)
-    .order("order_index");
-
   const subjectsPromise = supabase
     .from("subjects")
     .select("id, name")
     .order("name");
 
-  const [
-    { data: exam, error },
-    { data: fetchExamQuestions },
-    { data: subjects },
-  ] = await Promise.all([
-    examPromise,
-    examQuestionsPromise,
+  const [{ data: examBySlug }, { data: subjects }] = await Promise.all([
+    supabase.from("exams").select("*").eq("slug", id).maybeSingle(),
     subjectsPromise,
   ]);
 
-  if (error || !exam) {
+  let exam: any = examBySlug;
+
+  if (!exam && decodedId !== null) {
+    const { data: examById } = await supabase
+      .from("exams")
+      .select("*")
+      .eq("id", decodedId)
+      .maybeSingle();
+    exam = examById;
+  }
+
+  if (!exam) {
     notFound();
   }
+
+  const { data: fetchExamQuestions } = await supabase
+    .from("exam_questions")
+    .select("question_id, order_index")
+    .eq("exam_id", exam.id)
+    .order("order_index");
 
   const examQuestions = fetchExamQuestions as any[] | null;
 

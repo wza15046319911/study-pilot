@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import ExamSession from "./ExamSession";
 import { Profile, Question } from "@/types/database";
+import { decodeId, slugOrEncodedId } from "@/lib/ids";
 
 interface PageProps {
   params: Promise<{
@@ -14,6 +15,8 @@ interface PageProps {
 export default async function ExamPage(props: PageProps) {
   const params = await props.params;
   const { subjectSlug, examSlug } = params;
+  const decodedSubjectId = decodeId(subjectSlug);
+  const decodedExamId = decodeId(examSlug);
 
   const supabase = await createClient();
 
@@ -29,21 +32,30 @@ export default async function ExamPage(props: PageProps) {
     redirect("/library");
   }
 
-  // Fetch subject to ensure correct redirect
-  const { data: subjectData } = await supabase
+  let subject: { id: number; slug: string } | null = null;
+  const { data: subjectBySlug } = await supabase
     .from("subjects")
     .select("id, slug")
     .eq("slug", subjectSlug)
-    .single();
+    .maybeSingle();
 
-  const subject = subjectData as { id: number; slug: string } | null;
+  subject = (subjectBySlug as { id: number; slug: string } | null) || null;
+
+  if (!subject && decodedSubjectId !== null) {
+    const { data: subjectById } = await supabase
+      .from("subjects")
+      .select("id, slug")
+      .eq("id", decodedSubjectId)
+      .maybeSingle();
+    subject = (subjectById as { id: number; slug: string } | null) || null;
+  }
 
   if (!subject) {
     redirect("/library");
   }
 
   // Fetch exam details
-  const { data: examData } = await supabase
+  let { data: examData } = await supabase
     .from("exams")
     .select(
       [
@@ -61,11 +73,34 @@ export default async function ExamPage(props: PageProps) {
     .eq("slug", examSlug)
     .eq("subject_id", (subject as any).id)
     .eq("is_published", true)
-    .single();
+    .maybeSingle();
 
-  const exam = examData as any;
+  if (!examData && decodedExamId !== null) {
+    const { data: examById } = await supabase
+      .from("exams")
+      .select(
+        [
+          "id",
+          "title",
+          "exam_type",
+          "duration_minutes",
+          "slug",
+          "subject_id",
+          "unlock_type",
+          "is_premium",
+          "price",
+        ].join(", "),
+      )
+      .eq("id", decodedExamId)
+      .eq("subject_id", (subject as any).id)
+      .eq("is_published", true)
+      .maybeSingle();
+    examData = examById;
+  }
 
-  if (!exam) {
+  const resolvedExam = (examData as any) || null;
+
+  if (!resolvedExam) {
     redirect(`/practice/${subject.slug}/exams`);
   }
 
@@ -94,15 +129,15 @@ export default async function ExamPage(props: PageProps) {
   const isVip = profile?.is_vip || false;
 
   let isUnlocked = false;
-  if (exam.unlock_type === "free") {
+  if (resolvedExam.unlock_type === "free") {
     isUnlocked = true;
-  } else if (exam.unlock_type === "premium" && isVip) {
+  } else if (resolvedExam.unlock_type === "premium" && isVip) {
     isUnlocked = true;
   } else {
     const { data: unlock } = await (supabase.from("user_exam_unlocks") as any)
       .select("id")
       .eq("user_id", user.id)
-      .eq("exam_id", exam.id)
+      .eq("exam_id", resolvedExam.id)
       .maybeSingle();
     if (unlock) {
       isUnlocked = true;
@@ -110,7 +145,12 @@ export default async function ExamPage(props: PageProps) {
   }
 
   if (!isUnlocked) {
-    redirect(`/library/${subject.slug}/exams/${examSlug}`);
+    redirect(
+      `/library/${subject.slug}/exams/${slugOrEncodedId(
+        resolvedExam.slug,
+        resolvedExam.id,
+      )}`,
+    );
   }
 
   // Fetch exam questions with full question data
@@ -131,7 +171,7 @@ export default async function ExamPage(props: PageProps) {
       )
     `,
     )
-    .eq("exam_id", exam.id)
+    .eq("exam_id", resolvedExam.id)
     .order("order_index");
 
   const questions = (examQuestions || []).map(
@@ -161,11 +201,14 @@ export default async function ExamPage(props: PageProps) {
     <div className="relative flex min-h-screen w-full flex-col bg-[#f0f4fc]">
       <AmbientBackground />
       <ExamSession
-        exam={exam}
+        exam={resolvedExam}
         questions={questions}
         user={sessionUser}
         subjectId={subject.id}
-        exitLink={`/library/${subject.slug}/exams/${examSlug}`}
+        exitLink={`/library/${subject.slug}/exams/${slugOrEncodedId(
+          resolvedExam.slug,
+          resolvedExam.id,
+        )}`}
       />
     </div>
   );

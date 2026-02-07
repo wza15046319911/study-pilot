@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import BankBuilder from "../BankBuilder";
+import { decodeId } from "@/lib/ids";
 
 interface PageProps {
   params: Promise<{
@@ -11,6 +12,7 @@ interface PageProps {
 export default async function EditQuestionBankPage(props: PageProps) {
   const params = await props.params;
   const { id } = params;
+  const decodedId = decodeId(id);
   const supabase = await createClient();
 
   const {
@@ -28,10 +30,20 @@ export default async function EditQuestionBankPage(props: PageProps) {
     .order("name");
 
   // Fetch Bank Data
-  const { data: bank } = await (supabase.from("question_banks") as any)
+  const { data: bankBySlug } = await (supabase.from("question_banks") as any)
     .select("*")
-    .eq("id", id)
-    .single();
+    .eq("slug", id)
+    .maybeSingle();
+
+  let bank = bankBySlug;
+
+  if (!bank && decodedId !== null) {
+    const { data: bankById } = await (supabase.from("question_banks") as any)
+      .select("*")
+      .eq("id", decodedId)
+      .maybeSingle();
+    bank = bankById;
+  }
 
   if (!bank) {
     redirect("/admin/question-banks");
@@ -41,7 +53,7 @@ export default async function EditQuestionBankPage(props: PageProps) {
   const { data: items } = await supabase
     .from("question_bank_items")
     .select("question:questions(*)")
-    .eq("bank_id", id)
+    .eq("bank_id", bank.id)
     .order("order_index");
 
   const questions = (items || []).map((item: any) => item.question);

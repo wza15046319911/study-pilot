@@ -4,6 +4,7 @@ import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { Header } from "@/components/layout/Header";
 import FlashcardSession from "@/app/practice/[subjectSlug]/flashcards/FlashcardSession";
 import { Profile, Question } from "@/types/database";
+import { decodeId } from "@/lib/ids";
 
 interface PageProps {
   params: Promise<{
@@ -14,6 +15,7 @@ interface PageProps {
 export default async function QuestionBankFlashcardsPage(props: PageProps) {
   const params = await props.params;
   const { slug } = params;
+  const decodedBankId = decodeId(slug);
   const supabase = await createClient();
 
   const {
@@ -24,10 +26,18 @@ export default async function QuestionBankFlashcardsPage(props: PageProps) {
     redirect(`/login?next=/question-banks/${slug}/flashcards`);
   }
 
-  const { data: bank } = await (supabase.from("question_banks") as any)
+  let { data: bank } = await (supabase.from("question_banks") as any)
     .select("id, title, subject_id")
     .eq("slug", slug)
     .maybeSingle();
+
+  if (!bank && decodedBankId !== null) {
+    const fallbackResult = await (supabase.from("question_banks") as any)
+      .select("id, title, subject_id")
+      .eq("id", decodedBankId)
+      .maybeSingle();
+    bank = fallbackResult.data;
+  }
 
   if (!bank) {
     redirect("/question-banks");

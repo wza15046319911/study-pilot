@@ -16,9 +16,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/AlertDialog";
+import { slugOrEncodedId } from "@/lib/ids";
 
 interface QuestionBank {
   id: number;
+  slug: string | null;
   title: string;
   description: string | null;
   subject: { name: string } | null;
@@ -155,7 +157,9 @@ export function QuestionBanksClient({ banks }: QuestionBanksClientProps) {
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <Link href={`/admin/question-banks/${bank.id}`}>
+                        <Link
+                          href={`/admin/question-banks/${slugOrEncodedId(bank.slug, bank.id)}`}
+                        >
                           <Button
                             variant="ghost"
                             size="sm"

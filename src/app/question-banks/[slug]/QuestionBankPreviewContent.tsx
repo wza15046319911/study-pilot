@@ -27,6 +27,7 @@ import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { toggleQuestionBankCollection } from "@/app/library/actions";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { cn } from "@/lib/utils";
+import { slugOrEncodedId } from "@/lib/ids";
 
 interface QuestionBankPreviewContentProps {
   bank: any;
@@ -114,9 +115,10 @@ export function QuestionBankPreviewContent({
   };
 
   const getStartLink = () => {
+    const routeId = bank.routeId || slugOrEncodedId(bank.slug, bank.id);
     const basePath = libraryContext
-      ? `/library/${libraryContext.subjectSlug}/question-banks/${bank.slug}`
-      : `/question-banks/${bank.slug}`;
+      ? `/library/${libraryContext.subjectSlug}/question-banks/${routeId}`
+      : `/question-banks/${routeId}`;
 
     const selectedModeObj = modes.find((m) => m.id === selectedMode);
     const routeSegment = selectedModeObj?.routeSegment || "practice";

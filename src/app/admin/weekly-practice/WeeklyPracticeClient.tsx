@@ -5,6 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { Edit2, Trash2, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { slugOrEncodedId } from "@/lib/ids";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,6 +20,7 @@ import { deleteWeeklyPractice } from "./actions";
 
 interface WeeklyPracticeRow {
   id: number;
+  slug: string | null;
   title: string;
   description: string | null;
   week_start: string | null;
@@ -143,7 +145,9 @@ export function WeeklyPracticeClient({ practices }: WeeklyPracticeClientProps) {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <Link href={`/admin/weekly-practice/${practice.id}`}>
+                          <Link
+                            href={`/admin/weekly-practice/${slugOrEncodedId(practice.slug, practice.id)}`}
+                          >
                             <Button
                               variant="ghost"
                               size="sm"
