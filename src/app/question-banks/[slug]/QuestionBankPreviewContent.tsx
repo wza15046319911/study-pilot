@@ -100,7 +100,7 @@ export function QuestionBankPreviewContent({
   const [selectedMode, setSelectedMode] = useState(
     modes.length > 0 ? modes[0].id : "standard",
   );
-  const [activeUsers] = useState(() => ((bank.id * 7) % 40) + 12);
+  const activeUsers = ((bank.id * 7) % 40) + 12;
   const [collected, setCollected] = useState(isCollected);
   const [isPending, startTransition] = useTransition();
 

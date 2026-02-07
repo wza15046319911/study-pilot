@@ -25,7 +25,7 @@ export default async function QuestionBankImmersivePage(props: PageProps) {
   }
 
   const { data: bank } = await (supabase.from("question_banks") as any)
-    .select("*, subject:subjects(*)")
+    .select("id, title, subject_id")
     .eq("slug", slug)
     .maybeSingle();
 
@@ -36,7 +36,21 @@ export default async function QuestionBankImmersivePage(props: PageProps) {
   // Fetch first question from bank
   const { data: items } = await supabase
     .from("question_bank_items")
-    .select("question:questions(*)")
+    .select(
+      `
+      question:questions(
+        id,
+        content,
+        type,
+        options,
+        answer,
+        explanation,
+        code_snippet,
+        test_cases,
+        topic_id
+      )
+    `,
+    )
     .eq("bank_id", bank.id)
     .order("order_index")
     .limit(1);
@@ -46,7 +60,21 @@ export default async function QuestionBankImmersivePage(props: PageProps) {
   // Fetch user profile
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("*")
+    .select(
+      [
+        "id",
+        "username",
+        "level",
+        "streak_days",
+        "avatar_url",
+        "created_at",
+        "last_practice_date",
+        "is_vip",
+        "vip_expires_at",
+        "active_session_id",
+        "is_admin",
+      ].join(", "),
+    )
     .eq("id", user.id)
     .single();
 

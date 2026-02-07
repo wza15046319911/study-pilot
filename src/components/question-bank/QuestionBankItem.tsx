@@ -16,6 +16,7 @@ interface QuestionBankItemProps {
   subtitleOverride?: string;
   onClickOverride?: () => void;
   subjectSlug?: string;
+  href?: string;
 }
 
 export function QuestionBankItem({
@@ -28,6 +29,7 @@ export function QuestionBankItem({
   subtitleOverride,
   onClickOverride,
   subjectSlug,
+  href,
 }: QuestionBankItemProps) {
   const router = useRouter();
 
@@ -38,16 +40,24 @@ export function QuestionBankItem({
   const isPaidLocked = isPaidType && !isUnlocked;
   const isLocked = isPremiumLocked || isReferralLocked || isPaidLocked;
 
+  const targetHref =
+    href ||
+    (subjectSlug
+      ? `/library/${subjectSlug}/question-banks/${bank.slug}`
+      : "/library");
+
+  const handlePrefetch = () => {
+    if (targetHref) {
+      router.prefetch(targetHref);
+    }
+  };
+
   const handleCardClick = () => {
     if (onClickOverride) {
       onClickOverride();
       return;
     }
-    if (subjectSlug) {
-      router.push(`/library/${subjectSlug}/question-banks/${bank.slug}`);
-    } else {
-      router.push(`/library`);
-    }
+    router.push(targetHref);
   };
 
   const title = titleOverride || bank.title;
@@ -140,6 +150,9 @@ export function QuestionBankItem({
       whileHover={{ y: -4 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
       onClick={handleCardClick}
+      onMouseEnter={handlePrefetch}
+      onFocus={handlePrefetch}
+      onPointerDown={handlePrefetch}
       className="h-full"
     >
       <GlassPanel

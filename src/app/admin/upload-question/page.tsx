@@ -8,9 +8,13 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { LatexContent } from "@/components/ui/LatexContent";
-import { CodeBlock } from "@/components/ui/CodeBlock";
 import { X, Tag, Plus, Code2, Type, FileUp, Loader2 } from "lucide-react";
 import Editor from "@monaco-editor/react";
+import {
+  TestCaseEditor,
+  TestCasesConfig,
+} from "@/components/admin/TestCaseEditor";
+import { Database, Json } from "@/types/database";
 // pdfjs-dist will be imported dynamically to avoid SSR issues with DOMMatrix
 
 interface Subject {
@@ -30,7 +34,46 @@ interface ParsedQuestion {
   codeSnippet: string | null;
   answer: string;
   explanation: string;
+  test_cases: TestCasesConfig | null;
   rawText: string;
+}
+
+type QuestionInsert = Database["public"]["Tables"]["questions"]["Insert"];
+type QuestionType = QuestionInsert["type"];
+type Difficulty = NonNullable<QuestionInsert["difficulty"]>;
+
+const QUESTION_TYPE_VALUES: QuestionType[] = [
+  "single_choice",
+  "multiple_choice",
+  "true_false",
+  "fill_blank",
+  "code_output",
+  "handwrite",
+  "coding_challenge",
+];
+
+const DIFFICULTY_VALUES: Difficulty[] = ["easy", "medium", "hard"];
+
+function isQuestionType(value: unknown): value is QuestionType {
+  return (
+    typeof value === "string" &&
+    QUESTION_TYPE_VALUES.includes(value as QuestionType)
+  );
+}
+
+function isDifficulty(value: unknown): value is Difficulty {
+  return (
+    typeof value === "string" && DIFFICULTY_VALUES.includes(value as Difficulty)
+  );
+}
+
+function isValidCodingChallengeConfig(
+  config: TestCasesConfig | null,
+): config is TestCasesConfig {
+  if (!config) return false;
+  if (!config.function_name.trim()) return false;
+  if (config.test_cases.length === 0) return false;
+  return config.test_cases.every((testCase) => Array.isArray(testCase.input));
 }
 
 const presetTags = [
@@ -57,14 +100,14 @@ const presetTags = [
   "slicing",
   "range",
   "list comprehension",
-  "lambda function"
+  "lambda function",
 ];
 
 // Parse a single question block
 function parseQuestionText(
   text: string,
   globalContext: string = "",
-  type: string = "single_choice"
+  type: QuestionType = "single_choice",
 ): ParsedQuestion {
   const lines = text.trim().split("\n");
 
@@ -105,7 +148,7 @@ function parseQuestionText(
       const looksLikeCode =
         /^\s{2,}/.test(line) || // Indented (2+ spaces)
         /^(def |class |import |from |if |for |while |return |print\(|@)/.test(
-          trimmedLine
+          trimmedLine,
         ) ||
         /^[a-z_]+\s*=/.test(trimmedLine) ||
         // Check for double-char operators common in code (**, //, <<, >>)
@@ -160,10 +203,12 @@ function parseQuestionText(
     title = title.substring(0, 50) + "...";
   }
 
-  // Default answer for code_output
+  // Default answer
   let answer = "";
   if (type === "code_output") {
     answer = "N/A";
+  } else if (type === "coding_challenge") {
+    answer = "all_tests_passed";
   }
 
   return {
@@ -173,6 +218,10 @@ function parseQuestionText(
     codeSnippet,
     answer,
     explanation: "",
+    test_cases:
+      type === "coding_challenge"
+        ? { function_name: "solution", test_cases: [] }
+        : null,
     rawText: text,
   };
 }
@@ -234,9 +283,10 @@ export default function UploadQuestionPage() {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<string>("");
   const [selectedTopic, setSelectedTopic] = useState<string>("");
-  const [questionType, setQuestionType] = useState<string>("single_choice");
+  const [questionType, setQuestionType] =
+    useState<QuestionType>("single_choice");
   const [questionText, setQuestionText] = useState("");
-  const [difficulty, setDifficulty] = useState("medium");
+  const [difficulty, setDifficulty] = useState<Difficulty>("medium");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{
     type: "success" | "error";
@@ -254,7 +304,7 @@ export default function UploadQuestionPage() {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfFileName, setPdfFileName] = useState<string | null>(null);
   const [draftStatus, setDraftStatus] = useState<"saved" | "saving" | null>(
-    null
+    null,
   );
 
   const supabase = createClient();
@@ -269,8 +319,9 @@ export default function UploadQuestionPage() {
         if (draft.questionText) setQuestionText(draft.questionText);
         if (draft.selectedSubject) setSelectedSubject(draft.selectedSubject);
         if (draft.selectedTopic) setSelectedTopic(draft.selectedTopic);
-        if (draft.questionType) setQuestionType(draft.questionType);
-        if (draft.difficulty) setDifficulty(draft.difficulty);
+        if (isQuestionType(draft.questionType))
+          setQuestionType(draft.questionType);
+        if (isDifficulty(draft.difficulty)) setDifficulty(draft.difficulty);
         if (draft.tags) setTags(draft.tags);
         setDraftStatus("saved");
         setTimeout(() => setDraftStatus(null), 2000);
@@ -338,7 +389,7 @@ export default function UploadQuestionPage() {
     if (questionText.trim()) {
       const { questions, context } = splitIntoQuestions(questionText);
       const parsed = questions.map((block) =>
-        parseQuestionText(block, context, questionType)
+        parseQuestionText(block, context, questionType),
       );
       setParsedQuestions(parsed);
     } else {
@@ -367,6 +418,14 @@ export default function UploadQuestionPage() {
     setParsedQuestions((prev) => {
       const updated = [...prev];
       updated[index] = { ...updated[index], explanation: explanation };
+      return updated;
+    });
+  }
+
+  function updateTestCases(index: number, config: TestCasesConfig) {
+    setParsedQuestions((prev) => {
+      const updated = [...prev];
+      updated[index] = { ...updated[index], test_cases: config };
       return updated;
     });
   }
@@ -417,7 +476,17 @@ export default function UploadQuestionPage() {
         const page = await pdf.getPage(i);
         const textContent = await page.getTextContent();
         const pageText = textContent.items
-          .map((item: any) => item.str)
+          .map((item) => {
+            if (
+              typeof item === "object" &&
+              item !== null &&
+              "str" in item &&
+              typeof (item as { str: unknown }).str === "string"
+            ) {
+              return (item as { str: string }).str;
+            }
+            return "";
+          })
           .join(" ");
         fullText += pageText + "\n\n";
       }
@@ -459,8 +528,27 @@ export default function UploadQuestionPage() {
 
     const isChoiceType =
       questionType === "single_choice" || questionType === "multiple_choice";
+    const isCodingChallenge = questionType === "coding_challenge";
+
+    const hasInvalidCodingChallenge = isCodingChallenge
+      ? parsedQuestions.some(
+          (q) => q.content && !isValidCodingChallengeConfig(q.test_cases),
+        )
+      : false;
+
+    if (hasInvalidCodingChallenge) {
+      setMessage({
+        type: "error",
+        text: "Every coding challenge must include a function name and at least one valid test case.",
+      });
+      return;
+    }
+
     const validQuestions = parsedQuestions.filter(
-      (q) => (isChoiceType ? q.options.length > 0 : true) && q.content
+      (q) =>
+        (isChoiceType ? q.options.length > 0 : true) &&
+        q.content &&
+        (!isCodingChallenge || isValidCodingChallengeConfig(q.test_cases)),
     );
 
     if (validQuestions.length === 0) {
@@ -474,23 +562,25 @@ export default function UploadQuestionPage() {
     setLoading(true);
     setMessage(null);
 
-    const questionsData = validQuestions.map((q) => ({
+    const questionsData: Database["public"]["Tables"]["questions"]["Insert"][] =
+      validQuestions.map((q) => ({
       subject_id: parseInt(selectedSubject),
       topic_id: selectedTopic ? parseInt(selectedTopic) : null,
       title: q.title.substring(0, 100),
       content: q.content,
       type: questionType,
-      difficulty: difficulty as "easy" | "medium" | "hard",
+      difficulty,
       options: isChoiceType ? q.options : null,
-      answer: q.answer,
+      answer: isCodingChallenge ? "all_tests_passed" : q.answer,
       explanation: q.explanation || null,
       code_snippet: q.codeSnippet,
+      test_cases: isCodingChallenge ? (q.test_cases as Json) : null,
       tags: tags.length > 0 ? tags : null,
-    }));
+      }));
 
-    const { error } = await supabase
-      .from("questions")
-      .insert(questionsData as any);
+    const { error } = await (supabase.from("questions") as any).insert(
+      questionsData,
+    );
 
     setLoading(false);
 
@@ -509,8 +599,12 @@ export default function UploadQuestionPage() {
 
   const isChoiceType =
     questionType === "single_choice" || questionType === "multiple_choice";
+  const isCodingChallenge = questionType === "coding_challenge";
   const validCount = parsedQuestions.filter(
-    (q) => (isChoiceType ? q.options.length > 0 : true) && q.content
+    (q) =>
+      (isChoiceType ? q.options.length > 0 : true) &&
+      q.content &&
+      (!isCodingChallenge || isValidCodingChallengeConfig(q.test_cases)),
   ).length;
   const totalCount = parsedQuestions.length;
   const hasGlobalContext =
@@ -583,7 +677,11 @@ export default function UploadQuestionPage() {
                 </label>
                 <Select
                   value={questionType}
-                  onChange={(e) => setQuestionType(e.target.value)}
+                  onChange={(e) => {
+                    if (isQuestionType(e.target.value)) {
+                      setQuestionType(e.target.value);
+                    }
+                  }}
                   options={[
                     { value: "single_choice", label: "Single Choice (MCQ)" },
                     { value: "multiple_choice", label: "Multiple Choice" },
@@ -593,8 +691,18 @@ export default function UploadQuestionPage() {
                       value: "code_output",
                       label: "Code Output / Short Answer",
                     },
+                    {
+                      value: "coding_challenge",
+                      label: "Coding Challenge (Run Code)",
+                    },
                   ]}
                 />
+                {questionType === "coding_challenge" && (
+                  <p className="mt-2 text-xs text-blue-600 dark:text-blue-400">
+                    Coding Challenge enabled. Configure function name and test
+                    cases in each parsed question card.
+                  </p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium text-[#4c669a] mb-2">
@@ -602,7 +710,11 @@ export default function UploadQuestionPage() {
                 </label>
                 <Select
                   value={difficulty}
-                  onChange={(e) => setDifficulty(e.target.value)}
+                  onChange={(e) => {
+                    if (isDifficulty(e.target.value)) {
+                      setDifficulty(e.target.value);
+                    }
+                  }}
                   options={[
                     { value: "easy", label: "Easy" },
                     { value: "medium", label: "Medium" },
@@ -744,8 +856,8 @@ export default function UploadQuestionPage() {
                     questionType.includes("choice")
                       ? `Paste questions with options...\n1. Question?\n(a) Yes\n(b) No`
                       : questionType === "true_false"
-                      ? `Paste questions...\n1. Is the sky blue?`
-                      : `Paste questions (no options needed)...\n1. What is 2+2?`
+                        ? `Paste questions...\n1. Is the sky blue?`
+                        : `Paste questions (no options needed)...\n1. What is 2+2?`
                   }
                   className="min-h-[600px] h-[calc(100vh-400px)] font-mono text-xs"
                 />
@@ -767,7 +879,10 @@ export default function UploadQuestionPage() {
                   <GlassPanel
                     key={idx}
                     className={`p-4 border-l-4 ${
-                      (isChoiceType ? q.options.length > 0 : true) && q.content
+                      (isChoiceType ? q.options.length > 0 : true) &&
+                      q.content &&
+                      (!isCodingChallenge ||
+                        isValidCodingChallengeConfig(q.test_cases))
                         ? "border-green-500"
                         : "border-orange-500"
                     } overflow-hidden`}
@@ -782,7 +897,9 @@ export default function UploadQuestionPage() {
                             Answer:
                           </span>
                           {/* Toggle for non-choice types */}
-                          {!isChoiceType && questionType !== "true_false" && (
+                          {!isChoiceType &&
+                            questionType !== "true_false" &&
+                            questionType !== "coding_challenge" && (
                             <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 scale-90">
                               <button
                                 type="button"
@@ -819,7 +936,7 @@ export default function UploadQuestionPage() {
                                 <Type className="size-3" />
                               </button>
                             </div>
-                          )}
+                            )}
                         </div>
 
                         {isChoiceType ? (
@@ -852,6 +969,13 @@ export default function UploadQuestionPage() {
                               </button>
                             ))}
                           </div>
+                        ) : questionType === "coding_challenge" ? (
+                          <input
+                            type="text"
+                            value="all_tests_passed"
+                            disabled
+                            className="w-full h-8 px-2 bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded text-xs font-mono text-gray-500"
+                          />
                         ) : (answerViewModes[idx] || "text") === "code" ? (
                           <div className="h-[120px] w-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden relative">
                             <Editor
@@ -1032,6 +1156,15 @@ export default function UploadQuestionPage() {
                         className="min-h-[80px] text-sm bg-gray-50 dark:bg-slate-900/50 border-gray-200 dark:border-gray-700 focus:bg-white dark:focus:bg-slate-800"
                       />
                     </div>
+
+                    {questionType === "coding_challenge" && q.test_cases && (
+                      <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-800">
+                        <TestCaseEditor
+                          value={q.test_cases}
+                          onChange={(config) => updateTestCases(idx, config)}
+                        />
+                      </div>
+                    )}
                   </GlassPanel>
                 ))
               ) : (

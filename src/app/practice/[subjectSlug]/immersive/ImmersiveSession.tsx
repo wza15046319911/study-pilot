@@ -2,11 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { CodeBlock } from "@/components/ui/CodeBlock";
 import { createClient } from "@/lib/supabase/client";
 import { Question, Profile, QuestionOption } from "@/types/database";
+import { TestCasesConfig } from "@/lib/pyodide";
 import {
   Bookmark,
   AlertTriangle,
@@ -20,6 +22,16 @@ import {
   Minimize2,
   Sparkles,
 } from "lucide-react";
+
+const CodeRunner = dynamic(
+  () => import("@/components/ui/CodeRunner").then((m) => m.CodeRunner),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[280px] rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 animate-pulse" />
+    ),
+  },
+);
 
 interface ImmersiveSessionProps {
   initialQuestion: Question | null;
@@ -126,11 +138,43 @@ export default function ImmersiveSession({
     setUserAnswer(answer);
   };
 
+  const isQuestionCorrect = (question: Question, answer?: string) => {
+    if (!answer) return false;
+    if (question.type === "coding_challenge") {
+      return answer === "all_tests_passed";
+    }
+    return answer === question.answer;
+  };
+
+  const getCodingConfig = (question: Question): TestCasesConfig => {
+    const raw = question.test_cases as
+      | {
+          function_name?: unknown;
+          test_cases?: Array<{ input?: unknown; expected?: unknown }>;
+        }
+      | null
+      | undefined;
+
+    const function_name =
+      typeof raw?.function_name === "string" && raw.function_name.trim()
+        ? raw.function_name.trim()
+        : "solution";
+
+    const test_cases = Array.isArray(raw?.test_cases)
+      ? raw.test_cases.map((tc) => ({
+          input: Array.isArray(tc?.input) ? tc.input : [],
+          expected: tc?.expected ?? null,
+        }))
+      : [];
+
+    return { function_name, test_cases };
+  };
+
   const handleCheck = async () => {
     if (!userAnswer || !currentQuestion) return;
     setIsChecked(true);
 
-    const isCorrect = userAnswer === currentQuestion.answer;
+    const isCorrect = isQuestionCorrect(currentQuestion, userAnswer);
 
     // Record answer for progress tracking
     const { recordAnswer } = await import("@/lib/actions/recordAnswer");
@@ -219,7 +263,7 @@ export default function ImmersiveSession({
   }
 
   const options = currentQuestion.options as unknown as QuestionOption[] | null;
-  const isCorrect = userAnswer === currentQuestion.answer;
+  const isCorrect = isQuestionCorrect(currentQuestion, userAnswer);
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 relative">
@@ -373,6 +417,26 @@ export default function ImmersiveSession({
                     </button>
                   );
                 })
+              ) : currentQuestion.type === "coding_challenge" ? (
+                (() => {
+                  const codingConfig = getCodingConfig(currentQuestion);
+                  return (
+                    <CodeRunner
+                      key={`coding-${currentQuestion.id}`}
+                      initialCode={
+                        currentQuestion.code_snippet ||
+                        `def ${codingConfig.function_name}(*args):\n    # Write your code here\n    pass`
+                      }
+                      testCasesConfig={codingConfig}
+                      onSubmit={(_code, _results, allPassed) => {
+                        setUserAnswer(
+                          allPassed ? "all_tests_passed" : "tests_failed",
+                        );
+                      }}
+                      readOnly={isChecked}
+                    />
+                  );
+                })()
               ) : (
                 <input
                   type="text"
@@ -410,10 +474,16 @@ export default function ImmersiveSession({
                 </p>
                 {!isCorrect && (
                   <p className="text-sm opacity-80">
-                    The correct answer is:{" "}
-                    <span className="font-mono font-bold">
-                      {currentQuestion.answer}
-                    </span>
+                    {currentQuestion.type === "coding_challenge"
+                      ? "Your solution did not pass all test cases."
+                      : (
+                        <>
+                          The correct answer is:{" "}
+                          <span className="font-mono font-bold">
+                            {currentQuestion.answer}
+                          </span>
+                        </>
+                      )}
                   </p>
                 )}
 

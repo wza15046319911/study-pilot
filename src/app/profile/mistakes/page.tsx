@@ -19,7 +19,7 @@ export default async function MistakesPage() {
   // Fetch user profile for Header
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("*")
+    .select("id, username, avatar_url, is_vip")
     .eq("id", user.id)
     .single();
 
@@ -94,15 +94,16 @@ export default async function MistakesPage() {
     .eq("user_id", user.id)
     .order("last_error_at", { ascending: false });
 
-  // --- Calculate Quick Stats ---
-  const validMistakes = mistakes || [];
-
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden">
       {/* <AmbientBackground /> */}
       <Header user={headerUser} />
       <main className="flex-grow flex flex-col w-full">
-        <MistakesClient mistakes={mistakes || []} userId={user.id} />
+        <MistakesClient
+          mistakes={mistakes || []}
+          userId={user.id}
+          isVip={Boolean(userData.is_vip)}
+        />
       </main>
     </div>
   );

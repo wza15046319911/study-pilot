@@ -103,7 +103,7 @@ export default async function ExamPage(props: PageProps) {
       .select("id")
       .eq("user_id", user.id)
       .eq("exam_id", exam.id)
-      .single();
+      .maybeSingle();
     if (unlock) {
       isUnlocked = true;
     }
@@ -126,7 +126,8 @@ export default async function ExamPage(props: PageProps) {
         options,
         answer,
         explanation,
-        code_snippet
+        code_snippet,
+        test_cases
       )
     `,
     )

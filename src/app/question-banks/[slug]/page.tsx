@@ -73,16 +73,11 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
       `
       question:questions(
         difficulty,
-        topic_id
+        topic:topics(name)
       )
     `,
     )
     .eq("bank_id", bank.id);
-
-  const topicsPromise = supabase
-    .from("topics")
-    .select("id, name")
-    .eq("subject_id", bank.subject_id);
 
   const collectionPromise = supabase
     .from("user_question_bank_collections")
@@ -95,13 +90,12 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
     .select("id, unlock_type")
     .eq("user_id", user.id)
     .eq("bank_id", bank.id)
-    .single();
+    .maybeSingle();
 
-  const [profileResult, itemsResult, topicsResult, collectionResult, unlockResult] =
+  const [profileResult, itemsResult, collectionResult, unlockResult] =
     await Promise.all([
       profilePromise,
       itemsPromise,
-      topicsPromise,
       collectionPromise,
       unlockPromise,
     ]);
@@ -135,11 +129,6 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
   const questions = (items || []).map((i: any) => i.question);
   const totalQuestions = questions.length;
 
-  // Fetch Topics Map
-  const topics = topicsResult.data;
-
-  const topicMap = new Map(topics?.map((t: any) => [t.id, t.name]) || []);
-
   // Check if collected
   const isCollected = !!collectionResult.data;
 
@@ -153,10 +142,8 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
   );
 
   const topicCounts = questions.reduce((acc: any, q: any) => {
-    const topicName =
-      q.topic_id && topicMap.has(q.topic_id)
-        ? topicMap.get(q.topic_id)
-        : "General";
+    const topicValue = Array.isArray(q.topic) ? q.topic[0] : q.topic;
+    const topicName = topicValue?.name || "General";
     acc[topicName] = (acc[topicName] || 0) + 1;
     return acc;
   }, {});

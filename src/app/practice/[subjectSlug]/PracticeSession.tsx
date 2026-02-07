@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { formatTime } from "@/lib/utils";
@@ -10,9 +11,8 @@ import { Question, Profile, QuestionOption } from "@/types/database";
 import { CodeBlock } from "@/components/ui/CodeBlock";
 import { LatexContent } from "@/components/ui/LatexContent";
 import { ResultsModal } from "@/components/ui/ResultsModal";
-import { FeedbackButton } from "@/components/question/FeedbackButton";
-import { HandwriteCanvas } from "@/components/ui/HandwriteCanvas";
 import { PenCircle } from "@/components/ui/PenCircle";
+import { TestCasesConfig } from "@/lib/pyodide";
 import {
   TrendingUp,
   Timer,
@@ -33,6 +33,27 @@ import {
   ChevronRight,
   Layout,
 } from "lucide-react";
+
+const CodeRunner = dynamic(
+  () => import("@/components/ui/CodeRunner").then((m) => m.CodeRunner),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[280px] rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 animate-pulse" />
+    ),
+  },
+);
+
+const HandwriteCanvas = dynamic(
+  () =>
+    import("@/components/ui/HandwriteCanvas").then((m) => m.HandwriteCanvas),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[500px] w-full rounded-xl border-2 border-gray-100 dark:border-gray-800 bg-white dark:bg-canvas-dark animate-pulse" />
+    ),
+  },
+);
 
 interface PracticeSessionProps {
   questions: Question[];
@@ -128,6 +149,38 @@ export function PracticeSession({
 
   const currentQuestion = questions[currentIndex];
   const isChecked = checkedAnswers[currentQuestion.id];
+
+  const isQuestionCorrect = (question: Question, userAnswer?: string) => {
+    if (!userAnswer) return false;
+    if (question.type === "coding_challenge") {
+      return userAnswer === "all_tests_passed";
+    }
+    return userAnswer === question.answer;
+  };
+
+  const getCodingConfig = (question: Question): TestCasesConfig => {
+    const raw = question.test_cases as
+      | {
+          function_name?: unknown;
+          test_cases?: Array<{ input?: unknown; expected?: unknown }>;
+        }
+      | null
+      | undefined;
+
+    const function_name =
+      typeof raw?.function_name === "string" && raw.function_name.trim()
+        ? raw.function_name.trim()
+        : "solution";
+
+    const test_cases = Array.isArray(raw?.test_cases)
+      ? raw.test_cases.map((tc) => ({
+          input: Array.isArray(tc?.input) ? tc.input : [],
+          expected: tc?.expected ?? null,
+        }))
+      : [];
+
+    return { function_name, test_cases };
+  };
 
   // Fetch bookmarks
   useEffect(() => {
@@ -291,7 +344,7 @@ export function PracticeSession({
       return;
     }
 
-    const isCorrect = answer === currentQuestion.answer;
+    const isCorrect = isQuestionCorrect(currentQuestion, answer);
 
     // Record answer for progress tracking
     const { recordAnswer } = await import("@/lib/actions/recordAnswer");
@@ -359,7 +412,7 @@ export function PracticeSession({
       for (const q of questions) {
         const userAnswer = answers[q.id];
         if (!userAnswer) continue;
-        if (userAnswer === q.answer) correctCount++;
+        if (isQuestionCorrect(q, userAnswer)) correctCount++;
       }
 
       // Note: Answers are already recorded in handleCheck() via recordAnswer
@@ -432,14 +485,14 @@ export function PracticeSession({
       {/* Left Sidebar - Topic Navigation (Only in Practice Mode and NOT in Focus Mode) */}
       {mode === "practice" && !isFocusMode && showTopics && (
         <aside className="w-full lg:w-80 flex flex-col gap-0 shrink-0 order-2 lg:order-1 lg:sticky lg:top-8 lg:self-start font-serif h-[calc(100vh-6rem)]">
-          <div className="bg-white dark:bg-slate-900 border-2 border-black dark:border-white flex flex-col h-full shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]">
+          <div className="bg-white dark:bg-slate-900 border-2 border-gray-200 dark:border-gray-800 flex flex-col h-full">
             {/* Header */}
-            <div className="p-4 border-b-2 border-black dark:border-white bg-gray-50 dark:bg-slate-800 flex items-center justify-between">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-slate-900 flex items-center justify-between">
               <h3 className="font-bold text-lg flex items-center gap-2 text-black dark:text-white">
                 <Layout className="size-5" />
                 Contents
               </h3>
-              <span className="text-xs font-bold px-2 py-1 bg-black dark:bg-white text-white dark:text-black rounded">
+              <span className="text-xs font-semibold px-2.5 py-1 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 rounded-sm bg-white dark:bg-slate-900">
                 {questions.length} Qs
               </span>
             </div>
@@ -458,7 +511,7 @@ export function PracticeSession({
                   <div
                     key={topicName}
                     className={`border-b border-gray-200 dark:border-gray-800 last:border-b-0 ${
-                      isActiveTopic ? "bg-blue-50/50 dark:bg-blue-900/10" : ""
+                      isActiveTopic ? "bg-gray-50 dark:bg-slate-800/50" : ""
                     }`}
                   >
                     <button
@@ -467,9 +520,9 @@ export function PracticeSession({
                     >
                       <div className="flex-1 pr-2">
                         <div
-                          className={`font-bold text-sm uppercase tracking-wide mb-1 ${
+                          className={`font-bold text-sm tracking-wide mb-1 ${
                             isActiveTopic
-                              ? "text-blue-600 dark:text-blue-400"
+                              ? "text-black dark:text-white"
                               : "text-gray-700 dark:text-gray-300"
                           }`}
                         >
@@ -481,7 +534,7 @@ export function PracticeSession({
                           </span>
                           <div className="h-1 w-12 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                             <div
-                              className="h-full bg-blue-500 transition-all duration-300"
+                              className="h-full bg-gray-900 dark:bg-gray-200 transition-all duration-300"
                               style={{
                                 width: `${
                                   (completedCount / indices.length) * 100
@@ -509,14 +562,14 @@ export function PracticeSession({
                           const wasChecked = checkedAnswers[q.id];
                           const isAnswered = !!answers[q.id];
                           const isCorrect =
-                            wasChecked && answers[q.id] === q.answer;
+                            wasChecked && isQuestionCorrect(q, answers[q.id]);
 
                           let btnClass =
                             "bg-white dark:bg-slate-900 text-gray-500 border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500";
 
                           if (isCurrent) {
                             btnClass =
-                              "bg-black dark:bg-white text-white dark:text-black border-black dark:border-white ring-2 ring-offset-1 ring-black dark:ring-white dark:ring-offset-slate-900 z-10";
+                              "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 border-gray-900 dark:border-gray-100 ring-2 ring-offset-1 ring-gray-900 dark:ring-gray-100 dark:ring-offset-slate-900 z-10";
                           } else if (wasChecked) {
                             btnClass = isCorrect
                               ? "bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800"
@@ -548,10 +601,10 @@ export function PracticeSession({
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t-2 border-black dark:border-white bg-gray-50 dark:bg-slate-800">
+            <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-slate-900">
               <Button
                 variant="ghost"
-                className="w-full justify-center text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 font-serif font-bold rounded-none border border-transparent hover:border-red-200"
+                className="w-full justify-center text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 font-serif font-bold rounded-sm border border-transparent hover:border-red-200"
                 onClick={() => router.push(exitLink)}
               >
                 <LogOut className="mr-2 size-4" />
@@ -671,10 +724,13 @@ export function PracticeSession({
                 )}
               </button>
 
+              {/* Report issue button is temporarily hidden */}
+              {/*
               <FeedbackButton
                 questionId={currentQuestion.id}
                 userId={user.id}
               />
+              */}
             </div>
           </div>
 
@@ -806,6 +862,27 @@ export function PracticeSession({
                         },
                       )}
                     </div>
+                  ) : currentQuestion.type === "coding_challenge" ? (
+                    /* Coding Challenge with CodeRunner */
+                    (() => {
+                      const codingConfig = getCodingConfig(currentQuestion);
+                      return (
+                        <CodeRunner
+                          key={`coding-${currentQuestion.id}`}
+                          initialCode={
+                            currentQuestion.code_snippet ||
+                            `def ${codingConfig.function_name}(*args):\n    # Write your code here\n    pass`
+                          }
+                          testCasesConfig={codingConfig}
+                          onSubmit={(_code, _results, allPassed) => {
+                            handleAnswer(
+                              allPassed ? "all_tests_passed" : "tests_failed",
+                            );
+                          }}
+                          readOnly={isChecked}
+                        />
+                      );
+                    })()
                   ) : currentQuestion.type === "handwrite" ? (
                     /* Handwriting Canvas */
                     <div className="w-full h-[500px] border-2 border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-canvas-dark relative">
@@ -845,43 +922,51 @@ export function PracticeSession({
             </div>
 
             {/* Feedback Section - Moved Below */}
-            {isChecked && (
-              <div
-                className={`w-full p-8 border-t-2 border-dashed ${
-                  answers[currentQuestion.id] === currentQuestion.answer
-                    ? "bg-green-50/50 border-green-200 text-green-900 dark:bg-green-900/10 dark:border-green-800 dark:text-green-200"
-                    : "bg-red-50/50 border-red-200 text-red-900 dark:bg-red-900/10 dark:border-red-800 dark:text-red-200"
-                }`}
-              >
-                <div className="flex items-start gap-4">
-                  {answers[currentQuestion.id] === currentQuestion.answer ? (
-                    <Lightbulb className="size-6 shrink-0 mt-1" />
-                  ) : (
-                    <Info className="size-6 shrink-0 mt-1" />
-                  )}
-                  <div className="flex-1 space-y-4">
-                    <div>
-                      <p className="font-serif font-bold text-xl mb-2">
-                        {answers[currentQuestion.id] === currentQuestion.answer
-                          ? "Correct"
-                          : "Incorrect"}
-                      </p>
-                      <p className="font-serif text-lg leading-relaxed opacity-90">
-                        {currentQuestion.explanation ||
-                          "No explanation provided."}
-                      </p>
-                    </div>
+            {isChecked &&
+              (() => {
+                const isCorrectAnswer =
+                  isQuestionCorrect(
+                    currentQuestion,
+                    answers[currentQuestion.id],
+                  );
+                return (
+                  <div
+                    className={`w-full p-8 border-t-2 border-dashed ${
+                      isCorrectAnswer
+                        ? "bg-green-50/50 border-green-200 text-green-900 dark:bg-green-900/10 dark:border-green-800 dark:text-green-200"
+                        : "bg-red-50/50 border-red-200 text-red-900 dark:bg-red-900/10 dark:border-red-800 dark:text-red-200"
+                    }`}
+                  >
+                    <div className="flex items-start gap-4">
+                      {isCorrectAnswer ? (
+                        <Lightbulb className="size-6 shrink-0 mt-1" />
+                      ) : (
+                        <Info className="size-6 shrink-0 mt-1" />
+                      )}
+                      <div className="flex-1 space-y-4">
+                        <div>
+                          <p className="font-serif font-bold text-xl mb-2">
+                            {isCorrectAnswer ? "Correct" : "Incorrect"}
+                          </p>
+                          <p className="font-serif text-lg leading-relaxed opacity-90">
+                            {currentQuestion.explanation ||
+                              (currentQuestion.type === "coding_challenge"
+                                ? "Review your solution and try again."
+                                : "No explanation provided.")}
+                          </p>
+                        </div>
 
-                    <div className="pt-4 border-t border-current/10 w-full">
-                      <p className="text-sm opacity-80">
-                        Review the explanation, then try a similar question to
-                        reinforce the concept.
-                      </p>
+                        <div className="pt-4 border-t border-current/10 w-full">
+                          <p className="text-sm opacity-80">
+                            Review the explanation, then try a similar question
+                            to reinforce the concept.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            )}
+                );
+              })()}
           </div>
         </div>
 

@@ -19,7 +19,7 @@ export default async function BookmarksPage() {
   // Fetch user profile for Header
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("*")
+    .select("id, username, avatar_url, is_vip")
     .eq("id", user.id)
     .single();
 
@@ -88,7 +88,7 @@ export default async function BookmarksPage() {
       {/* <AmbientBackground /> */}
       <Header user={headerUser} />
       <main className="flex-grow flex flex-col w-full">
-        <BookmarksClient bookmarks={bookmarks || []} userId={user.id} />
+        <BookmarksClient bookmarks={bookmarks || []} />
       </main>
     </div>
   );

@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { CodeBlock } from "@/components/ui/CodeBlock";
 import { LatexContent } from "@/components/ui/LatexContent";
 import { createClient } from "@/lib/supabase/client";
 import { Question, Profile, QuestionOption } from "@/types/database";
+import { TestCasesConfig } from "@/lib/pyodide";
 import {
   TrendingUp,
   Timer,
@@ -19,7 +21,27 @@ import {
   Minimize2,
 } from "lucide-react";
 import { encodeId } from "@/lib/ids";
-import { HandwriteCanvas } from "@/components/ui/HandwriteCanvas";
+
+const CodeRunner = dynamic(
+  () => import("@/components/ui/CodeRunner").then((m) => m.CodeRunner),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[280px] rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 animate-pulse" />
+    ),
+  },
+);
+
+const HandwriteCanvas = dynamic(
+  () =>
+    import("@/components/ui/HandwriteCanvas").then((m) => m.HandwriteCanvas),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="h-[400px] w-full rounded-xl border-2 border-gray-100 dark:border-gray-800 bg-white dark:bg-canvas-dark animate-pulse" />
+    ),
+  },
+);
 
 interface Exam {
   id: number;
@@ -141,6 +163,38 @@ export default function ExamSession({
     setAnswers((prev) => ({ ...prev, [questionId]: answer }));
   };
 
+  const isQuestionCorrect = (question: Question, userAnswer?: string) => {
+    if (!userAnswer) return false;
+    if (question.type === "coding_challenge") {
+      return userAnswer === "all_tests_passed";
+    }
+    return userAnswer === question.answer;
+  };
+
+  const getCodingConfig = (question: Question): TestCasesConfig => {
+    const raw = question.test_cases as
+      | {
+          function_name?: unknown;
+          test_cases?: Array<{ input?: unknown; expected?: unknown }>;
+        }
+      | null
+      | undefined;
+
+    const function_name =
+      typeof raw?.function_name === "string" && raw.function_name.trim()
+        ? raw.function_name.trim()
+        : "solution";
+
+    const test_cases = Array.isArray(raw?.test_cases)
+      ? raw.test_cases.map((tc) => ({
+          input: Array.isArray(tc?.input) ? tc.input : [],
+          expected: tc?.expected ?? null,
+        }))
+      : [];
+
+    return { function_name, test_cases };
+  };
+
   const submitExam = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
@@ -155,7 +209,7 @@ export default function ExamSession({
     for (const q of questions) {
       if (q.type === "code_output") continue;
       scoredQuestionsCount++;
-      if (answers[q.id] === q.answer) {
+      if (isQuestionCorrect(q, answers[q.id])) {
         correctCount++;
       }
     }
@@ -192,7 +246,9 @@ export default function ExamSession({
       totalScored > 0 ? Math.round((score / totalScored) * 100) : 100;
 
     const wrongQuestionIds = questions
-      .filter((q) => q.type !== "code_output" && answers[q.id] !== q.answer)
+      .filter(
+        (q) => q.type !== "code_output" && !isQuestionCorrect(q, answers[q.id]),
+      )
       .map((q) => q.id);
 
     const handleRedoMistakes = () => {
@@ -262,51 +318,53 @@ export default function ExamSession({
     >
       {/* Left Sidebar - Progress (Matching PracticeSession exactly) */}
       {!isFocusMode && (
-        <aside className="w-full lg:w-72 flex flex-col gap-4 shrink-0 order-2 lg:order-1 lg:sticky lg:top-0 lg:self-start lg:pt-16">
-          {/* Timer Card */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
-                <Timer className="size-4" />
-                <span className="text-xs font-bold uppercase tracking-widest">
-                  Time Remaining
-                </span>
+        <aside className="w-full lg:w-72 flex flex-col shrink-0 order-2 lg:order-1 lg:sticky lg:top-8 lg:self-start">
+          <div className="bg-white dark:bg-slate-900 border-2 border-gray-200 dark:border-gray-800 flex flex-col">
+            {/* Timer */}
+            <div className="p-5 border-b border-gray-200 dark:border-gray-800">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+                  <Timer className="size-4" />
+                  <span className="text-xs font-bold tracking-widest">
+                    Time Remaining
+                  </span>
+                </div>
+                {timeLeft < 300 && (
+                  <AlertTriangle className="size-4 text-red-500 animate-pulse" />
+                )}
               </div>
-              {timeLeft < 300 && (
-                <AlertTriangle className="size-4 text-red-500 animate-pulse" />
-              )}
+              <div
+                className={`text-2xl font-mono font-bold ${
+                  timeLeft < 300
+                    ? "text-red-500"
+                    : "text-gray-900 dark:text-white"
+                }`}
+              >
+                {formatTime(timeLeft)}
+              </div>
             </div>
-            <div
-              className={`text-2xl font-mono font-bold ${
-                timeLeft < 300
-                  ? "text-red-500"
-                  : "text-gray-900 dark:text-white"
-              }`}
-            >
-              {formatTime(timeLeft)}
+
+            {/* Submit & Exit */}
+            <div className="p-5 space-y-3">
+              <Button
+                size="lg"
+                onClick={submitExam}
+                disabled={isSubmitting}
+                className="w-full"
+              >
+                <Send className="size-5 mr-2" />
+                {isSubmitting ? "Submitting…" : "Submit Exam"}
+              </Button>
+
+              <Button
+                variant="ghost"
+                className="w-full justify-center text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 group transform transition-[transform,color,background-color] duration-200"
+                onClick={handleExit}
+              >
+                <LogOut className="mr-2 size-4 group-hover:-translate-x-1 transition-transform" />
+                Exit
+              </Button>
             </div>
-          </div>
-
-          {/* Submit & Exit */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-100 dark:border-gray-800 p-5 shadow-sm space-y-3">
-            <Button
-              size="lg"
-              onClick={submitExam}
-              disabled={isSubmitting}
-              className="w-full"
-            >
-              <Send className="size-5 mr-2" />
-              {isSubmitting ? "Submitting…" : "Submit Exam"}
-            </Button>
-
-            <Button
-              variant="ghost"
-              className="w-full justify-center text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 group transform transition-[transform,color,background-color] duration-200"
-              onClick={handleExit}
-            >
-              <LogOut className="mr-2 size-4 group-hover:-translate-x-1 transition-transform" />
-              Exit
-            </Button>
           </div>
         </aside>
       )}
@@ -319,7 +377,7 @@ export default function ExamSession({
             : ""
         }`}
       >
-        <div className="bg-white dark:bg-slate-900 shadow-2xl min-h-[800px] p-12 lg:p-16 relative flex flex-col font-serif overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 border-2 border-gray-200 dark:border-gray-800 min-h-[800px] p-12 lg:p-16 relative flex flex-col font-serif overflow-hidden">
           {/* Exam Header (Matching PracticeSession exactly) */}
           <div className="flex justify-end items-end border-b-2 border-black dark:border-white pb-4 mb-12 text-black dark:text-white font-serif">
             <div className="text-right text-sm">
@@ -428,6 +486,27 @@ export default function ExamSession({
                           );
                         })}
                       </div>
+                    ) : question.type === "coding_challenge" ? (
+                      (() => {
+                        const codingConfig = getCodingConfig(question);
+                        return (
+                          <CodeRunner
+                            key={`coding-${question.id}`}
+                            initialCode={
+                              question.code_snippet ||
+                              `def ${codingConfig.function_name}(*args):\n    # Write your code here\n    pass`
+                            }
+                            testCasesConfig={codingConfig}
+                            onSubmit={(_code, _results, allPassed) => {
+                              handleAnswer(
+                                question.id,
+                                allPassed ? "all_tests_passed" : "tests_failed",
+                              );
+                            }}
+                            className="max-w-3xl"
+                          />
+                        );
+                      })()
                     ) : question.type === "handwrite" ? (
                       /* Handwriting Canvas */
                       <div className="w-full h-[400px] border-2 border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-canvas-dark relative">

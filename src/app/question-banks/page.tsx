@@ -104,6 +104,7 @@ export default async function QuestionBanksPage() {
                       isVip={isVip}
                       isUnlocked={unlockedBankIds.has(bank.id)}
                       questionCount={bank.items?.[0]?.count || 0}
+                      href={`/question-banks/${bank.slug}`}
                     />
                   ))}
                 </div>

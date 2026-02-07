@@ -14,19 +14,18 @@ interface PageProps {
 
 export async function generateMetadata(props: PageProps) {
   const params = await props.params;
-  const supabase = await createClient();
-
-  const { data: exam } = await (supabase.from("exams") as any)
-    .select("title")
-    .eq("slug", params.examSlug)
-    .single();
+  const fallbackTitle = params.examSlug
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 
   return {
-    title: exam
-      ? `${exam.title} | Mock Exam | StudyPilot`
+    title: fallbackTitle
+      ? `${fallbackTitle} | Mock Exam | StudyPilot`
       : "Mock Exam | StudyPilot",
-    description: exam
-      ? `Practice with ${exam.title} mock exam.`
+    description: fallbackTitle
+      ? `Practice with ${fallbackTitle} mock exam.`
       : "Mock exam simulation.",
   };
 }
@@ -48,7 +47,7 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
   // Fetch Subject
   const { data: subjectData } = await supabase
     .from("subjects")
-    .select("*")
+    .select("id, slug, name, icon")
     .eq("slug", subjectSlug)
     .single();
 
@@ -122,7 +121,7 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
       .select("id")
       .eq("user_id", user.id)
       .eq("exam_id", exam.id)
-      .single();
+      .maybeSingle();
 
     if (unlock) {
       isUnlocked = true;
@@ -136,7 +135,7 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
       `
       question:questions(
         difficulty,
-        topic_id
+        topic:topics(name)
       )
     `
     )
@@ -144,14 +143,6 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
 
   const questions = (examQuestions || []).map((eq: any) => eq.question);
   const totalQuestions = questions.length;
-
-  // Fetch Topics Map
-  const { data: topics } = await supabase
-    .from("topics")
-    .select("id, name")
-    .eq("subject_id", subject.id);
-
-  const topicMap = new Map(topics?.map((t: any) => [t.id, t.name]) || []);
 
   // Calculate Stats
   const difficultyCounts = questions.reduce(
@@ -163,10 +154,8 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
   );
 
   const topicCounts = questions.reduce((acc: any, q: any) => {
-    const topicName =
-      q.topic_id && topicMap.has(q.topic_id)
-        ? topicMap.get(q.topic_id)
-        : "General";
+    const topicValue = Array.isArray(q.topic) ? q.topic[0] : q.topic;
+    const topicName = topicValue?.name || "General";
     acc[topicName] = (acc[topicName] || 0) + 1;
     return acc;
   }, {});

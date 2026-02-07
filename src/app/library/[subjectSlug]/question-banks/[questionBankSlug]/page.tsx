@@ -14,19 +14,18 @@ interface PageProps {
 
 export async function generateMetadata(props: PageProps) {
   const params = await props.params;
-  const supabase = await createClient();
-
-  const { data: bank } = await (supabase.from("question_banks") as any)
-    .select("title")
-    .eq("slug", params.questionBankSlug)
-    .single();
+  const fallbackTitle = params.questionBankSlug
+    .split("-")
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
 
   return {
-    title: bank
-      ? `${bank.title} | Question Bank | StudyPilot`
+    title: fallbackTitle
+      ? `${fallbackTitle} | Question Bank | StudyPilot`
       : "Question Bank | StudyPilot",
-    description: bank
-      ? `Practice with ${bank.title} question bank.`
+    description: fallbackTitle
+      ? `Practice with ${fallbackTitle} question bank.`
       : "Question bank preview.",
   };
 }
@@ -47,37 +46,28 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
     );
   }
 
-  // Fetch subject
-  const { data: subjectData } = await supabase
-    .from("subjects")
-    .select("*")
-    .eq("slug", subjectSlug)
-    .single();
-
-  const subject = subjectData as {
-    id: number;
-    slug: string;
-    name: string;
-    icon?: string;
-  } | null;
-
-  if (!subject) {
-    redirect("/library");
-  }
-
-  // Fetch Bank
-  const { data: bank, error: bankError } = await (
+  const { data: banks, error: bankError } = await (
     supabase.from("question_banks") as any
   )
     .select(
       `
-      *,
-      subject:subjects(name, icon)
+      id,
+      title,
+      slug,
+      description,
+      subject_id,
+      unlock_type,
+      is_premium,
+      price,
+      allowed_modes,
+      subject:subjects(name, slug, icon)
     `,
     )
-    .eq("slug", questionBankSlug)
-    .eq("subject_id", subject.id)
-    .maybeSingle();
+    .eq("slug", questionBankSlug);
+
+  const bank = (banks || []).find(
+    (candidate: any) => candidate.subject?.slug === subjectSlug,
+  );
 
   if (!bank || bankError) {
     return (
@@ -96,93 +86,90 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
     );
   }
 
-  // Fetch User Profile for Access Check
-  const { data: profile } = await (supabase.from("profiles") as any)
-    .select("*")
+  const profilePromise = (supabase.from("profiles") as any)
+    .select("id, username, avatar_url, is_vip")
     .eq("id", user.id)
     .single();
 
-  // Check Unlock Status
-  let isUnlocked = false;
-  let unlockReason = "";
+  const unlockPromise = (supabase.from("user_bank_unlocks") as any)
+    .select("id, unlock_type")
+    .eq("user_id", user.id)
+    .eq("bank_id", bank.id)
+    .maybeSingle();
 
-  if (bank.unlock_type === "free") {
-    // Free banks are always accessible
-    isUnlocked = true;
-    unlockReason = "Free";
-  } else if (bank.unlock_type === "premium" && profile?.is_vip) {
-    // Premium banks are accessible to VIP users
-    isUnlocked = true;
-    unlockReason = "Premium";
-  } else {
-    // For referral and paid banks (or premium without VIP), check explicit unlocks
-    const { data: unlock } = await (supabase.from("user_bank_unlocks") as any)
-      .select("id, unlock_type")
-      .eq("user_id", user.id)
-      .eq("bank_id", bank.id)
-      .single();
-
-    if (unlock) {
-      isUnlocked = true;
-      unlockReason = unlock.unlock_type;
-    }
-  }
-
-  // Fetch Stats Data
-  const { data: items } = await supabase
-    .from("question_bank_items")
-    .select(
-      `
-      question:questions(
-        difficulty,
-        topic_id
-      )
-    `,
-    )
-    .eq("bank_id", bank.id);
-
-  const questions = (items || []).map((i: any) => i.question);
-  const totalQuestions = questions.length;
-
-  // Fetch Topics Map
-  const { data: topics } = await supabase
-    .from("topics")
-    .select("id, name")
-    .eq("subject_id", bank.subject_id);
-
-  const topicMap = new Map(topics?.map((t: any) => [t.id, t.name]) || []);
-
-  // Check if collected
-  const { data: collectionEntry } = await supabase
+  const collectionPromise = supabase
     .from("user_question_bank_collections")
     .select("id")
     .eq("user_id", user.id)
     .eq("bank_id", bank.id)
     .maybeSingle();
 
-  const isCollected = !!collectionEntry;
+  const itemsPromise = supabase
+    .from("question_bank_items")
+    .select(
+      `
+      question:questions(
+        difficulty,
+        topic:topics(name)
+      )
+    `,
+    )
+    .eq("bank_id", bank.id);
 
-  // Calculate Stats
-  const difficultyCounts = questions.reduce(
-    (acc: any, q: any) => {
-      acc[q.difficulty] = (acc[q.difficulty] || 0) + 1;
-      return acc;
-    },
-    { easy: 0, medium: 0, hard: 0 },
-  );
+  const [profileResult, unlockResult, collectionResult, itemsResult] =
+    await Promise.all([
+      profilePromise,
+      unlockPromise,
+      collectionPromise,
+      itemsPromise,
+    ]);
 
-  const topicCounts = questions.reduce((acc: any, q: any) => {
-    const topicName =
-      q.topic_id && topicMap.has(q.topic_id)
-        ? topicMap.get(q.topic_id)
-        : "General";
-    acc[topicName] = (acc[topicName] || 0) + 1;
-    return acc;
-  }, {});
+  const profile = profileResult.data as any;
+  const unlock = unlockResult.data as any;
+
+  // Check Unlock Status
+  let isUnlocked = false;
+  let unlockReason = "";
+
+  if (bank.unlock_type === "free") {
+    isUnlocked = true;
+    unlockReason = "Free";
+  } else if (bank.unlock_type === "premium" && profile?.is_vip) {
+    isUnlocked = true;
+    unlockReason = "Premium";
+  } else if (unlock) {
+    isUnlocked = true;
+    unlockReason = unlock.unlock_type;
+  }
+
+  const items = (itemsResult.data || []) as any[];
+  const difficultyCounts = { easy: 0, medium: 0, hard: 0 };
+  const topicCounts: Record<string, number> = {};
+  let totalQuestions = 0;
+
+  for (const item of items) {
+    const question = item?.question;
+    if (!question) continue;
+
+    totalQuestions += 1;
+
+    if (question.difficulty in difficultyCounts) {
+      difficultyCounts[question.difficulty as keyof typeof difficultyCounts] +=
+        1;
+    }
+
+    const topicValue = Array.isArray(question.topic)
+      ? question.topic[0]
+      : question.topic;
+    const topicName = topicValue?.name || "General";
+    topicCounts[topicName] = (topicCounts[topicName] || 0) + 1;
+  }
 
   const sortedTopics = Object.entries(topicCounts)
     .sort(([, a], [, b]) => (b as number) - (a as number))
     .slice(0, 5);
+
+  const isCollected = !!collectionResult.data;
 
   const userData = {
     username: profile?.username || user.email?.split("@")[0] || "User",
@@ -209,8 +196,8 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
       allowedModes={bank.allowed_modes}
       libraryContext={{
         subjectSlug,
-        subjectName: subject.name,
-        subjectIcon: subject.icon,
+        subjectName: bank.subject?.name || subjectSlug,
+        subjectIcon: bank.subject?.icon,
       }}
     />
   );

@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { AlertCircle, Tag, TrendingDown } from "lucide-react";
-import { Mistake } from "@/types/database";
+import Link from "next/link";
+import { Tag, TrendingDown, Lock, Sparkles } from "lucide-react";
 
 // Simplified interface that matches what is actually passed
 interface MistakeWithQuestion {
@@ -16,11 +16,42 @@ interface MistakeWithQuestion {
 
 interface MistakesAnalyticsProps {
   mistakes: MistakeWithQuestion[];
+  isPremium: boolean;
 }
 
-export function MistakesAnalytics({ mistakes }: MistakesAnalyticsProps) {
+function PremiumLockOverlay() {
+  return (
+    <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/75 dark:bg-slate-900/80 backdrop-blur-[2px]">
+      <div className="mx-4 max-w-xs rounded-2xl border border-amber-200/70 bg-gradient-to-br from-amber-50 to-orange-50 p-4 text-center shadow-lg dark:border-amber-900/50 dark:from-amber-950/70 dark:to-orange-950/60">
+        <div className="mb-2 inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
+          <Lock className="size-3.5" />
+          Premium Analytics
+        </div>
+        <p className="mb-3 text-sm font-semibold text-slate-800 dark:text-slate-100">
+          Upgrade to Premium to unlock weakest topic and tag insights.
+        </p>
+        <Link
+          href="/pricing"
+          className="inline-flex items-center gap-1 rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200"
+        >
+          <Sparkles className="size-3.5" />
+          View Premium
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+export function MistakesAnalytics({
+  mistakes,
+  isPremium,
+}: MistakesAnalyticsProps) {
   // Calculate analytics
   const { topTopics, topTags } = useMemo(() => {
+    if (!isPremium) {
+      return { topTopics: [], topTags: [] };
+    }
+
     const topicCounts: Record<string, number> = {};
     const tagCounts: Record<string, number> = {};
 
@@ -52,14 +83,14 @@ export function MistakesAnalytics({ mistakes }: MistakesAnalyticsProps) {
       .map(([tag, count]) => ({ tag, count }));
 
     return { topTopics, topTags };
-  }, [mistakes]);
+  }, [mistakes, isPremium]);
 
   if (mistakes.length === 0) return null;
 
   return (
     <div className="grid grid-cols-1 gap-6 mb-8">
       {/* Weakest Topics */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <div className="relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-lg text-red-600 dark:text-red-400">
             <TrendingDown className="size-5" />
@@ -69,8 +100,13 @@ export function MistakesAnalytics({ mistakes }: MistakesAnalyticsProps) {
           </h2>
         </div>
 
-        <div className="space-y-4">
-          {topTopics.length > 0 ? (
+        <div
+          className={`space-y-4 transition ${
+            !isPremium ? "blur-[1.5px] select-none pointer-events-none" : ""
+          }`}
+          aria-hidden={!isPremium}
+        >
+          {isPremium && topTopics.length > 0 ? (
             topTopics.map((topic, index) => (
               <div
                 key={topic.name}
@@ -89,16 +125,24 @@ export function MistakesAnalytics({ mistakes }: MistakesAnalyticsProps) {
                 </span>
               </div>
             ))
-          ) : (
+          ) : isPremium ? (
             <div className="text-center py-6 text-gray-500 text-sm">
               No topic data available.
             </div>
+          ) : (
+            [1, 2, 3].map((item) => (
+              <div
+                key={item}
+                className="h-[50px] rounded-xl bg-slate-100 dark:bg-slate-800/60"
+              />
+            ))
           )}
         </div>
+        {!isPremium && <PremiumLockOverlay />}
       </div>
 
       {/* Common Tags */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
+      <div className="relative overflow-hidden bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 shadow-sm">
         <div className="flex items-center gap-3 mb-6">
           <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg text-amber-600 dark:text-amber-400">
             <Tag className="size-5" />
@@ -108,8 +152,13 @@ export function MistakesAnalytics({ mistakes }: MistakesAnalyticsProps) {
           </h2>
         </div>
 
-        <div className="space-y-4">
-          {topTags.length > 0 ? (
+        <div
+          className={`space-y-4 transition ${
+            !isPremium ? "blur-[1.5px] select-none pointer-events-none" : ""
+          }`}
+          aria-hidden={!isPremium}
+        >
+          {isPremium && topTags.length > 0 ? (
             topTags.map((tag, index) => (
               <div
                 key={tag.tag}
@@ -128,12 +177,20 @@ export function MistakesAnalytics({ mistakes }: MistakesAnalyticsProps) {
                 </span>
               </div>
             ))
-          ) : (
+          ) : isPremium ? (
             <div className="text-center py-6 text-gray-500 text-sm">
               No tag data available.
             </div>
+          ) : (
+            [1, 2, 3].map((item) => (
+              <div
+                key={item}
+                className="h-[50px] rounded-xl bg-slate-100 dark:bg-slate-800/60"
+              />
+            ))
           )}
         </div>
+        {!isPremium && <PremiumLockOverlay />}
       </div>
     </div>
   );

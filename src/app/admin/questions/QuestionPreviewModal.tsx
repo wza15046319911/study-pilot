@@ -18,6 +18,10 @@ interface Question {
   code_snippet: string | null;
   topic_id: number | null;
   tags: string[] | null;
+  test_cases: {
+    function_name: string;
+    test_cases: { input: any[]; expected: any }[];
+  } | null;
   created_at: string;
   subjects?: { name: string };
 }
@@ -79,7 +83,7 @@ export default function QuestionPreviewModal({
                 </span>
                 <span
                   className={`text-xs px-2 py-1 rounded-full font-medium ${getDifficultyColor(
-                    question.difficulty
+                    question.difficulty,
                   )}`}
                 >
                   {question.difficulty.toUpperCase()}
@@ -185,7 +189,7 @@ export default function QuestionPreviewModal({
                 )}
 
                 {/* Non-choice answer display */}
-                {!isChoiceType && (
+                {!isChoiceType && question.type !== "coding_challenge" && (
                   <div className="p-4 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-800 rounded-xl">
                     <div className="text-xs font-bold text-green-700 dark:text-green-400 mb-1 uppercase tracking-wider">
                       Correct Answer
@@ -195,6 +199,40 @@ export default function QuestionPreviewModal({
                     </div>
                   </div>
                 )}
+
+                {/* Coding Challenge Test Cases */}
+                {question.type === "coding_challenge" &&
+                  question.test_cases && (
+                    <div className="p-4 bg-violet-50 dark:bg-violet-900/10 border border-violet-100 dark:border-violet-800 rounded-xl">
+                      <div className="text-xs font-bold text-violet-700 dark:text-violet-400 mb-3 uppercase tracking-wider">
+                        Test Cases · Function:{" "}
+                        <code className="bg-violet-100 dark:bg-violet-900/30 px-1.5 py-0.5 rounded">
+                          {question.test_cases.function_name}()
+                        </code>
+                      </div>
+                      <div className="space-y-2">
+                        {question.test_cases.test_cases.map((tc, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center gap-4 text-sm font-mono bg-white dark:bg-slate-800 p-3 rounded-lg border border-violet-100 dark:border-violet-800"
+                          >
+                            <span className="text-violet-500 font-bold">
+                              #{idx + 1}
+                            </span>
+                            <span className="text-gray-500">Input:</span>
+                            <span className="text-gray-900 dark:text-white">
+                              {JSON.stringify(tc.input)}
+                            </span>
+                            <span className="text-gray-400">→</span>
+                            <span className="text-gray-500">Expected:</span>
+                            <span className="text-green-600 dark:text-green-400 font-medium">
+                              {JSON.stringify(tc.expected)}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
 
                 {/* Explanation */}
                 {question.explanation && (

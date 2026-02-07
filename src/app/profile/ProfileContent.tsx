@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Profile, Subject, Mistake, Question } from "@/types/database";
@@ -144,6 +144,33 @@ export function ProfileContent({
 }: ProfileContentProps) {
   const [open, setOpen] = useState(false);
 
+  const mistakesStats = useMemo(() => {
+    const total = mistakes.length;
+    const totalErrors = mistakes.reduce((sum, item) => sum + item.error_count, 0);
+    const hard = mistakes.filter(
+      (item) => item.questions?.difficulty === "hard",
+    ).length;
+    const latestAt = mistakes[0]?.last_error_at || null;
+
+    return { total, totalErrors, hard, latestAt };
+  }, [mistakes]);
+
+  const bookmarkStats = useMemo(() => {
+    const total = bookmarks.length;
+    const hard = bookmarks.filter(
+      (item) => item.questions?.difficulty === "hard",
+    ).length;
+    const medium = bookmarks.filter(
+      (item) => item.questions?.difficulty === "medium",
+    ).length;
+    const easy = bookmarks.filter(
+      (item) => item.questions?.difficulty === "easy",
+    ).length;
+    const latestAt = bookmarks[0]?.created_at || null;
+
+    return { total, hard, medium, easy, latestAt };
+  }, [bookmarks]);
+
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -157,13 +184,6 @@ export function ProfileContent({
   };
 
   const links = [
-    {
-      label: "Dashboard",
-      href: "/profile",
-      icon: (
-        <LayoutDashboard className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
-      ),
-    },
     {
       label: "Mistakes",
       href: "/profile/mistakes",
@@ -416,33 +436,47 @@ export function ProfileContent({
                 </Link>
               </div>
 
-              <div className="space-y-4">
-                {mistakes.length > 0 ? (
-                  mistakes.slice(0, 3).map((item) => (
-                    <div
-                      key={item.id}
-                      className="p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-red-50 dark:hover:bg-red-900/10 transition-colors group cursor-pointer border border-transparent hover:border-red-100 dark:hover:border-red-900/30"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <span className="text-xs font-bold text-red-600 bg-red-100 dark:bg-red-900/30 px-2 py-0.5 rounded-md">
-                          {item.error_count} Errors
-                        </span>
-                        <span className="text-[10px] text-gray-400">
-                          {formatTimeAgo(item.last_error_at)}
-                        </span>
-                      </div>
-                      <h3 className="text-base font-medium text-gray-900 dark:text-white line-clamp-2 leading-relaxed">
-                        {item.questions.title}
-                      </h3>
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-8 rounded-2xl bg-gray-50 dark:bg-gray-800/20 text-center border border-dashed border-gray-200 dark:border-gray-700">
-                    <p className="text-gray-500 font-medium">
-                      No mistakes recorded yet. Great job!
-                    </p>
-                  </div>
-                )}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30">
+                  <p className="text-[10px] uppercase tracking-widest text-red-600 dark:text-red-400 font-semibold">
+                    Recent Mistakes
+                  </p>
+                  <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+                    {mistakesStats.total}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">latest records</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+                  <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">
+                    Error Hits
+                  </p>
+                  <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+                    {mistakesStats.totalErrors}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    accumulated attempts
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+                  <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">
+                    Hard Questions
+                  </p>
+                  <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+                    {mistakesStats.hard}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">need more review</p>
+                </div>
+                <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+                  <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">
+                    Last Mistake
+                  </p>
+                  <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
+                    {mistakesStats.latestAt
+                      ? formatTimeAgo(mistakesStats.latestAt)
+                      : "No record"}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-2">time since latest</p>
+                </div>
               </div>
             </section>
 
@@ -465,41 +499,48 @@ export function ProfileContent({
                 </Link>
               </div>
 
-              <div className="space-y-4">
-                {bookmarks.length > 0 ? (
-                  bookmarks.slice(0, 3).map((item) => (
-                    <div
-                      key={item.id}
-                      className="p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/50 hover:bg-amber-50 dark:hover:bg-amber-900/10 transition-colors group cursor-pointer border border-transparent hover:border-amber-100 dark:hover:border-amber-900/30"
-                    >
-                      <div className="flex justify-between items-start mb-2">
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider ${
-                            item.questions.difficulty === "hard"
-                              ? "bg-red-100 text-red-700"
-                              : item.questions.difficulty === "medium"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-green-100 text-green-700"
-                          }`}
-                        >
-                          {item.questions.difficulty}
-                        </span>
-                        <span className="text-[10px] text-gray-400">
-                          {formatTimeAgo(item.created_at)}
-                        </span>
-                      </div>
-                      <h3 className="text-base font-medium text-gray-900 dark:text-white line-clamp-2 leading-relaxed">
-                        {item.questions.title}
-                      </h3>
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-8 rounded-2xl bg-gray-50 dark:bg-gray-800/20 text-center border border-dashed border-gray-200 dark:border-gray-700">
-                    <p className="text-gray-500 font-medium">
-                      No bookmarks saved yet.
-                    </p>
-                  </div>
-                )}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 md:col-span-2">
+                  <p className="text-[10px] uppercase tracking-widest text-amber-600 dark:text-amber-400 font-semibold">
+                    Saved Bookmarks
+                  </p>
+                  <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
+                    {bookmarkStats.total}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    quick-access questions
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+                  <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">
+                    Hard
+                  </p>
+                  <p className="mt-1 text-xl font-bold text-gray-900 dark:text-white">
+                    {bookmarkStats.hard}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+                  <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">
+                    Medium
+                  </p>
+                  <p className="mt-1 text-xl font-bold text-gray-900 dark:text-white">
+                    {bookmarkStats.medium}
+                  </p>
+                </div>
+                <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
+                  <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">
+                    Easy
+                  </p>
+                  <p className="mt-1 text-xl font-bold text-gray-900 dark:text-white">
+                    {bookmarkStats.easy}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Last:{" "}
+                    {bookmarkStats.latestAt
+                      ? formatTimeAgo(bookmarkStats.latestAt)
+                      : "No record"}
+                  </p>
+                </div>
               </div>
             </section>
 

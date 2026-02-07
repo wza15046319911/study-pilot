@@ -60,6 +60,10 @@ interface Question {
   code_snippet: string | null;
   topic_id: number | null;
   tags: string[] | null;
+  test_cases: {
+    function_name: string;
+    test_cases: { input: any[]; expected: any }[];
+  } | null;
   created_at: string;
   subjects?: { name: string };
   topics?: { name: string };
@@ -78,6 +82,7 @@ const questionTypes = [
   { value: "multiple_choice", label: "Multiple Choice" },
   { value: "fill_blank", label: "Fill in Blank" },
   { value: "code_output", label: "Code Output" },
+  { value: "coding_challenge", label: "Coding Challenge" },
   { value: "handwrite", label: "Handwrite" },
   { value: "true_false", label: "True/False" },
 ];
@@ -149,7 +154,7 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
     const topicMatchesSubject = topics.some(
       (t) =>
         t.id === parseInt(topicFilter) &&
-        t.subject_id === parseInt(subjectFilter)
+        t.subject_id === parseInt(subjectFilter),
     );
     if (!topicMatchesSubject) {
       setTopicFilter("");
@@ -171,7 +176,7 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
       if ((e.ctrlKey || e.metaKey) && e.key === "k") {
         e.preventDefault();
         const searchInput = document.querySelector(
-          'input[placeholder*="Search"]'
+          'input[placeholder*="Search"]',
         ) as HTMLInputElement;
         if (searchInput) searchInput.focus();
       }
@@ -218,7 +223,7 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
     }
     if (debouncedSearch) {
       query = query.or(
-        `title.ilike.%${debouncedSearch}%,content.ilike.%${debouncedSearch}%`
+        `title.ilike.%${debouncedSearch}%,content.ilike.%${debouncedSearch}%`,
       );
     }
 
@@ -281,7 +286,7 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
 
     const result = await updateQuestion(
       editingQuestion.id,
-      updatedQuestion as any
+      updatedQuestion as any,
     );
 
     if (result.success) {
@@ -291,8 +296,8 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
       if (result.data) {
         setQuestions((prevQuestions) =>
           prevQuestions.map((q) =>
-            q.id === editingQuestion.id ? { ...q, ...result.data } : q
-          )
+            q.id === editingQuestion.id ? { ...q, ...result.data } : q,
+          ),
         );
       }
 
@@ -340,7 +345,7 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
     if (!diff || selectedIds.size === 0) return;
     if (
       !confirm(
-        `Update difficulty for ${selectedIds.size} questions to ${diff}?`
+        `Update difficulty for ${selectedIds.size} questions to ${diff}?`,
       )
     )
       return;
@@ -352,8 +357,8 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
       // Optimistic update
       setQuestions((prev) =>
         prev.map((q) =>
-          selectedIds.has(q.id) ? { ...q, difficulty: diff } : q
-        )
+          selectedIds.has(q.id) ? { ...q, difficulty: diff } : q,
+        ),
       );
       setBatchDifficulty("");
       setSelectedIds(new Set());
@@ -407,7 +412,7 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
     if (selectedIds.size === 0) return;
     if (
       !confirm(
-        `Delete ${selectedIds.size} selected question(s)? This cannot be undone.`
+        `Delete ${selectedIds.size} selected question(s)? This cannot be undone.`,
       )
     )
       return;
@@ -488,7 +493,8 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
                 ...topics
                   .filter(
                     (t) =>
-                      !subjectFilter || t.subject_id === parseInt(subjectFilter)
+                      !subjectFilter ||
+                      t.subject_id === parseInt(subjectFilter),
                   )
                   .map((t) => ({ value: t.id, label: t.name })),
               ]}
@@ -567,8 +573,7 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
               ...topics
                 .filter(
                   (t) =>
-                    !subjectFilter ||
-                    t.subject_id === parseInt(subjectFilter)
+                    !subjectFilter || t.subject_id === parseInt(subjectFilter),
                 )
                 .map((t) => ({ value: t.id, label: t.name })),
             ]}
@@ -717,27 +722,29 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
                           <p className="text-sm text-[#0d121b] dark:text-white whitespace-pre-line">
                             {contentPreview || "No content"}
                           </p>
-                          {isChoiceType && q.options && q.options.length > 0 && (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                              {q.options.slice(0, 4).map((opt, idx) => {
-                                const optionPreview =
-                                  opt.content.length > 80
-                                    ? `${opt.content.slice(0, 80)}...`
-                                    : opt.content;
-                                return (
-                                  <div
-                                    key={`${q.id}-${idx}`}
-                                    className="text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-slate-800/60 rounded-md px-2 py-1"
-                                  >
-                                    <span className="font-semibold">
-                                      {opt.label}.
-                                    </span>{" "}
-                                    {optionPreview}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
+                          {isChoiceType &&
+                            q.options &&
+                            q.options.length > 0 && (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {q.options.slice(0, 4).map((opt, idx) => {
+                                  const optionPreview =
+                                    opt.content.length > 80
+                                      ? `${opt.content.slice(0, 80)}...`
+                                      : opt.content;
+                                  return (
+                                    <div
+                                      key={`${q.id}-${idx}`}
+                                      className="text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-slate-800/60 rounded-md px-2 py-1"
+                                    >
+                                      <span className="font-semibold">
+                                        {opt.label}.
+                                      </span>{" "}
+                                      {optionPreview}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
                         </div>
                       </td>
                       <td className="px-4 py-4 text-sm text-[#4c669a] dark:text-gray-400">
@@ -754,7 +761,7 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
                       <td className="px-4 py-4">
                         <span
                           className={`text-xs px-2 py-1 rounded-full font-medium ${getDifficultyColor(
-                            q.difficulty
+                            q.difficulty,
                           )}`}
                         >
                           {q.difficulty}

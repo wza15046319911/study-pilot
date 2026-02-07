@@ -32,7 +32,7 @@ export default async function LibraryQuestionBankPracticePage(
   // Fetch subject
   const { data: subjectData } = await supabase
     .from("subjects")
-    .select("*")
+    .select("id, slug, name, icon")
     .eq("slug", subjectSlug)
     .single();
 
@@ -49,7 +49,7 @@ export default async function LibraryQuestionBankPracticePage(
 
   // Fetch bank
   const { data: bank } = await (supabase.from("question_banks") as any)
-    .select("*")
+    .select("id, slug, title, subject_id, unlock_type, is_premium")
     .eq("slug", questionBankSlug)
     .eq("subject_id", subject.id)
     .maybeSingle();
@@ -73,7 +73,21 @@ export default async function LibraryQuestionBankPracticePage(
   // Fetch user profile for access check + session data
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("*")
+    .select(
+      [
+        "id",
+        "username",
+        "level",
+        "streak_days",
+        "avatar_url",
+        "created_at",
+        "last_practice_date",
+        "is_vip",
+        "vip_expires_at",
+        "active_session_id",
+        "is_admin",
+      ].join(", "),
+    )
     .eq("id", user.id)
     .single();
 
@@ -90,7 +104,7 @@ export default async function LibraryQuestionBankPracticePage(
       .select("id")
       .eq("user_id", user.id)
       .eq("bank_id", bank.id)
-      .single();
+      .maybeSingle();
 
     if (unlock) {
       isUnlocked = true;
@@ -104,7 +118,21 @@ export default async function LibraryQuestionBankPracticePage(
   // Fetch Questions in Order
   const { data: items } = await supabase
     .from("question_bank_items")
-    .select("question:questions(*)")
+    .select(
+      `
+      question:questions(
+        id,
+        content,
+        type,
+        options,
+        answer,
+        explanation,
+        code_snippet,
+        topic_id,
+        test_cases
+      )
+    `,
+    )
     .eq("bank_id", bank.id)
     .order("order_index");
 

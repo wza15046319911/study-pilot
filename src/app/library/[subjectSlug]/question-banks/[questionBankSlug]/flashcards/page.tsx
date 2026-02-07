@@ -33,7 +33,7 @@ export default async function LibraryQuestionBankFlashcardsPage(
   // Fetch subject
   const { data: subjectData } = await supabase
     .from("subjects")
-    .select("*")
+    .select("id, slug, name, icon")
     .eq("slug", subjectSlug)
     .single();
 
@@ -50,7 +50,7 @@ export default async function LibraryQuestionBankFlashcardsPage(
 
   // Fetch bank
   const { data: bank } = await (supabase.from("question_banks") as any)
-    .select("*")
+    .select("id, slug, title, subject_id")
     .eq("slug", questionBankSlug)
     .eq("subject_id", subject.id)
     .maybeSingle();
@@ -71,22 +71,52 @@ export default async function LibraryQuestionBankFlashcardsPage(
     );
   }
 
-  // Fetch Questions with flashcard_reviews
+  // Fetch only fields needed by flashcard session
   const { data: items } = await supabase
     .from("question_bank_items")
-    .select("question:questions(*, flashcard_reviews(*))")
+    .select(
+      `
+      question:questions(
+        id,
+        title,
+        content,
+        answer,
+        explanation,
+        type,
+        options,
+        code_snippet,
+        topic_id,
+        subject_id,
+        difficulty
+      )
+    `,
+    )
     .eq("bank_id", bank.id)
     .order("order_index");
 
   const questions = (items || []).map((item: any) => ({
     ...item.question,
-    review: item.question?.flashcard_reviews?.[0] || null,
+    review: null,
   }));
 
   // Fetch user profile
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("*")
+    .select(
+      [
+        "id",
+        "username",
+        "level",
+        "streak_days",
+        "avatar_url",
+        "created_at",
+        "last_practice_date",
+        "is_vip",
+        "vip_expires_at",
+        "active_session_id",
+        "is_admin",
+      ].join(", "),
+    )
     .eq("id", user.id)
     .single();
 

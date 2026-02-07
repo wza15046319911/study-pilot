@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
@@ -16,7 +16,6 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { encodeId } from "@/lib/ids";
-import { Subject, Question } from "@/types/database";
 
 interface BookmarkData {
   id: number;
@@ -38,17 +37,16 @@ interface BookmarkData {
 
 interface BookmarksClientProps {
   bookmarks: BookmarkData[];
-  userId: string;
 }
 
 export default function BookmarksClient({
   bookmarks: initialBookmarks,
-  userId,
 }: BookmarksClientProps) {
   const router = useRouter();
   const [bookmarks, setBookmarks] = useState(initialBookmarks);
   const [searchQuery, setSearchQuery] = useState("");
-  const supabase = createClient();
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+  const supabase = useMemo(() => createClient(), []);
 
   const handleRemoveBookmark = async (bookmarkId: number) => {
     setBookmarks((prev) => prev.filter((b) => b.id !== bookmarkId));
@@ -71,18 +69,30 @@ export default function BookmarksClient({
     );
   };
 
-  const filteredBookmarks = bookmarks.filter(
-    (b) =>
-      b.questions.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      b.questions.content.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredBookmarks = useMemo(() => {
+    const normalizedSearch = deferredSearchQuery.trim().toLowerCase();
+    if (!normalizedSearch) {
+      return bookmarks;
+    }
 
-  const groupedBySubject = filteredBookmarks.reduce((acc, bookmark) => {
-    const subjectName = bookmark.questions.subjects.name;
-    if (!acc[subjectName]) acc[subjectName] = [];
-    acc[subjectName].push(bookmark);
-    return acc;
-  }, {} as Record<string, BookmarkData[]>);
+    return bookmarks.filter(
+      (bookmark) =>
+        bookmark.questions.title.toLowerCase().includes(normalizedSearch) ||
+        bookmark.questions.content.toLowerCase().includes(normalizedSearch),
+    );
+  }, [bookmarks, deferredSearchQuery]);
+
+  const groupedBySubject = useMemo(() => {
+    return filteredBookmarks.reduce(
+      (acc, bookmark) => {
+        const subjectName = bookmark.questions.subjects.name;
+        if (!acc[subjectName]) acc[subjectName] = [];
+        acc[subjectName].push(bookmark);
+        return acc;
+      },
+      {} as Record<string, BookmarkData[]>,
+    );
+  }, [filteredBookmarks]);
 
   const formatTimeAgo = (dateString: string) => {
     const date = new Date(dateString);

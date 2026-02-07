@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
@@ -10,18 +10,14 @@ import { ExportMistakesModal } from "@/components/modals/ExportMistakesModal";
 import { MistakesAnalytics } from "./MistakesAnalytics";
 import { encodeId } from "@/lib/ids";
 import {
-  AlertTriangle,
   Trash2,
   Play,
   CheckCircle2,
   XCircle,
-  Download,
   ChevronRight,
   RotateCw,
   Search,
   Check,
-  BookOpen,
-  Hash,
 } from "lucide-react";
 import { LatexContent } from "@/components/ui/LatexContent";
 
@@ -57,18 +53,21 @@ interface MistakeData {
 interface MistakesClientProps {
   mistakes: MistakeData[];
   userId: string;
+  isVip: boolean;
   stats?: any;
 }
 
 export default function MistakesClient({
   mistakes: initialMistakes,
   userId,
+  isVip,
 }: MistakesClientProps) {
   const router = useRouter();
   const [mistakes, setMistakes] = useState(initialMistakes);
   const [showExportModal, setShowExportModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const supabase = createClient();
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+  const supabase = useMemo(() => createClient(), []);
 
   const handleRemoveMistake = async (mistakeId: number) => {
     setMistakes((prev) => prev.filter((m) => m.id !== mistakeId));
@@ -118,12 +117,17 @@ export default function MistakesClient({
 
   // Filter mistakes based on search
   const filteredMistakes = useMemo(() => {
+    const normalizedSearch = deferredSearchQuery.trim().toLowerCase();
+    if (!normalizedSearch) {
+      return mistakes;
+    }
+
     return mistakes.filter(
       (m) =>
-        m.questions.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        m.questions.content.toLowerCase().includes(searchQuery.toLowerCase()),
+        m.questions.title.toLowerCase().includes(normalizedSearch) ||
+        m.questions.content.toLowerCase().includes(normalizedSearch),
     );
-  }, [mistakes, searchQuery]);
+  }, [mistakes, deferredSearchQuery]);
 
   return (
     <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -219,7 +223,7 @@ export default function MistakesClient({
 
           {/* Content for All Subjects */}
           <TabsContent value="all" className="space-y-8">
-            <MistakesAnalytics mistakes={mistakes} />
+            <MistakesAnalytics mistakes={mistakes} isPremium={isVip} />
 
             {/* Search */}
             <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-200 dark:border-gray-800 flex items-center gap-4">
@@ -255,7 +259,7 @@ export default function MistakesClient({
                 value={subject.name}
                 className="space-y-8"
               >
-                <MistakesAnalytics mistakes={subjectMistakes} />
+                <MistakesAnalytics mistakes={subjectMistakes} isPremium={isVip} />
 
                 {/* Search (Scoped) */}
                 <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-200 dark:border-gray-800 flex items-center gap-4">

@@ -7,10 +7,9 @@ import {
   ChevronRight, 
   Trophy, 
   Clock, 
-  Search,
-  Filter
+  Search
 } from "lucide-react";
-import { useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { Subject } from "@/types/database";
 
 interface UserQuestionBanksClientProps {
@@ -31,11 +30,22 @@ interface UserQuestionBanksClientProps {
 
 export function UserQuestionBanksClient({ initialData }: UserQuestionBanksClientProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  
-  const filteredData = initialData.filter(item => 
-    item.question_banks.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.question_banks.subjects?.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+
+  const filteredData = useMemo(() => {
+    const normalizedSearch = deferredSearchTerm.trim().toLowerCase();
+    if (!normalizedSearch) {
+      return initialData;
+    }
+
+    return initialData.filter(
+      (item) =>
+        item.question_banks.title.toLowerCase().includes(normalizedSearch) ||
+        item.question_banks.subjects?.name
+          .toLowerCase()
+          .includes(normalizedSearch),
+    );
+  }, [initialData, deferredSearchTerm]);
 
   return (
     <div className="space-y-6">

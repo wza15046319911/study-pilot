@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { 
+import {
   GraduationCap, 
   ChevronRight, 
   Trophy, 
@@ -10,7 +10,7 @@ import {
   Target,
   Search
 } from "lucide-react";
-import { useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
 import { Subject } from "@/types/database";
 
 interface UserMockExamsClientProps {
@@ -34,11 +34,20 @@ interface UserMockExamsClientProps {
 
 export function UserMockExamsClient({ initialData }: UserMockExamsClientProps) {
   const [searchTerm, setSearchTerm] = useState("");
-  
-  const filteredData = initialData.filter(item => 
-    item.exams.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.exams.subjects?.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const deferredSearchTerm = useDeferredValue(searchTerm);
+
+  const filteredData = useMemo(() => {
+    const normalizedSearch = deferredSearchTerm.trim().toLowerCase();
+    if (!normalizedSearch) {
+      return initialData;
+    }
+
+    return initialData.filter(
+      (item) =>
+        item.exams.title.toLowerCase().includes(normalizedSearch) ||
+        item.exams.subjects?.name.toLowerCase().includes(normalizedSearch),
+    );
+  }, [initialData, deferredSearchTerm]);
 
   return (
     <div className="space-y-6">

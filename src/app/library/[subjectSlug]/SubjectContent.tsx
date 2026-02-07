@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { QuestionBankItem } from "@/components/question-bank/QuestionBankItem";
 import { PremiumModal } from "@/components/ui/PremiumModal";
@@ -11,8 +10,6 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Link from "next/link";
 import {
   Play,
-  Settings2,
-  Lock,
   Layers,
   GraduationCap,
   BookOpen,
@@ -82,7 +79,6 @@ export function SubjectContent({
   weeklyPractices,
   pastExams,
 }: SubjectContentProps) {
-  const router = useRouter();
   const [showPremiumModal, setShowPremiumModal] = useState(false);
 
   // Find nearest upcoming exam
@@ -302,11 +298,7 @@ export function SubjectContent({
                         isVip={isVip}
                         isUnlocked={unlockedBankIds.has(bank.id)}
                         questionCount={bank.items?.[0]?.count || 0}
-                        onClickOverride={() => {
-                          router.push(
-                            `/library/${subject.slug}/question-banks/${bank.slug}`,
-                          );
-                        }}
+                        href={`/library/${subject.slug}/question-banks/${bank.slug}`}
                       />
                     ))}
                   </div>
@@ -346,11 +338,7 @@ export function SubjectContent({
                         questionCount={0}
                         variant="exam"
                         isUnlocked={unlockedExamIds.has(exam.id)}
-                        onClickOverride={() => {
-                          router.push(
-                            `/library/${subject.slug}/exams/${exam.slug}`,
-                          );
-                        }}
+                        href={`/library/${subject.slug}/exams/${exam.slug}`}
                       />
                     ))}
                   </div>

@@ -1,6 +1,4 @@
 "use client";
-
-import { useState } from "react";
 import Link from "next/link";
 import {
   PieChart,
@@ -44,9 +42,6 @@ export function ExamPreviewContent({
   isUnlocked,
   libraryContext,
 }: ExamPreviewContentProps) {
-  // Mock active users for visual consistency
-  const [activeUsers] = useState(() => ((exam.id * 7) % 40) + 12);
-
   const startLink = `/practice/${libraryContext.subjectSlug}/exam/${exam.slug}`;
 
   // Use GraduationCap as the main icon for Exams

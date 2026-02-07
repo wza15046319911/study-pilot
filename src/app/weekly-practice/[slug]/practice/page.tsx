@@ -67,7 +67,9 @@ export default async function WeeklyPracticeSessionPage(props: PageProps) {
         options,
         answer,
         explanation,
-        code_snippet
+        code_snippet,
+        topic_id,
+        test_cases
       )
     `,
     )

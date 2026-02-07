@@ -12,6 +12,10 @@ interface QuestionUpdate {
   code_snippet?: string | null;
   tags?: string[] | null;
   options?: { label: string; content: string }[] | null;
+  test_cases?: {
+    function_name: string;
+    test_cases: { input: unknown[]; expected: unknown }[];
+  } | null;
   topic_id?: number | null;
   subject_id?: number;
 }

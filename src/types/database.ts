@@ -152,7 +152,8 @@ export interface Database {
             | "fill_blank"
             | "code_output"
             | "handwrite"
-            | "true_false";
+            | "true_false"
+            | "coding_challenge";
           difficulty: "easy" | "medium" | "hard";
           options: Json | null;
           answer: string;
@@ -160,6 +161,7 @@ export interface Database {
           code_snippet: string | null;
           topic_id: number | null;
           tags: string[] | null;
+          test_cases: Json | null;
           created_at: string;
         };
         Insert: {
@@ -173,7 +175,8 @@ export interface Database {
             | "fill_blank"
             | "code_output"
             | "handwrite"
-            | "true_false";
+            | "true_false"
+            | "coding_challenge";
           difficulty: "easy" | "medium" | "hard";
           options?: Json | null;
           answer: string;
@@ -181,6 +184,7 @@ export interface Database {
           code_snippet?: string | null;
           topic_id?: number | null;
           tags?: string[] | null;
+          test_cases?: Json | null;
           created_at?: string;
         };
 
@@ -195,7 +199,8 @@ export interface Database {
             | "fill_blank"
             | "code_output"
             | "handwrite"
-            | "true_false";
+            | "true_false"
+            | "coding_challenge";
           difficulty?: "easy" | "medium" | "hard";
           options?: Json | null;
           answer?: string;
@@ -203,6 +208,7 @@ export interface Database {
           code_snippet?: string | null;
           topic_id?: number | null;
           tags?: string[] | null;
+          test_cases?: Json | null;
           created_at?: string;
         };
       };

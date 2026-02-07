@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { MarkdownEditor } from "@/components/ui/MarkdownEditor";
+import { TestCaseEditor, TestCasesConfig } from "@/components/admin/TestCaseEditor";
 import {
   X,
   Save,
@@ -19,7 +20,6 @@ import {
   Type,
   CloudOff,
   Check,
-  FileText,
   Download,
   Bookmark,
 } from "lucide-react";
@@ -39,6 +39,7 @@ interface Question {
   code_snippet: string | null;
   topic_id: number | null;
   tags: string[] | null;
+  test_cases: TestCasesConfig | null;
   created_at: string;
 }
 
@@ -104,8 +105,13 @@ export default function EditQuestionModal({
   const [options, setOptions] = useState<{ label: string; content: string }[]>(
     []
   );
+  const [testCases, setTestCases] = useState<TestCasesConfig>({
+    function_name: "solution",
+    test_cases: [],
+  });
   const [codeEditorMode, setCodeEditorMode] = useState<"code" | "text">("code");
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [draftStatus, setDraftStatus] = useState<"saved" | "saving" | null>(
     null
   );
@@ -139,6 +145,13 @@ export default function EditQuestionModal({
       setCodeSnippet(question.code_snippet || "");
       setTags(question.tags || []);
       setOptions(question.options || []);
+      setTestCases(
+        question.test_cases || {
+          function_name: "solution",
+          test_cases: [],
+        }
+      );
+      setFormError(null);
       setHasDraft(false);
     }
   }, [question]);
@@ -159,6 +172,7 @@ export default function EditQuestionModal({
         codeSnippet,
         tags,
         options,
+        testCases,
         savedAt: new Date().toISOString(),
       };
       localStorage.setItem(draftKey, JSON.stringify(draft));
@@ -177,6 +191,7 @@ export default function EditQuestionModal({
     codeSnippet,
     tags,
     options,
+    testCases,
     isOpen,
     question,
     draftKey,
@@ -218,6 +233,12 @@ export default function EditQuestionModal({
       setCodeSnippet(draft.codeSnippet || "");
       setTags(draft.tags || []);
       setOptions(draft.options || []);
+      setTestCases(
+        draft.testCases || {
+          function_name: "solution",
+          test_cases: [],
+        }
+      );
       setHasDraft(false);
     }
   }, [draftKey]);
@@ -229,35 +250,72 @@ export default function EditQuestionModal({
   }, [draftKey]);
 
   // Handle loading template
-  const handleLoadTemplate = useCallback((template: any) => {
-    if (template.difficulty) setDifficulty(template.difficulty);
-    if (template.contentStructure) setContent(template.contentStructure);
-    if (template.tags) setTags(template.tags);
+  const handleLoadTemplate = useCallback((template: unknown) => {
+    if (typeof template !== "object" || template === null) return;
+    const data = template as {
+      difficulty?: "easy" | "medium" | "hard";
+      contentStructure?: string;
+      tags?: string[];
+    };
+    if (data.difficulty) setDifficulty(data.difficulty);
+    if (data.contentStructure) setContent(data.contentStructure);
+    if (data.tags) setTags(data.tags);
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
+    setFormError(null);
 
     const isChoiceType =
       question?.type === "single_choice" ||
       question?.type === "multiple_choice";
+    const isCodingChallenge = question?.type === "coding_challenge";
+
+    if (isCodingChallenge) {
+      if (!testCases.function_name.trim()) {
+        setFormError("Function name is required for coding challenge.");
+        return;
+      }
+      if (testCases.test_cases.length === 0) {
+        setFormError("At least one test case is required for coding challenge.");
+        return;
+      }
+      if (testCases.test_cases.some((testCase) => !Array.isArray(testCase.input))) {
+        setFormError("Every coding challenge test case input must be a JSON array.");
+        return;
+      }
+    }
+
+    setSaving(true);
 
     const updated: Partial<Question> = {
       title,
       content,
-      answer,
+      answer: isCodingChallenge ? "all_tests_passed" : answer,
       explanation: explanation || null,
       difficulty,
       topic_id: topicId ? parseInt(topicId, 10) : null,
       code_snippet: codeSnippet || null,
       tags: tags.length > 0 ? tags : null,
       options: isChoiceType ? options : null,
+      test_cases: isCodingChallenge
+        ? {
+            ...testCases,
+            function_name: testCases.function_name.trim(),
+          }
+        : null,
     };
 
-    await onSave(updated);
-    clearDraft(); // Clear draft on successful save
-    setSaving(false);
+    try {
+      await onSave(updated);
+      clearDraft(); // Clear draft on successful save
+    } catch (error) {
+      setFormError(
+        error instanceof Error ? error.message : "Failed to save question.",
+      );
+    } finally {
+      setSaving(false);
+    }
   };
 
   const addTag = () => {
@@ -608,6 +666,20 @@ export default function EditQuestionModal({
                   </div>
 
                   {/* Explanation */}
+                  {question.type === "coding_challenge" && (
+                    <div>
+                      <label className="block text-sm font-medium text-[#4c669a] dark:text-gray-400 mb-2">
+                        Test Cases
+                      </label>
+                      <TestCaseEditor
+                        value={testCases}
+                        onChange={setTestCases}
+                        disabled={saving}
+                      />
+                    </div>
+                  )}
+
+                  {/* Explanation */}
                   <div>
                     <label className="block text-sm font-medium text-[#4c669a] dark:text-gray-400 mb-2">
                       Explanation
@@ -692,6 +764,12 @@ export default function EditQuestionModal({
                   </div>
                 </div>
               </div>
+
+              {formError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300">
+                  {formError}
+                </div>
+              )}
             </form>
 
             {/* Footer */}

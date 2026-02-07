@@ -49,16 +49,33 @@ export default async function QuestionBankPracticePage(props: PageProps) {
     );
   }
 
+  // Fetch user profile once for access check + session/header data
+  const { data: profileData } = await (supabase.from("profiles") as any)
+    .select(
+      [
+        "id",
+        "username",
+        "level",
+        "streak_days",
+        "avatar_url",
+        "created_at",
+        "last_practice_date",
+        "is_vip",
+        "vip_expires_at",
+        "active_session_id",
+        "is_admin",
+      ].join(", "),
+    )
+    .eq("id", user.id)
+    .single();
+
+  const profile = profileData as any;
+
   // Check Access (Strict Check)
   let isUnlocked = false;
   if (!bank.is_premium && bank.unlock_type === "free") {
     isUnlocked = true;
   } else {
-    const { data: profile } = await (supabase.from("profiles") as any)
-      .select("is_vip")
-      .eq("id", user.id)
-      .single();
-
     if (bank.is_premium && profile?.is_vip) {
       isUnlocked = true;
     } else {
@@ -68,7 +85,7 @@ export default async function QuestionBankPracticePage(props: PageProps) {
         .select("id")
         .eq("user_id", user.id)
         .eq("bank_id", bank.id)
-        .single();
+        .maybeSingle();
 
       if (unlock) {
         isUnlocked = true;
@@ -85,7 +102,6 @@ export default async function QuestionBankPracticePage(props: PageProps) {
     .from("question_bank_items")
     .select(
       `
-      question_id,
       order_index,
       question:questions(
         id,
@@ -94,7 +110,9 @@ export default async function QuestionBankPracticePage(props: PageProps) {
         options,
         answer,
         explanation,
-        code_snippet
+        code_snippet,
+        topic_id,
+        test_cases
       )
     `,
     )
@@ -119,28 +137,6 @@ export default async function QuestionBankPracticePage(props: PageProps) {
       </div>
     );
   }
-
-  // Fetch user profile for header
-  const { data: headerProfile } = await (supabase.from("profiles") as any)
-    .select(
-      [
-        "id",
-        "username",
-        "level",
-        "streak_days",
-        "avatar_url",
-        "created_at",
-        "last_practice_date",
-        "is_vip",
-        "vip_expires_at",
-        "active_session_id",
-        "is_admin",
-      ].join(", "),
-    )
-    .eq("id", user.id)
-    .single();
-
-  const profile = headerProfile as any;
 
   const userData = {
     username: profile?.username || user.email?.split("@")[0] || "User",

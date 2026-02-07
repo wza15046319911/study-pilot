@@ -33,7 +33,7 @@ export default async function LibraryQuestionBankImmersivePage(
   // Fetch subject
   const { data: subjectData } = await supabase
     .from("subjects")
-    .select("*")
+    .select("id, slug, name, icon")
     .eq("slug", subjectSlug)
     .single();
 
@@ -45,7 +45,7 @@ export default async function LibraryQuestionBankImmersivePage(
 
   // Fetch bank
   const { data: bank } = await (supabase.from("question_banks") as any)
-    .select("*")
+    .select("id, slug, title, subject_id")
     .eq("slug", questionBankSlug)
     .eq("subject_id", subject.id)
     .maybeSingle();
@@ -69,7 +69,21 @@ export default async function LibraryQuestionBankImmersivePage(
   // Fetch first question from bank (ImmersiveSession fetches more dynamically)
   const { data: items } = await supabase
     .from("question_bank_items")
-    .select("question:questions(*)")
+    .select(
+      `
+      question:questions(
+        id,
+        content,
+        type,
+        options,
+        answer,
+        explanation,
+        code_snippet,
+        test_cases,
+        topic_id
+      )
+    `,
+    )
     .eq("bank_id", bank.id)
     .order("order_index")
     .limit(1);
@@ -79,7 +93,21 @@ export default async function LibraryQuestionBankImmersivePage(
   // Fetch user profile for session
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("*")
+    .select(
+      [
+        "id",
+        "username",
+        "level",
+        "streak_days",
+        "avatar_url",
+        "created_at",
+        "last_practice_date",
+        "is_vip",
+        "vip_expires_at",
+        "active_session_id",
+        "is_admin",
+      ].join(", "),
+    )
     .eq("id", user.id)
     .single();
 

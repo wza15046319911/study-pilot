@@ -84,7 +84,9 @@ export default async function HomeworkPracticePage(props: PageProps) {
         options,
         answer,
         explanation,
-        code_snippet
+        code_snippet,
+        topic_id,
+        test_cases
       )
     `,
     )

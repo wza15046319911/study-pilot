@@ -62,11 +62,26 @@ export default async function ExamPreviewPage(props: PageProps) {
     );
   }
 
-  // Fetch User Profile
-  const { data: profile } = await (supabase.from("profiles") as any)
+  const profilePromise = (supabase.from("profiles") as any)
     .select("id, username, avatar_url, is_vip")
     .eq("id", user.id)
     .single();
+
+  const collectionPromise = supabase
+    .from("user_exam_collections")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("exam_id", exam.id)
+    .maybeSingle();
+
+  const [profileResult, collectionResult] = await Promise.all([
+    profilePromise,
+    collectionPromise,
+  ]);
+
+  const profile = profileResult.data as
+    | { id: string; username: string | null; avatar_url: string | null; is_vip: boolean }
+    | null;
 
   const userData = {
     username: profile?.username || user.email?.split("@")[0] || "User",
@@ -85,22 +100,14 @@ export default async function ExamPreviewPage(props: PageProps) {
       .select("id")
       .eq("user_id", user.id)
       .eq("exam_id", exam.id)
-      .single();
+      .maybeSingle();
 
     if (unlock) {
       isUnlocked = true;
     }
   }
 
-  // Check if collected
-  const { data: collectionEntry } = await supabase
-    .from("user_exam_collections")
-    .select("id")
-    .eq("user_id", user.id)
-    .eq("exam_id", exam.id)
-    .maybeSingle();
-
-  const isCollected = !!collectionEntry;
+  const isCollected = !!collectionResult.data;
 
   return (
     <ExamPreviewContent

@@ -77,7 +77,7 @@ export default async function PracticePage(props: PageProps) {
   }
 
   const questionSelect =
-    "id, content, type, options, answer, explanation, code_snippet";
+    "id, content, type, options, answer, explanation, code_snippet, topic_id, test_cases";
 
   const buildQuestionsQuery = (
     selectClause: string,
