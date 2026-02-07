@@ -6,22 +6,24 @@ import dynamic from "next/dynamic";
 import { Profile, Subject, Mistake, Question } from "@/types/database";
 import {
   AlertCircle,
+  AlarmClock,
   TrendingUp,
   Users,
   FileText,
   Target,
   Layers,
   BookMarked,
-  Settings,
   LogOut,
-  LayoutDashboard,
   Library,
   GraduationCap,
   Clock,
   Trophy,
   ChevronRight,
   ClipboardCheck,
+  ClipboardList,
   CalendarCheck,
+  CheckCircle2,
+  Upload,
 } from "lucide-react";
 
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
@@ -130,6 +132,12 @@ interface ProfileContentProps {
     due: number;
     graded: number;
   };
+  homeworkPreview?: Array<{
+    id: number;
+    title: string;
+    dueAt: string | null;
+    completedAt: string | null;
+  }>;
   isAdmin?: boolean;
 }
 
@@ -142,13 +150,17 @@ export function ProfileContent({
   userQuestionBanks,
   userExams,
   homeworkStats = { assigned: 0, due: 0, graded: 0 },
+  homeworkPreview = [],
   isAdmin = false,
 }: ProfileContentProps) {
   const [open, setOpen] = useState(false);
 
   const mistakesStats = useMemo(() => {
     const total = mistakes.length;
-    const totalErrors = mistakes.reduce((sum, item) => sum + item.error_count, 0);
+    const totalErrors = mistakes.reduce(
+      (sum, item) => sum + item.error_count,
+      0,
+    );
     const hard = mistakes.filter(
       (item) => item.questions?.difficulty === "hard",
     ).length;
@@ -184,6 +196,46 @@ export function ProfileContent({
       return `${Math.floor(diffInSeconds / 3600)}h ago`;
     return `${Math.floor(diffInSeconds / 86400)}d ago`;
   };
+
+  const formatHomeworkDueLabel = (dueAt: string | null) => {
+    if (!dueAt) return "No deadline";
+
+    const dueDate = new Date(dueAt);
+    if (Number.isNaN(dueDate.getTime())) return "No deadline";
+
+    const now = new Date();
+    const isToday =
+      dueDate.getFullYear() === now.getFullYear() &&
+      dueDate.getMonth() === now.getMonth() &&
+      dueDate.getDate() === now.getDate();
+
+    const timeLabel = dueDate.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+
+    if (isToday) {
+      return `Tonight ${timeLabel}`;
+    }
+
+    const dayLabel = dueDate.toLocaleDateString("en-US", {
+      weekday: "short",
+    });
+
+    return `${dayLabel} ${timeLabel}`;
+  };
+
+  const homeworkRows = useMemo(
+    () =>
+      homeworkPreview.map((item) => ({
+        id: item.id,
+        title: item.title,
+        done: !!item.completedAt,
+        dueLabel: formatHomeworkDueLabel(item.dueAt),
+      })),
+    [homeworkPreview],
+  );
 
   const links = [
     {
@@ -304,118 +356,134 @@ export function ProfileContent({
           <div className="space-y-8">
             {/* 1. TOP CARDS: HOMEWORK & WEEKLY PRACTICE */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Homework Board */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 flex flex-col justify-between h-full">
-                <div>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 rounded-xl bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400">
-                      <ClipboardCheck className="size-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                        Homework Board
-                      </h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Track assignments and submissions
-                      </p>
-                    </div>
+              {/* Homework */}
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden h-full">
+                <div className="px-6 py-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.16em] font-semibold text-amber-600 dark:text-amber-400">
+                      Homework
+                    </p>
+                    <h3 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                      Assigned
+                    </h3>
                   </div>
-
-                  <div className="grid grid-cols-3 gap-2 mb-6">
-                    <div className="rounded-xl bg-gray-50 dark:bg-gray-800/50 p-3 text-center">
-                      <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">
-                        Assigned
-                      </p>
-                      <p className="mt-1 text-lg font-bold text-gray-900 dark:text-white">
-                        {homeworkStats.assigned}
-                      </p>
-                    </div>
-                    <div className="rounded-xl bg-gray-50 dark:bg-gray-800/50 p-3 text-center">
-                      <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">
-                        Due
-                      </p>
-                      <p className="mt-1 text-lg font-bold text-gray-900 dark:text-white">
-                        {homeworkStats.due}
-                      </p>
-                    </div>
-                    <div className="rounded-xl bg-gray-50 dark:bg-gray-800/50 p-3 text-center">
-                      <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">
-                        Graded
-                      </p>
-                      <p className="mt-1 text-lg font-bold text-gray-900 dark:text-white">
-                        {homeworkStats.graded}
-                      </p>
-                    </div>
+                  <div className="size-14 rounded-full bg-amber-100/80 dark:bg-amber-900/25 flex items-center justify-center text-amber-600 dark:text-amber-400">
+                    <ClipboardList className="size-7" />
                   </div>
                 </div>
 
-                <div>
-                  <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-4">
-                    <span>
-                      Last activity:{" "}
-                      {user.last_practice_date
-                        ? formatTimeAgo(user.last_practice_date)
-                        : "No recent activity"}
-                    </span>
+                <div className="p-5 sm:p-6 space-y-4">
+                  <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-950/50 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex items-center gap-2.5 text-gray-700 dark:text-gray-200">
+                      <AlarmClock className="size-5 text-amber-500 dark:text-amber-400" />
+                      <span className="text-sm sm:text-base font-medium">
+                        {homeworkStats.due > 0
+                          ? `${homeworkStats.due} homework${homeworkStats.due > 1 ? "s" : ""} due this week`
+                          : "No homework due this week"}
+                      </span>
+                    </div>
+
+                    <Link
+                      href="/profile/homework"
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-bold px-5 py-2.5 transition-colors"
+                    >
+                      <Upload className="size-4" />
+                      Submit
+                    </Link>
                   </div>
 
-                  <Link
-                    href="/profile/homework"
-                    className="inline-flex items-center justify-center w-full rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold py-3 transition-colors"
-                  >
-                    Open Homework Board
-                  </Link>
+                  <div className="space-y-3">
+                    {homeworkRows.length === 0 ? (
+                      <div className="rounded-2xl border border-gray-200 dark:border-gray-700 px-5 py-5 bg-white dark:bg-slate-950/30">
+                        <p className="text-base font-semibold text-slate-700 dark:text-slate-300">
+                          No homework assigned yet
+                        </p>
+                      </div>
+                    ) : (
+                      homeworkRows.map((item) => (
+                        <div
+                          key={item.id}
+                          className="rounded-2xl border border-gray-200 dark:border-gray-700 px-5 py-5 bg-white dark:bg-slate-950/30 flex items-center justify-between gap-4"
+                        >
+                          <p className="truncate text-base font-semibold text-slate-900 dark:text-white">
+                            {item.title}
+                          </p>
+
+                          {item.done ? (
+                            <span className="inline-flex items-center gap-2 whitespace-nowrap text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                              <CheckCircle2 className="size-5" />
+                              Done
+                            </span>
+                          ) : (
+                            <span className="whitespace-nowrap text-sm font-semibold text-amber-600 dark:text-amber-400">
+                              {item.dueLabel}
+                            </span>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Weekly Practice */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6 flex flex-col justify-between h-full">
-                <div>
-                  <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 rounded-xl bg-sky-100 dark:bg-sky-900/30 text-sky-600 dark:text-sky-400">
-                      <CalendarCheck className="size-5" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900 dark:text-white">
-                        Weekly Practice
-                      </h3>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        Plan your 7-day sprint
-                      </p>
-                    </div>
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 overflow-hidden h-full">
+                <div className="px-6 py-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.16em] font-semibold text-sky-600 dark:text-sky-400">
+                      Weekly Practice
+                    </p>
+                    <h3 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
+                      7-Day Sprint
+                    </h3>
                   </div>
-
-                  <div className="flex items-center justify-between mb-6">
-                    <div>
-                      <p className="text-xs uppercase tracking-widest text-sky-600 dark:text-sky-400 font-semibold">
-                        This Week
-                      </p>
-                      <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                        Ready
-                      </p>
-                    </div>
-                    <div className="flex gap-1.5">
-                      {weekDots.map((_, idx) => (
-                        <span
-                          key={`week-dot-${idx}`}
-                          className="size-2.5 rounded-full bg-gray-200 dark:bg-gray-700"
-                        />
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl bg-gray-50 dark:bg-gray-800/50 p-4 text-sm text-gray-600 dark:text-gray-300 mb-4 border border-transparent">
-                    Set targets, follow your streak, and review your weekly
-                    progress in one place.
+                  <div className="size-14 rounded-full bg-sky-100/80 dark:bg-sky-900/25 flex items-center justify-center text-sky-600 dark:text-sky-400">
+                    <CalendarCheck className="size-7" />
                   </div>
                 </div>
 
-                <Link
-                  href="/profile/weekly-practice"
-                  className="inline-flex items-center justify-center w-full rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-sm font-semibold py-3 transition-colors"
-                >
-                  Open Weekly Practice
-                </Link>
+                <div className="p-5 sm:p-6 space-y-4">
+                  <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-slate-950/50 px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div className="flex items-center gap-2.5 text-gray-700 dark:text-gray-200">
+                      <Clock className="size-5 text-sky-500 dark:text-sky-400" />
+                      <span className="text-sm sm:text-base font-medium">
+                        Weekly plan ready. Keep your streak for 7 days.
+                      </span>
+                    </div>
+
+                    <Link
+                      href="/profile/weekly-practice"
+                      className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-bold px-5 py-2.5 transition-colors"
+                    >
+                      <CalendarCheck className="size-4" />
+                      Open
+                    </Link>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="rounded-2xl border border-gray-200 dark:border-gray-700 px-5 py-5 bg-white dark:bg-slate-950/30 flex items-center justify-between gap-4">
+                      <p className="truncate text-base font-semibold text-slate-900 dark:text-white">
+                        Progress Timeline
+                      </p>
+                      <div className="flex gap-1.5">
+                        {weekDots.map((_, idx) => (
+                          <span
+                            key={`week-dot-${idx}`}
+                            className="size-2.5 rounded-full bg-gray-200 dark:bg-gray-700"
+                          />
+                        ))}
+                      </div>
+                    </div>
+                    <div className="rounded-2xl border border-gray-200 dark:border-gray-700 px-5 py-5 bg-white dark:bg-slate-950/30 flex items-center justify-between gap-4">
+                      <p className="truncate text-base font-semibold text-slate-900 dark:text-white">
+                        Review Focus
+                      </p>
+                      <span className="whitespace-nowrap text-sm font-semibold text-sky-600 dark:text-sky-400">
+                        This Week
+                      </span>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -477,7 +545,9 @@ export function ProfileContent({
                       ? formatTimeAgo(mistakesStats.latestAt)
                       : "No record"}
                   </p>
-                  <p className="text-xs text-gray-500 mt-2">time since latest</p>
+                  <p className="text-xs text-gray-500 mt-2">
+                    time since latest
+                  </p>
                 </div>
               </div>
             </section>
