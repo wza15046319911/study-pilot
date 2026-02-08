@@ -4,7 +4,7 @@
 
 /* Theme Variables */
 html {
-  font-size: 125%; /* approx 20px base size (increased from 17px) */
+  font-size: 20px;
   color-scheme: light dark;
   text-size-adjust: 100%;
   -webkit-text-size-adjust: 100%;
