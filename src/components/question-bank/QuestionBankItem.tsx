@@ -1,7 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Lock, Crown, Star, Gift, DollarSign, ArrowRight, GraduationCap } from "lucide-react";
+import {
+  Lock,
+  Crown,
+  Star,
+  Gift,
+  DollarSign,
+  ArrowRight,
+  GraduationCap,
+} from "lucide-react";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -77,8 +85,9 @@ export function QuestionBankItem({
     badgeBg: "bg-slate-100 dark:bg-slate-800",
     badgeText: "text-slate-600 dark:text-slate-300",
     icon: "text-slate-500",
-    hoverBorder: "group-hover:border-slate-300 dark:group-hover:border-slate-600",
-    accentGradient: "from-slate-500/10 to-slate-500/0"
+    hoverBorder:
+      "group-hover:border-slate-300 dark:group-hover:border-slate-600",
+    accentGradient: "from-slate-500/10 to-slate-500/0",
   };
 
   if (isPaidType) {
@@ -90,8 +99,9 @@ export function QuestionBankItem({
       badgeBg: "bg-violet-100 dark:bg-violet-900/30",
       badgeText: "text-violet-700 dark:text-violet-300",
       icon: "text-violet-500",
-      hoverBorder: "group-hover:border-violet-300 dark:group-hover:border-violet-600",
-      accentGradient: "from-violet-500/10 to-violet-500/0"
+      hoverBorder:
+        "group-hover:border-violet-300 dark:group-hover:border-violet-600",
+      accentGradient: "from-violet-500/10 to-violet-500/0",
     };
   } else if (isReferralType) {
     badgeIcon = <Gift className="size-3.5" />;
@@ -102,8 +112,9 @@ export function QuestionBankItem({
       badgeBg: "bg-emerald-100 dark:bg-emerald-900/30",
       badgeText: "text-emerald-700 dark:text-emerald-300",
       icon: "text-emerald-500",
-      hoverBorder: "group-hover:border-emerald-300 dark:group-hover:border-emerald-600",
-      accentGradient: "from-emerald-500/10 to-emerald-500/0"
+      hoverBorder:
+        "group-hover:border-emerald-300 dark:group-hover:border-emerald-600",
+      accentGradient: "from-emerald-500/10 to-emerald-500/0",
     };
   } else if (bank.is_premium) {
     badgeIcon = <Crown className="size-3.5" />;
@@ -114,8 +125,9 @@ export function QuestionBankItem({
       badgeBg: "bg-amber-100 dark:bg-amber-900/30",
       badgeText: "text-amber-700 dark:text-amber-300",
       icon: "text-amber-500",
-      hoverBorder: "group-hover:border-amber-300 dark:group-hover:border-amber-600",
-      accentGradient: "from-amber-500/10 to-amber-500/0"
+      hoverBorder:
+        "group-hover:border-amber-300 dark:group-hover:border-amber-600",
+      accentGradient: "from-amber-500/10 to-amber-500/0",
     };
   } else if (variant === "exam") {
     badgeIcon = <GraduationCap className="size-3.5" />;
@@ -126,8 +138,9 @@ export function QuestionBankItem({
       badgeBg: "bg-indigo-100 dark:bg-indigo-900/30",
       badgeText: "text-indigo-700 dark:text-indigo-300",
       icon: "text-indigo-500",
-      hoverBorder: "group-hover:border-indigo-300 dark:group-hover:border-indigo-600",
-      accentGradient: "from-indigo-500/10 to-indigo-500/0"
+      hoverBorder:
+        "group-hover:border-indigo-300 dark:group-hover:border-indigo-600",
+      accentGradient: "from-indigo-500/10 to-indigo-500/0",
     };
   } else if (variant === "default") {
     badgeIcon = <Star className="size-3.5" />;
@@ -139,8 +152,9 @@ export function QuestionBankItem({
       badgeBg: "bg-blue-100 dark:bg-blue-900/30",
       badgeText: "text-blue-700 dark:text-blue-300",
       icon: "text-blue-500",
-      hoverBorder: "group-hover:border-blue-300 dark:group-hover:border-blue-700",
-      accentGradient: "from-blue-500/10 to-blue-500/0"
+      hoverBorder:
+        "group-hover:border-blue-300 dark:group-hover:border-blue-700",
+      accentGradient: "from-blue-500/10 to-blue-500/0",
     };
   }
 
@@ -161,31 +175,31 @@ export function QuestionBankItem({
           colorScheme.border,
           colorScheme.bg,
           colorScheme.hoverBorder,
-          "hover:shadow-lg hover:shadow-gray-200/50 dark:hover:shadow-black/50"
+          "hover:shadow-lg hover:shadow-gray-200/50 dark:hover:shadow-black/50",
         )}
       >
         {/* Subtle Gradient Overlay */}
-        <div 
+        <div
           className={cn(
-            "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none", 
-            colorScheme.accentGradient
-          )} 
+            "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none",
+            colorScheme.accentGradient,
+          )}
         />
 
         {/* Top Section */}
         <div>
-          <div className="flex justify-between items-start mb-4">
+          <div className="flex justify-between items-start gap-3 mb-6">
             <div
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase",
+                "flex items-center gap-1.5 px-3 py-1 rounded-full text-[14px] font-bold tracking-wide uppercase",
                 colorScheme.badgeBg,
-                colorScheme.badgeText
+                colorScheme.badgeText,
               )}
             >
               {badgeIcon}
               <span>{badgeText}</span>
             </div>
-            
+
             {/* Lock Status Icon */}
             {isLocked && (
               <div className="p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400">
@@ -207,11 +221,13 @@ export function QuestionBankItem({
           <span className="text-xs font-medium text-slate-400 font-mono tracking-tight">
             {metaInfo}
           </span>
-          
-          <div className={cn(
-            "flex items-center gap-1 text-sm font-bold transition-all duration-300 group-hover:translate-x-1",
-            isLocked ? "text-slate-400" : "text-blue-600 dark:text-blue-400"
-          )}>
+
+          <div
+            className={cn(
+              "flex items-center gap-1 text-sm font-bold transition-all duration-300 group-hover:translate-x-1",
+              isLocked ? "text-slate-400" : "text-blue-600 dark:text-blue-400",
+            )}
+          >
             {isLocked ? (
               <span>LOCKED</span>
             ) : (

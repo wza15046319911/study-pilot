@@ -26,7 +26,7 @@ export function SubjectsContent({ subjects }: SubjectsContentProps) {
   const filteredSubjects = subjects.filter(
     (s) =>
       s.name.toLowerCase().includes(search.toLowerCase()) ||
-      (s.description?.toLowerCase().includes(search.toLowerCase()) ?? false)
+      (s.description?.toLowerCase().includes(search.toLowerCase()) ?? false),
   );
 
   // First subject becomes "featured"
@@ -142,12 +142,12 @@ export function SubjectsContent({ subjects }: SubjectsContentProps) {
                     </div>
                     <div className="flex gap-1">
                       {subject.is_hot && (
-                        <span className="px-2 py-0.5 bg-white/20 backdrop-blur text-white text-[10px] font-bold rounded-full">
+                        <span className="px-2 py-0.5 bg-white/20 backdrop-blur text-white text-[14px] font-bold rounded-full">
                           HOT
                         </span>
                       )}
                       {subject.is_new && (
-                        <span className="px-2 py-0.5 bg-white/20 backdrop-blur text-white text-[10px] font-bold rounded-full">
+                        <span className="px-2 py-0.5 bg-white/20 backdrop-blur text-white text-[14px] font-bold rounded-full">
                           NEW
                         </span>
                       )}

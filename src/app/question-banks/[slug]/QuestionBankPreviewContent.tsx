@@ -140,16 +140,28 @@ export function QuestionBankPreviewContent({
       <main className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-12">
-          <Link href="/" className="hover:text-blue-600 transition-colors">
-            Home
-          </Link>
-          <ChevronRight className="size-4" />
           <Link
             href="/library"
             className="hover:text-blue-600 transition-colors"
           >
             Library
           </Link>
+          <ChevronRight className="size-4" />
+          {libraryContext && (
+            <>
+              <Link
+                href={`/library/${libraryContext.subjectSlug}`}
+                className="hover:text-blue-600 transition-colors flex items-center gap-1"
+              >
+                {libraryContext.subjectIcon && (
+                  <span>{libraryContext.subjectIcon}</span>
+                )}
+                {libraryContext.subjectName}
+              </Link>
+              <ChevronRight className="size-4" />
+            </>
+          )}
+          <span className="text-slate-500 dark:text-slate-400">Question Bank</span>
           <ChevronRight className="size-4" />
           <span className="text-gray-900 dark:text-white font-medium truncate max-w-[200px]">
             {bank.title}
@@ -197,7 +209,7 @@ export function QuestionBankPreviewContent({
                   <div className="text-2xl font-black text-slate-900 dark:text-white">
                     {totalQuestions}
                   </div>
-                  <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
+                  <div className="text-[14px] uppercase tracking-wider font-bold text-slate-400">
                     Questions
                   </div>
                 </div>
@@ -205,7 +217,7 @@ export function QuestionBankPreviewContent({
                   <div className="text-2xl font-black text-slate-900 dark:text-white">
                     {activeUsers}
                   </div>
-                  <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
+                  <div className="text-[14px] uppercase tracking-wider font-bold text-slate-400">
                     Active Users
                   </div>
                 </div>

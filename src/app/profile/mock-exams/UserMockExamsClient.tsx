@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import {
-  GraduationCap, 
-  ChevronRight, 
-  Trophy, 
-  Clock, 
+  GraduationCap,
+  ChevronRight,
+  Trophy,
+  Clock,
   Target,
-  Search
+  Search,
 } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 import { Subject } from "@/types/database";
@@ -74,26 +74,26 @@ export function UserMockExamsClient({ initialData }: UserMockExamsClientProps) {
           {filteredData.map((item) => (
             <Link
               key={item.id}
-              href={`/practice/${slugOrEncodedId(item.exams.subjects?.slug, item.exams.subjects?.id || item.exams.subject_id)}/exam/${slugOrEncodedId(item.exams.slug, item.exam_id)}`}
+              href={`/library/${slugOrEncodedId(item.exams.subjects?.slug, item.exams.subjects?.id || item.exams.subject_id)}/exams/${slugOrEncodedId(item.exams.slug, item.exam_id)}`}
               className="group relative flex flex-col p-5 rounded-2xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-800 hover:border-emerald-200 dark:hover:border-emerald-800 transition-all duration-300 shadow-sm hover:shadow-md"
             >
               <div className="flex items-start justify-between mb-4">
-                <span className="text-[10px] font-bold px-2.5 py-1 rounded-md bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
+                <span className="text-[14px] font-bold px-2.5 py-1 rounded-md bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
                   {item.exams.subjects?.name || "Mock Exam"}
                 </span>
                 <div className="p-2 rounded-full bg-gray-50 dark:bg-gray-800 group-hover:bg-emerald-50 dark:group-hover:bg-emerald-900/20 transition-colors">
-                   <ChevronRight className="size-4 text-gray-400 group-hover:text-emerald-500 transition-colors" />
+                  <ChevronRight className="size-4 text-gray-400 group-hover:text-emerald-500 transition-colors" />
                 </div>
               </div>
-              
+
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2 group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
                 {item.exams.title}
               </h3>
 
               <div className="grid grid-cols-2 gap-2 mb-4">
                 <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
-                   <Trophy className="size-3.5 text-amber-500" />
-                   <span>{item.completion_count} attempts</span>
+                  <Trophy className="size-3.5 text-amber-500" />
+                  <span>{item.completion_count} attempts</span>
                 </div>
                 {item.best_score !== null && (
                   <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400">
@@ -108,15 +108,20 @@ export function UserMockExamsClient({ initialData }: UserMockExamsClientProps) {
                   </div>
                 )}
               </div>
-              
+
               <div className="mt-auto pt-4 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800">
                 <span className="flex items-center gap-1.5">
                   <Clock className="size-3.5" />
                   {item.exams.duration_minutes} mins
                 </span>
                 {item.last_attempted_at && (
-                  <span title={new Date(item.last_attempted_at).toLocaleString()}>
-                    Last: {formatDistanceToNow(new Date(item.last_attempted_at), { addSuffix: true })}
+                  <span
+                    title={new Date(item.last_attempted_at).toLocaleString()}
+                  >
+                    Last:{" "}
+                    {formatDistanceToNow(new Date(item.last_attempted_at), {
+                      addSuffix: true,
+                    })}
                   </span>
                 )}
               </div>
@@ -130,7 +135,7 @@ export function UserMockExamsClient({ initialData }: UserMockExamsClientProps) {
             No mock exams found
           </h3>
           <p className="text-gray-500 max-w-sm mb-6">
-            {searchTerm 
+            {searchTerm
               ? "Try adjusting your search terms to find what you're looking for."
               : "You haven't started any mock exams yet."}
           </p>

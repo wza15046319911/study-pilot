@@ -306,7 +306,7 @@ export function LibrarySetupContent({
                         {t.name}
                         {(t.question_count || 0) > 0 && (
                           <span
-                            className={`ml-2 text-[10px] px-1.5 py-0.5 rounded-full ${
+                            className={`ml-2 text-[14px] px-1.5 py-0.5 rounded-full ${
                               selectedTopics.includes(t.slug)
                                 ? "bg-white/20 text-white"
                                 : "bg-gray-100 dark:bg-gray-700 text-gray-500"

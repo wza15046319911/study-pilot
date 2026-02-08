@@ -683,11 +683,11 @@ export function ProfileContent({
                   userQuestionBanks.slice(0, 2).map((item) => (
                     <Link
                       key={item.id}
-                      href={`/question-banks/${slugOrEncodedId(item.question_banks.slug, item.bank_id)}`}
+                      href={`/library/${slugOrEncodedId(item.question_banks.subjects?.slug, item.question_banks.subjects?.id)}/question-banks/${slugOrEncodedId(item.question_banks.slug, item.bank_id)}`}
                       className="group p-5 rounded-2xl bg-gradient-to-br from-violet-50 to-purple-50 dark:from-violet-900/20 dark:to-purple-900/20 hover:from-violet-100 hover:to-purple-100 dark:hover:from-violet-900/30 dark:hover:to-purple-900/30 transition-all duration-300 border border-violet-100 dark:border-violet-800/50 hover:border-violet-200 dark:hover:border-violet-700"
                     >
                       <div className="flex items-start justify-between mb-3">
-                        <span className="text-[10px] font-bold px-2 py-1 rounded-md bg-violet-200/50 dark:bg-violet-800/50 text-violet-700 dark:text-violet-300 uppercase tracking-wider">
+                        <span className="text-[14px] font-bold px-2 py-1 rounded-md bg-violet-200/50 dark:bg-violet-800/50 text-violet-700 dark:text-violet-300 uppercase tracking-wider">
                           {item.question_banks.subjects?.name || "General"}
                         </span>
                         <ChevronRight className="size-4 text-gray-400 group-hover:text-violet-500 group-hover:translate-x-1 transition-all" />
@@ -749,11 +749,11 @@ export function ProfileContent({
                   userExams.slice(0, 2).map((item) => (
                     <Link
                       key={item.id}
-                      href={`/practice/${slugOrEncodedId(item.exams.subjects?.slug, item.exams.subjects?.id || item.exams.subject_id)}/exam/${slugOrEncodedId(item.exams.slug, item.exam_id)}`}
+                      href={`/library/${slugOrEncodedId(item.exams.subjects?.slug, item.exams.subjects?.id || item.exams.subject_id)}/exams/${slugOrEncodedId(item.exams.slug, item.exam_id)}`}
                       className="group p-5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 hover:from-emerald-100 hover:to-teal-100 dark:hover:from-emerald-900/30 dark:hover:to-teal-900/30 transition-all duration-300 border border-emerald-100 dark:border-emerald-800/50 hover:border-emerald-200 dark:hover:border-emerald-700"
                     >
                       <div className="flex items-start justify-between mb-3">
-                        <span className="text-[10px] font-bold px-2 py-1 rounded-md bg-emerald-200/50 dark:bg-emerald-800/50 text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
+                        <span className="text-[14px] font-bold px-2 py-1 rounded-md bg-emerald-200/50 dark:bg-emerald-800/50 text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
                           {item.exams.subjects?.name || "Mock Exam"}
                         </span>
                         <ChevronRight className="size-4 text-gray-400 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />

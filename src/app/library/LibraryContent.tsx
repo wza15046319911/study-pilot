@@ -144,40 +144,46 @@ export function LibraryContent({
                   };
 
                   return (
-                  <motion.div
-                    key={subject.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{
-                      duration: 0.25,
-                      delay: Math.min(index * 0.03, 0.18),
-                    }}
-                  >
-                    <Link
-                      href={`/library/${subject.slug}`}
-                      className="group flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/40 p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-white dark:hover:bg-slate-900"
+                    <motion.div
+                      key={subject.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{
+                        duration: 0.25,
+                        delay: Math.min(index * 0.03, 0.18),
+                      }}
                     >
-                      <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-900/30 text-lg">
-                        {subject.icon || "📚"}
-                      </span>
-                      <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
-                          {subject.name}
-                        </p>
-                        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-slate-500 dark:text-slate-400">
-                          <span>{stats.weeklyPracticeCount} weekly</span>
-                          <span aria-hidden className="text-slate-300 dark:text-slate-600">
-                            •
-                          </span>
-                          <span>{stats.questionBankCount} banks</span>
-                          <span aria-hidden className="text-slate-300 dark:text-slate-600">
-                            •
-                          </span>
-                          <span>{stats.mockExamCount} exams</span>
+                      <Link
+                        href={`/library/${subject.slug}`}
+                        className="group flex items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/40 p-3.5 transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-white dark:hover:bg-slate-900"
+                      >
+                        <span className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl bg-blue-50 dark:bg-blue-900/30 text-lg">
+                          {subject.icon || "📚"}
+                        </span>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                            {subject.name}
+                          </p>
+                          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px] text-slate-500 dark:text-slate-400">
+                            <span>{stats.weeklyPracticeCount} weekly</span>
+                            <span
+                              aria-hidden
+                              className="text-slate-300 dark:text-slate-600"
+                            >
+                              •
+                            </span>
+                            <span>{stats.questionBankCount} banks</span>
+                            <span
+                              aria-hidden
+                              className="text-slate-300 dark:text-slate-600"
+                            >
+                              •
+                            </span>
+                            <span>{stats.mockExamCount} exams</span>
+                          </div>
                         </div>
-                      </div>
-                    </Link>
-                  </motion.div>
+                      </Link>
+                    </motion.div>
                   );
                 })}
               </div>

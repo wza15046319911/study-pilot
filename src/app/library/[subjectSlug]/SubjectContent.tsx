@@ -9,13 +9,13 @@ import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Link from "next/link";
 import {
-  Play,
-  Layers,
+  CalendarCheck,
   GraduationCap,
   BookOpen,
   ChevronRight,
   Clock,
   Archive,
+  ArrowUpRight,
 } from "lucide-react";
 import { UserWeeklyPracticeClient } from "@/app/profile/weekly-practice/UserWeeklyPracticeClient";
 import { encodeId } from "@/lib/ids";
@@ -69,6 +69,39 @@ type PastExamListItem = {
 const getSemesterLabel = (semester: number) =>
   semester === 1 ? "Semester 1" : "Semester 2";
 
+const studyToolCards = [
+  {
+    key: "weekly",
+    title: "Weekly Practice",
+    body: "Scheduled sets for steady momentum across the semester.",
+    accent:
+      "border-sky-200/70 bg-[radial-gradient(circle_at_top_right,_rgba(56,189,248,0.25),_transparent_55%),linear-gradient(135deg,rgba(240,249,255,0.85),rgba(255,255,255,0.95))] dark:border-sky-900/60 dark:bg-[radial-gradient(circle_at_top_right,_rgba(14,116,144,0.35),_transparent_55%),linear-gradient(135deg,rgba(2,6,23,0.75),rgba(15,23,42,0.9))]",
+    pill: "text-sky-700 bg-sky-100/70 dark:text-sky-200 dark:bg-sky-900/35",
+    iconClass: "text-sky-600 dark:text-sky-300",
+    dotClass: "bg-sky-500",
+  },
+  {
+    key: "bank",
+    title: "Question Banks",
+    body: "Topic-focused drills to target weak spots with flexible practice modes.",
+    accent:
+      "border-violet-200/70 bg-[radial-gradient(circle_at_top_right,_rgba(167,139,250,0.25),_transparent_55%),linear-gradient(135deg,rgba(245,243,255,0.88),rgba(255,255,255,0.95))] dark:border-violet-900/60 dark:bg-[radial-gradient(circle_at_top_right,_rgba(109,40,217,0.35),_transparent_55%),linear-gradient(135deg,rgba(15,23,42,0.85),rgba(30,27,75,0.75))]",
+    pill: "text-violet-700 bg-violet-100/70 dark:text-violet-200 dark:bg-violet-900/35",
+    iconClass: "text-violet-600 dark:text-violet-300",
+    dotClass: "bg-violet-500",
+  },
+  {
+    key: "mock",
+    title: "Mock Exams",
+    body: "Timed simulations that mirror real exam pressure and pacing.",
+    accent:
+      "border-amber-200/70 bg-[radial-gradient(circle_at_top_right,_rgba(251,191,36,0.25),_transparent_55%),linear-gradient(135deg,rgba(255,251,235,0.88),rgba(255,255,255,0.95))] dark:border-amber-900/60 dark:bg-[radial-gradient(circle_at_top_right,_rgba(146,64,14,0.35),_transparent_55%),linear-gradient(135deg,rgba(23,23,23,0.75),rgba(30,41,59,0.85))]",
+    pill: "text-amber-700 bg-amber-100/70 dark:text-amber-200 dark:bg-amber-900/35",
+    iconClass: "text-amber-600 dark:text-amber-300",
+    dotClass: "bg-amber-500",
+  },
+] as const;
+
 export function SubjectContent({
   subject,
   exams,
@@ -88,33 +121,6 @@ export function SubjectContent({
     ?.map((d) => ({ ...d, dateObj: new Date(d.exam_date) }))
     .filter((d) => d.dateObj > new Date())
     .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime())[0];
-
-  const isWeeklyPracticeSubject =
-    subject.slug === "introduction-to-software-programming";
-
-  const practiceCards = [
-    {
-      title: "Quick Practice",
-      icon: <Play className="size-16 text-blue-600 dark:text-blue-400" />,
-      href: `/library/${subject.slug}/practice`,
-    },
-    {
-      title: "Immersive Mode",
-      icon: <Layers className="size-16 text-purple-600 dark:text-purple-400" />,
-      href: `/library/${subject.slug}/immersive`,
-    },
-    // {
-    //   title: isVip ? "Custom Setup" : "Custom Setup (Premium)",
-    //   icon: isVip ? (
-    //     <Settings2 className="size-16 text-emerald-600 dark:text-emerald-400" />
-    //   ) : (
-    //     <Lock className="size-16 text-slate-400" />
-    //   ),
-    //   onClick: handleSetupClick,
-    //   // Only provide href if VIP, otherwise onClick handles modal
-    //   href: isVip ? `/library/${subject.slug}/setup` : undefined,
-    // },
-  ];
 
   const groupedPastExams = (pastExams || []).reduce(
     (acc, exam) => {
@@ -170,50 +176,78 @@ export function SubjectContent({
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 p-4 md:p-5">
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <InfoBadge />
-            <p className="text-sm font-bold text-slate-900 dark:text-white">
-              Understand these study tools
-            </p>
-          </div>
-          <div className="space-y-2.5 text-sm">
-            <p className="text-slate-700 dark:text-slate-300">
-              <span className="font-semibold text-slate-900 dark:text-white">
-                Question Banks:
-              </span>{" "}
-              Topic-focused sets for targeted skill drilling at your own pace.
-            </p>
-            <p className="text-slate-700 dark:text-slate-300">
-              <span className="font-semibold text-slate-900 dark:text-white">
-                Mock Exams:
-              </span>{" "}
-              Timed, end-to-end simulations to practice under real exam pressure.
-            </p>
-            <p className="text-slate-600 dark:text-slate-400">
-              Homework lives in{" "}
+        <div className="relative overflow-hidden rounded-3xl border border-slate-200/80 dark:border-slate-800/90 bg-white/85 dark:bg-slate-900/80 p-5 md:p-7 shadow-[0_20px_60px_-40px_rgba(15,23,42,0.6)]">
+          <div className="absolute -right-20 -top-20 h-48 w-48 rounded-full bg-blue-200/40 blur-3xl dark:bg-blue-900/25 pointer-events-none" />
+          <div className="absolute -left-16 -bottom-20 h-40 w-40 rounded-full bg-violet-200/35 blur-3xl dark:bg-violet-900/20 pointer-events-none" />
+
+          <div className="relative z-10">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
+              <div className="flex items-center gap-3">
+                <InfoBadge />
+                <p className="text-base md:text-lg font-semibold text-slate-900 dark:text-white">
+                  Your Study Toolkit
+                </p>
+              </div>
               <Link
                 href="/profile/homework"
-                className="font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200 transition-colors"
               >
-                Profile
+                Homework in Profile
+                <ArrowUpRight className="size-4" />
               </Link>
-              .
-            </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {studyToolCards.map((card) => (
+                <article
+                  key={card.key}
+                  className={`rounded-2xl border p-4 md:p-5 ${card.accent} backdrop-blur-sm`}
+                >
+                  <div className="flex items-center justify-between gap-3 mb-2.5">
+                    <span
+                      className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-[0.12em] ${card.pill}`}
+                    >
+                      <span
+                        className={`size-1.5 rounded-full ${card.dotClass}`}
+                      />
+                      Focus
+                    </span>
+                    <span className={`text-sm font-semibold ${card.iconClass}`}>
+                      {card.key === "weekly"
+                        ? "Weekly"
+                        : card.key === "bank"
+                          ? "Drill"
+                          : "Timed"}
+                    </span>
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">
+                    {card.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+                    {card.body}
+                  </p>
+                </article>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* Tabs Section */}
       <section className="max-w-6xl mx-auto">
-        <Tabs defaultValue="practice" className="w-full">
+        <Tabs defaultValue="weekly-practice" className="w-full">
           <TabsList className="mb-8 h-auto flex-wrap justify-start bg-transparent p-0 gap-2 border-b border-slate-200 dark:border-slate-800 rounded-none">
             <TabsTrigger
-              value="practice"
+              value="weekly-practice"
               className="data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 dark:data-[state=active]:text-blue-400 dark:data-[state=active]:border-blue-400 bg-transparent text-slate-500 dark:text-slate-400 border-b-2 border-transparent px-4 py-3 rounded-none font-semibold text-base hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
             >
-              <Play className="size-5 mr-2" />
-              Practice
+              <CalendarCheck className="size-5 mr-2" />
+              Weekly Practice
+              {weeklyPractices && weeklyPractices.length > 0 && (
+                <span className="ml-2 text-xs opacity-70 bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full">
+                  {weeklyPractices.length}
+                </span>
+              )}
             </TabsTrigger>
             <TabsTrigger
               value="question-banks"
@@ -244,7 +278,7 @@ export function SubjectContent({
               className="data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 dark:data-[state=active]:text-blue-400 dark:data-[state=active]:border-blue-400 bg-transparent text-slate-500 dark:text-slate-400 border-b-2 border-transparent px-4 py-3 rounded-none font-semibold text-base hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
             >
               <Archive className="size-5 mr-2" />
-              Past Exams
+              Past Exam Answers
               {pastExams && pastExams.length > 0 && (
                 <span className="ml-2 text-xs opacity-70 bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full">
                   {pastExams.length}
@@ -253,13 +287,13 @@ export function SubjectContent({
             </TabsTrigger>
           </TabsList>
 
-          {/* Practice Tab Content */}
-          <TabsContent value="practice" className="mt-8">
-            {isWeeklyPracticeSubject ? (
+          {/* Weekly Practice Tab Content */}
+          <TabsContent value="weekly-practice" className="mt-8">
+            {weeklyPractices && weeklyPractices.length > 0 ? (
               <div className="space-y-8">
                 <div className="flex items-center justify-between mb-8">
                   <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                    <Play className="size-6 text-blue-600 dark:text-blue-400" />
+                    <CalendarCheck className="size-6 text-blue-600 dark:text-blue-400" />
                     Weekly Practice
                   </h2>
                   <span className="hidden md:inline-block text-sm text-slate-500">
@@ -268,49 +302,20 @@ export function SubjectContent({
                 </div>
 
                 <UserWeeklyPracticeClient
-                  initialData={weeklyPractices || []}
+                  initialData={weeklyPractices}
                   showSummary={false}
                 />
               </div>
             ) : (
-              <div className="space-y-8">
-                <div className="flex items-center justify-between mb-8">
-                  <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                    <Play className="size-6 text-blue-600 dark:text-blue-400" />
-                    Practice Zone
-                  </h2>
-                  <span className="hidden md:inline-block text-sm text-slate-500">
-                    Start solving problems to master your skills.
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {practiceCards.map((card) => (
-                    <Link key={card.href} href={card.href}>
-                      <div className="group h-full cursor-pointer p-8 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:shadow-xl hover:border-blue-200 dark:hover:border-blue-800 transition-all duration-300">
-                        <div className="flex flex-col h-full">
-                          <div className="size-16 rounded-2xl bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
-                            {card.icon}
-                          </div>
-                          <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
-                            {card.title}
-                          </h3>
-                          <p className="text-slate-600 dark:text-slate-400 mb-6 flex-grow leading-relaxed">
-                            {card.title === "Quick Practice"
-                              ? "Jump straight into a session with 10 random questions. Best for daily consistency."
-                              : "Distraction-free, infinite flow of questions. Focus purely on problem solving."}
-                          </p>
-                          <div className="flex items-center text-blue-600 dark:text-blue-400 font-bold text-sm group-hover:gap-2 transition-[gap]">
-                            {card.title === "Quick Practice"
-                              ? "Start Session"
-                              : "Enter Flow"}{" "}
-                            <ChevronRight className="size-4 ml-2" />
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
+              <div className="max-w-md mx-auto text-center py-20 px-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
+                <CalendarCheck className="size-12 text-slate-300 mx-auto mb-4" />
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                  No Weekly Practice Yet
+                </h3>
+                <p className="text-slate-500">
+                  Weekly practice sets for this subject have not been published
+                  yet.
+                </p>
               </div>
             )}
           </TabsContent>
@@ -453,9 +458,6 @@ export function SubjectContent({
                                     >
                                       {exam.title?.trim() ||
                                         `Paper ${index + 1}`}
-                                      <span className="text-xs font-mono text-amber-700/70 dark:text-amber-200/70">
-                                        {exam.questionCount}题
-                                      </span>
                                       <ChevronRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </Link>
                                   ))}
@@ -489,8 +491,8 @@ export function SubjectContent({
 
 function InfoBadge() {
   return (
-    <span className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">
-      Quick Guide
+    <span className="inline-flex items-center rounded-full border border-blue-200/80 bg-blue-50/80 dark:border-blue-800/80 dark:bg-blue-900/25 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-300">
+      Study Map
     </span>
   );
 }

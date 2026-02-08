@@ -48,7 +48,10 @@ export function PastExamAnswerContent({
 
       <main className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 relative z-10">
         <div className="flex items-center gap-2 text-sm text-slate-500 mb-10">
-          <Link href="/library" className="hover:text-blue-600 transition-colors">
+          <Link
+            href="/library"
+            className="hover:text-blue-600 transition-colors"
+          >
             Library
           </Link>
           <ChevronRight className="size-4" />
@@ -93,7 +96,7 @@ export function PastExamAnswerContent({
                   <div className="text-2xl font-black text-slate-900 dark:text-white">
                     {questions.length}
                   </div>
-                  <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
+                  <div className="text-[14px] uppercase tracking-wider font-bold text-slate-400">
                     Questions
                   </div>
                 </div>
@@ -101,7 +104,7 @@ export function PastExamAnswerContent({
                   <div className="text-2xl font-black text-slate-900 dark:text-white">
                     {typeCounts.length}
                   </div>
-                  <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
+                  <div className="text-[14px] uppercase tracking-wider font-bold text-slate-400">
                     Types
                   </div>
                 </div>

@@ -99,9 +99,6 @@ export default async function SubjectPage(props: PageProps) {
     );
   }
 
-  const showWeeklyPractice =
-    subject.slug === "introduction-to-software-programming";
-
   const profilePromise = supabase
     .from("profiles")
     .select("id, username, avatar_url, is_vip")
@@ -155,27 +152,25 @@ export default async function SubjectPage(props: PageProps) {
     .select("id, exam_type, exam_date")
     .eq("subject_id", subject.id);
 
-  const weeklyPracticesPromise = showWeeklyPractice
-    ? supabase
-        .from("weekly_practices")
-        .select(
-          `
-          id,
-          title,
-          slug,
-          description,
-          week_start,
-          subject:subjects (
-            name,
-            slug
-          ),
-          items:weekly_practice_items(count)
-        `,
-        )
-        .eq("is_published", true)
-        .eq("subject_id", subject.id)
-        .order("week_start", { ascending: false })
-    : Promise.resolve({ data: [] as WeeklyPracticeItem[] });
+  const weeklyPracticesPromise = supabase
+    .from("weekly_practices")
+    .select(
+      `
+      id,
+      title,
+      slug,
+      description,
+      week_start,
+      subject:subjects (
+        name,
+        slug
+      ),
+      items:weekly_practice_items(count)
+    `,
+    )
+    .eq("is_published", true)
+    .eq("subject_id", subject.id)
+    .order("week_start", { ascending: false });
 
   const pastExamsPromise = supabase
     .from("past_exams")
@@ -248,16 +243,15 @@ export default async function SubjectPage(props: PageProps) {
     .map((practice) => practice.id)
     .filter(Boolean);
 
-  const { data: submissions } =
-    showWeeklyPractice && weeklyPracticeIds.length
-      ? await (supabase.from("weekly_practice_submissions") as any)
-          .select(
-            "weekly_practice_id, submitted_at, answered_count, correct_count, total_count",
-          )
-          .eq("user_id", user.id)
-          .in("weekly_practice_id", weeklyPracticeIds)
-          .order("submitted_at", { ascending: false })
-      : { data: [] as any[] };
+  const { data: submissions } = weeklyPracticeIds.length
+    ? await (supabase.from("weekly_practice_submissions") as any)
+        .select(
+          "weekly_practice_id, submitted_at, answered_count, correct_count, total_count",
+        )
+        .eq("user_id", user.id)
+        .in("weekly_practice_id", weeklyPracticeIds)
+        .order("submitted_at", { ascending: false })
+    : { data: [] as any[] };
 
   const latestSubmissionMap = new Map<number, any>();
   (submissions || []).forEach((submission: any) => {

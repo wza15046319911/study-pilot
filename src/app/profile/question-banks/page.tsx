@@ -37,6 +37,7 @@ export default async function QuestionBanksPage() {
           title,
           slug,
           subjects (
+            id,
             name,
             slug
           )

@@ -197,7 +197,7 @@ export function UnlockBankModal({
                           {bank.title}
                         </h3>
                         {/* Subject Badge */}
-                        <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-500 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
+                        <span className="px-1.5 py-0.5 rounded text-[14px] font-medium bg-slate-100 text-slate-500 border border-slate-200 dark:bg-slate-800 dark:text-slate-400 dark:border-slate-700">
                           {bank.subject?.name}
                         </span>
                       </div>

@@ -65,7 +65,7 @@ export default function BookmarksClient({
       .join(",");
 
     router.push(
-      `/practice/${encodeId(firstSubjectId)}?mode=bookmarks&questions=${questionIds}`
+      `/practice/${encodeId(firstSubjectId)}?mode=bookmarks&questions=${questionIds}`,
     );
   };
 
@@ -98,7 +98,7 @@ export default function BookmarksClient({
     const date = new Date(dateString);
     const now = new Date();
     const diffInDays = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 3600 * 24)
+      (now.getTime() - date.getTime()) / (1000 * 3600 * 24),
     );
 
     if (diffInDays === 0) return "Today";
@@ -209,7 +209,7 @@ export default function BookmarksClient({
                     className="group bg-white dark:bg-slate-900 p-5 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-blue-300 dark:hover:border-blue-700 transition-colors cursor-pointer relative"
                     onClick={() =>
                       router.push(
-                        `/question/${encodeId(bookmark.questions.id)}`
+                        `/question/${encodeId(bookmark.questions.id)}`,
                       )
                     }
                   >
@@ -217,12 +217,12 @@ export default function BookmarksClient({
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                            className={`text-[14px] font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
                               bookmark.questions.difficulty === "hard"
                                 ? "bg-red-50 text-red-600 dark:bg-red-900/20 dark:text-red-400"
                                 : bookmark.questions.difficulty === "medium"
-                                ? "bg-yellow-50 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400"
-                                : "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400"
+                                  ? "bg-yellow-50 text-yellow-600 dark:bg-yellow-900/20 dark:text-yellow-400"
+                                  : "bg-green-50 text-green-600 dark:bg-green-900/20 dark:text-green-400"
                             }`}
                           >
                             {bookmark.questions.difficulty}

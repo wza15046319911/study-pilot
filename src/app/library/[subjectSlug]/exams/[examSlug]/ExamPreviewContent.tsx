@@ -55,10 +55,6 @@ export function ExamPreviewContent({
       <main className="flex-grow w-full max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
         {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-12">
-          <Link href="/" className="hover:text-blue-600 transition-colors">
-            Home
-          </Link>
-          <ChevronRight className="size-4" />
           <Link
             href="/library"
             className="hover:text-blue-600 transition-colors"
@@ -75,6 +71,8 @@ export function ExamPreviewContent({
             )}
             {libraryContext.subjectName}
           </Link>
+          <ChevronRight className="size-4" />
+          <span className="text-slate-500 dark:text-slate-400">Mock Exam</span>
           <ChevronRight className="size-4" />
           <span className="text-gray-900 dark:text-white font-medium truncate max-w-[200px]">
             {exam.title}
@@ -107,7 +105,7 @@ export function ExamPreviewContent({
                   <div className="text-2xl font-black text-slate-900 dark:text-white">
                     {totalQuestions}
                   </div>
-                  <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
+                  <div className="text-[14px] uppercase tracking-wider font-bold text-slate-400">
                     Questions
                   </div>
                 </div>
@@ -115,7 +113,7 @@ export function ExamPreviewContent({
                   <div className="text-2xl font-black text-slate-900 dark:text-white">
                     {exam.duration_minutes}
                   </div>
-                  <div className="text-[10px] uppercase tracking-wider font-bold text-slate-400">
+                  <div className="text-[14px] uppercase tracking-wider font-bold text-slate-400">
                     Minutes
                   </div>
                 </div>
@@ -241,7 +239,7 @@ export function ExamPreviewContent({
                         </span>
                         <span className="font-medium text-slate-900 dark:text-white">
                           {Math.round(
-                            (difficultyCounts[lvl] / totalQuestions) * 100
+                            (difficultyCounts[lvl] / totalQuestions) * 100,
                           ) || 0}
                           %
                         </span>
@@ -252,8 +250,8 @@ export function ExamPreviewContent({
                             lvl === "easy"
                               ? "bg-emerald-400"
                               : lvl === "medium"
-                              ? "bg-amber-400"
-                              : "bg-red-400"
+                                ? "bg-amber-400"
+                                : "bg-red-400"
                           }`}
                           style={{
                             width: `${
