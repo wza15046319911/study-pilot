@@ -231,7 +231,13 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                     >
                       <div className="text-right hidden sm:block">
                         <div className="flex items-center justify-end gap-1">
-                          <p className="text-sm font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                          <p
+                            className={`text-sm font-bold transition-colors ${
+                              effectiveUser.is_vip
+                                ? "text-amber-500"
+                                : "text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400"
+                            }`}
+                          >
                             {effectiveUser.username}
                           </p>
                           {effectiveUser.is_vip && (
@@ -241,11 +247,6 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                             />
                           )}
                         </div>
-                        {effectiveUser.is_vip && (
-                          <p className="text-[10px] font-bold text-amber-500 uppercase tracking-wider leading-none">
-                            VIP Member
-                          </p>
-                        )}
                       </div>
                       <div className="relative">
                         <div
@@ -393,7 +394,13 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                       }
                     />
                     <div>
-                      <p className="font-bold text-slate-900 dark:text-white">
+                      <p
+                        className={`font-bold ${
+                          effectiveUser.is_vip
+                            ? "text-amber-500"
+                            : "text-slate-900 dark:text-white"
+                        }`}
+                      >
                         {effectiveUser.username}
                       </p>
                       {effectiveUser.is_vip && (
