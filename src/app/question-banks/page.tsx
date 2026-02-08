@@ -76,9 +76,10 @@ export default async function QuestionBanksPage() {
             Question Banks
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-            Curated collections of problems designed to target specific skills.
+            Curated, topic-focused practice sets for targeted skill drilling.
             <br className="hidden md:block" />
-            Pick a bank and master a topic.
+            Unlike mock exams, these are designed for flexible practice instead
+            of timed full simulations.
           </p>
         </div>
 

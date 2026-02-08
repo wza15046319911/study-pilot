@@ -106,7 +106,8 @@ export default async function HomeworkPage() {
             My Homework
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Stay on top of your assigned homework and deadlines.
+            Assigned practice sets with deadlines and progress tracking, all in
+            one place.
           </p>
         </div>
 

@@ -90,7 +90,8 @@ export default async function MockExamsPage() {
             My Mock Exams
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Review your past exam attempts and track your improvement.
+            Timed, end-to-end exam simulations to practice pacing under real
+            conditions and measure readiness over time.
           </p>
         </div>
 

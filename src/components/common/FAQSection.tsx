@@ -20,6 +20,21 @@ const FAQS: FAQItem[] = [
       "StudyPilot is an exam practice platform with 10,000+ curated questions, spaced repetition flashcards, and smart mistake tracking for university students.",
   },
   {
+    question: "What is a Question Bank?",
+    answer:
+      "A Question Bank is a focused collection of curated questions for a topic or skill area. It is designed for targeted drilling with flexible practice modes, so you can train weak spots efficiently.",
+  },
+  {
+    question: "What is a Mock Exam?",
+    answer:
+      "A Mock Exam is a timed, full-length exam simulation. It helps you practice pacing, stamina, and decision-making under realistic exam conditions.",
+  },
+  {
+    question: "How does Homework work?",
+    answer:
+      "Homework includes assigned sets (published by staff/admin), often with deadlines and progress tracking. You can find and complete your assigned homework from your Profile.",
+  },
+  {
     question: "How does StudyPilot help with exam preparation?",
     answer:
       "StudyPilot uses organized question banks from past exams and scientifically-proven spaced repetition to help students master course material efficiently.",

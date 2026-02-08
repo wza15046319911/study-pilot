@@ -169,6 +169,39 @@ export function SubjectContent({
             )}
           </div>
         </div>
+
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white/85 dark:bg-slate-900/85 p-4 md:p-5">
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <InfoBadge />
+            <p className="text-sm font-bold text-slate-900 dark:text-white">
+              Understand these study tools
+            </p>
+          </div>
+          <div className="space-y-2.5 text-sm">
+            <p className="text-slate-700 dark:text-slate-300">
+              <span className="font-semibold text-slate-900 dark:text-white">
+                Question Banks:
+              </span>{" "}
+              Topic-focused sets for targeted skill drilling at your own pace.
+            </p>
+            <p className="text-slate-700 dark:text-slate-300">
+              <span className="font-semibold text-slate-900 dark:text-white">
+                Mock Exams:
+              </span>{" "}
+              Timed, end-to-end simulations to practice under real exam pressure.
+            </p>
+            <p className="text-slate-600 dark:text-slate-400">
+              Homework lives in{" "}
+              <Link
+                href="/profile/homework"
+                className="font-semibold text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                Profile
+              </Link>
+              .
+            </p>
+          </div>
+        </div>
       </section>
 
       {/* Tabs Section */}
@@ -451,5 +484,13 @@ export function SubjectContent({
         </Tabs>
       </section>
     </div>
+  );
+}
+
+function InfoBadge() {
+  return (
+    <span className="inline-flex items-center rounded-full bg-blue-50 dark:bg-blue-900/20 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-blue-700 dark:text-blue-300">
+      Quick Guide
+    </span>
   );
 }
