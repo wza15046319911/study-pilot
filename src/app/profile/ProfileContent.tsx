@@ -508,7 +508,7 @@ export function ProfileContent({
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30">
-                  <p className="text-[10px] uppercase tracking-widest text-red-600 dark:text-red-400 font-semibold">
+                  <p className="text-[14px] uppercase tracking-widest text-red-600 dark:text-red-400 font-semibold">
                     Recent Mistakes
                   </p>
                   <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
@@ -517,7 +517,7 @@ export function ProfileContent({
                   <p className="text-xs text-gray-500 mt-1">latest records</p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-                  <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">
+                  <p className="text-[14px] uppercase tracking-widest text-gray-500 font-semibold">
                     Error Hits
                   </p>
                   <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
@@ -528,7 +528,7 @@ export function ProfileContent({
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-                  <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">
+                  <p className="text-[14px] uppercase tracking-widest text-gray-500 font-semibold">
                     Hard Questions
                   </p>
                   <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
@@ -537,7 +537,7 @@ export function ProfileContent({
                   <p className="text-xs text-gray-500 mt-1">need more review</p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-                  <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">
+                  <p className="text-[14px] uppercase tracking-widest text-gray-500 font-semibold">
                     Last Mistake
                   </p>
                   <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
@@ -573,7 +573,7 @@ export function ProfileContent({
 
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 md:col-span-2">
-                  <p className="text-[10px] uppercase tracking-widest text-amber-600 dark:text-amber-400 font-semibold">
+                  <p className="text-[14px] uppercase tracking-widest text-amber-600 dark:text-amber-400 font-semibold">
                     Saved Bookmarks
                   </p>
                   <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
@@ -584,7 +584,7 @@ export function ProfileContent({
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-                  <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">
+                  <p className="text-[14px] uppercase tracking-widest text-gray-500 font-semibold">
                     Hard
                   </p>
                   <p className="mt-1 text-xl font-bold text-gray-900 dark:text-white">
@@ -592,7 +592,7 @@ export function ProfileContent({
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-                  <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">
+                  <p className="text-[14px] uppercase tracking-widest text-gray-500 font-semibold">
                     Medium
                   </p>
                   <p className="mt-1 text-xl font-bold text-gray-900 dark:text-white">
@@ -600,7 +600,7 @@ export function ProfileContent({
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
-                  <p className="text-[10px] uppercase tracking-widest text-gray-500 font-semibold">
+                  <p className="text-[14px] uppercase tracking-widest text-gray-500 font-semibold">
                     Easy
                   </p>
                   <p className="mt-1 text-xl font-bold text-gray-900 dark:text-white">

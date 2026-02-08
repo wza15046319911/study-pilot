@@ -25,15 +25,29 @@ interface DailyTrendChartProps {
 export function DailyTrendChart({ data }: DailyTrendChartProps) {
   const chartData = data.map((item) => ({
     ...item,
-    accuracy: item.count > 0 ? Math.round((item.correct / item.count) * 100) : 0,
+    accuracy:
+      item.count > 0 ? Math.round((item.correct / item.count) * 100) : 0,
   }));
 
   const tooltipStyle = {
-    backgroundColor: "rgba(255, 255, 255, 0.95)",
-    borderRadius: "8px",
-    border: "none",
-    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-    fontSize: "12px",
+    backgroundColor: "white",
+    borderRadius: "12px",
+    border: "1px solid #e2e8f0",
+    boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+    padding: "10px",
+    fontSize: "14px",
+  };
+
+  const itemStyle = {
+    color: "#1e293b",
+    fontWeight: "600",
+    padding: "2px 0",
+  };
+
+  const labelStyle = {
+    color: "#64748b",
+    fontWeight: "500",
+    marginBottom: "4px",
   };
 
   return (
@@ -76,12 +90,14 @@ export function DailyTrendChart({ data }: DailyTrendChartProps) {
                 labelFormatter={(label) => `${label}`}
                 cursor={{ fill: "rgba(0, 0, 0, 0.05)" }}
                 contentStyle={tooltipStyle}
+                itemStyle={itemStyle}
+                labelStyle={labelStyle}
               />
-              <Bar dataKey="count" radius={[4, 4, 0, 0]} fill="#dbeafe">
+              <Bar dataKey="count" radius={[4, 4, 0, 0]} fill="#2563eb">
                 {chartData.map((entry, index) => (
                   <Cell
                     key={`count-cell-${index}`}
-                    fill={entry.count > 0 ? "#60a5fa" : "#e5e7eb"}
+                    fill={entry.count > 0 ? "#2563eb" : "#e5e7eb"}
                   />
                 ))}
               </Bar>
@@ -128,6 +144,8 @@ export function DailyTrendChart({ data }: DailyTrendChartProps) {
                 formatter={(value) => [`${value}%`, "Accuracy"]}
                 labelFormatter={(label) => `${label}`}
                 contentStyle={tooltipStyle}
+                itemStyle={itemStyle}
+                labelStyle={labelStyle}
               />
               <Line
                 type="monotone"
