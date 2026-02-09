@@ -447,7 +447,7 @@ export function ProfileContent({
                     <div className="flex items-center gap-2.5 text-gray-700 dark:text-gray-200">
                       <Clock className="size-5 text-sky-500 dark:text-sky-400" />
                       <span className="text-sm sm:text-base font-medium">
-                        Weekly plan ready. Keep your streak for 7 days.
+                        Weekly plan ready. Keep your streak for 13 weeks!.
                       </span>
                     </div>
 

@@ -1,7 +1,5 @@
 import { Header } from "@/components/layout/Header";
-import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { Footer } from "@/components/layout/Footer";
-import { Spotlight } from "@/components/aceternity/spotlight";
 import {
   Code,
   Lightbulb,
@@ -9,7 +7,6 @@ import {
   Heart,
   Target,
   Users,
-  Zap,
 } from "lucide-react";
 import Image from "next/image";
 import { getHeaderUser } from "@/lib/auth/getHeaderUser";
@@ -48,17 +45,23 @@ export default async function AboutPage() {
                 </h2>
               </div>
               <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-                Hi, I'm the creator behind StudyPilot. As a student at the
-                University of Queensland, I've experienced firsthand the
-                challenges of exam preparation—scouring through scattered PDF
-                files, struggling to find answers, and managing the stress of
-                finals week.
+                Hi there! I&apos;m Lewis. With 8 years of experience teaching
+                UQ CSSE1001/7030 and 5 years for INFS3202/7202 and
+                COMP3506/7505, I&apos;ve seen firsthand where students struggle
+                most.
               </p>
               <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
-                I built StudyPilot not just as a project, but as a solution to a
-                problem we all face. My goal is to use technology to transform
-                how we study, making it more efficient, data-driven, and maybe
-                even a little enjoyable.
+                It all started when I realized students simply didn&apos;t have
+                enough practice problems. I began by hand-picking 100 extra
+                questions for CSSE1001/7030; today, that collection has evolved
+                into a massive database of 500+ problems. I&apos;m also excited
+                to announce that our dedicated question banks for INFS3202/7202
+                and COMP3506/7505 are officially ready for launch!
+              </p>
+              <p className="text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+                Whether you&apos;re in a time crunch or aiming for that perfect
+                Grade 7, this platform is built to help you bridge the gap and
+                crush your academic goals. Let&apos;s get to work!
               </p>
             </div>
             <div className="order-1 md:order-2 flex justify-center">
@@ -85,7 +88,7 @@ export default async function AboutPage() {
               The Spark of Inspiration
             </h2>
             <p className="text-xl text-slate-600 dark:text-slate-300 leading-relaxed mb-12">
-              It started with a simple frustration: <span className="font-semibold text-slate-900 dark:text-white">Static PDF past papers just aren't enough.</span>
+              It started with a simple frustration: <span className="font-semibold text-slate-900 dark:text-white">Static PDF past papers just aren&apos;t enough.</span>
             </p>
             
             <div className="grid md:grid-cols-3 gap-8 text-left">
@@ -94,7 +97,7 @@ export default async function AboutPage() {
                   <span className="text-red-500">❌</span> The Old Way
                 </h3>
                 <p className="text-slate-600 dark:text-slate-400">
-                  Endlessly scrolling through PDFs, guessing answers, and having no way to track what you've actually mastered.
+                  Endlessly scrolling through PDFs, guessing answers, and having no way to track what you&apos;ve actually mastered.
                 </p>
               </div>
               <div className="flex items-center justify-center md:rotate-0 rotate-90">
@@ -128,7 +131,7 @@ export default async function AboutPage() {
                  </div>
                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Mastery First</h3>
                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                    We believe in quality over quantity. Our spaced repetition system ensures you don't just memorize, but truly master the concepts.
+                    We believe in quality over quantity. Our spaced repetition system ensures you don&apos;t just memorize, but truly master the concepts.
                  </p>
               </div>
 
@@ -148,7 +151,7 @@ export default async function AboutPage() {
                  </div>
                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3">Accessible Education</h3>
                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-                    High-quality exam preparation should be available to everyone. We're committed to keeping our core resources accessible.
+                    High-quality exam preparation should be available to everyone. We&apos;re committed to keeping our core resources accessible.
                  </p>
               </div>
            </div>

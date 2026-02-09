@@ -74,6 +74,7 @@ export default function WeeklyPracticeBuilder({
     initialData?.questions || [],
   );
   const [loading, setLoading] = useState(false);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
 
@@ -116,32 +117,49 @@ export default function WeeklyPracticeBuilder({
 
     const fetchQuestionsAndTopics = async () => {
       setLoading(true);
+      setLoadingError(null);
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
       try {
+        const controller = new AbortController();
+        timeoutId = setTimeout(() => controller.abort(), 12000);
+
         const [questionsRes, topicsRes] = await Promise.all([
           supabase
             .from("questions")
-            .select("*")
+            .select(
+              "id, subject_id, title, content, type, difficulty, options, code_snippet, topic_id",
+            )
             .eq("subject_id", sid)
-            .order("type"),
+            .order("type")
+            .limit(500)
+            .abortSignal(controller.signal),
           supabase
             .from("topics")
             .select("*")
             .eq("subject_id", sid)
-            .order("name"),
+            .order("name")
+            .abortSignal(controller.signal),
         ]);
-
         if (questionsRes.error) {
           console.error("Error fetching questions:", questionsRes.error);
+          setLoadingError("Failed to load available questions.");
         }
         if (topicsRes.error) {
           console.error("Error fetching topics:", topicsRes.error);
+          setLoadingError("Failed to load topics.");
         }
 
         setAvailableQuestions((questionsRes.data as Question[]) || []);
         setTopics((topicsRes.data as Topic[]) || []);
       } catch (error) {
         console.error("Error in fetchQuestionsAndTopics:", error);
+        setLoadingError(
+          "Loading questions timed out. Please refresh or narrow to another subject.",
+        );
       } finally {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
         setLoading(false);
       }
     };
@@ -353,6 +371,11 @@ export default function WeeklyPracticeBuilder({
                 placeholder="All topics"
               />
             </div>
+            {loadingError && (
+              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
+                {loadingError}
+              </div>
+            )}
 
             <div className="grid lg:grid-cols-2 gap-4">
               <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-4 h-[calc(100vh-350px)] overflow-y-auto">

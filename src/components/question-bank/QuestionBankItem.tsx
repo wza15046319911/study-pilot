@@ -92,7 +92,7 @@ export function QuestionBankItem({
 
   if (isPaidType) {
     badgeIcon = <DollarSign className="size-3.5" />;
-    badgeText = bank.price ? `$${bank.price}` : "Paid";
+    badgeText = bank.price ? `Paid Only · $${bank.price}` : "Paid Only";
     colorScheme = {
       border: "border-violet-200 dark:border-violet-800",
       bg: "bg-violet-50/30 dark:bg-violet-900/10",

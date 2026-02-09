@@ -66,6 +66,35 @@ type PastExamListItem = {
   questionCount: number;
 };
 
+type AccessTier = "invite" | "public" | "premium" | "paid";
+
+const ACCESS_TIER_ORDER: AccessTier[] = [
+  "invite",
+  "public",
+  "premium",
+  "paid",
+];
+
+const ACCESS_TIER_LABELS: Record<AccessTier, string> = {
+  invite: "Invite to Unlock",
+  public: "Public",
+  premium: "Premium",
+  paid: "Paid Only",
+};
+
+const getAccessTier = (item: any): AccessTier => {
+  if (item.unlock_type === "referral") return "invite";
+  if (item.unlock_type === "paid") return "paid";
+  if (item.is_premium) return "premium";
+  return "public";
+};
+
+const groupByAccessTier = (items: any[]) =>
+  ACCESS_TIER_ORDER.map((tier) => ({
+    tier,
+    items: items.filter((item) => getAccessTier(item) === tier),
+  })).filter((group) => group.items.length > 0);
+
 const getSemesterLabel = (semester: number) =>
   semester === 1 ? "Semester 1" : "Semester 2";
 
@@ -136,6 +165,9 @@ export function SubjectContent({
     .map((year) => parseInt(year, 10))
     .sort((a, b) => b - a);
 
+  const groupedBanksByAccessTier = groupByAccessTier(banks);
+  const groupedExamsByAccessTier = groupByAccessTier(exams);
+
   return (
     <div className="py-12 space-y-12">
       <PremiumModal
@@ -183,7 +215,6 @@ export function SubjectContent({
           <div className="relative z-10">
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div className="flex items-center gap-3">
-                <InfoBadge />
                 <p className="text-base md:text-lg font-semibold text-slate-900 dark:text-white">
                   Your Study Toolkit
                 </p>
@@ -204,14 +235,6 @@ export function SubjectContent({
                   className={`rounded-2xl border p-4 md:p-5 ${card.accent} backdrop-blur-sm`}
                 >
                   <div className="flex items-center justify-between gap-3 mb-2.5">
-                    <span
-                      className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-[0.12em] ${card.pill}`}
-                    >
-                      <span
-                        className={`size-1.5 rounded-full ${card.dotClass}`}
-                      />
-                      Focus
-                    </span>
                     <span className={`text-sm font-semibold ${card.iconClass}`}>
                       {card.key === "weekly"
                         ? "Weekly"
@@ -331,16 +354,30 @@ export function SubjectContent({
                       Curated Collections
                     </h2>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {banks.map((bank: any) => (
-                      <QuestionBankItem
-                        key={bank.id}
-                        bank={bank}
-                        isVip={isVip}
-                        isUnlocked={unlockedBankIds.has(bank.id)}
-                        questionCount={bank.items?.[0]?.count || 0}
-                        href={`/library/${subject.slug}/question-banks/${bank.slug}`}
-                      />
+                  <div className="space-y-10">
+                    {groupedBanksByAccessTier.map((group) => (
+                      <section key={`bank-${group.tier}`} className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-sm md:text-base font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-300">
+                            {ACCESS_TIER_LABELS[group.tier]}
+                          </h3>
+                          <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
+                            {group.items.length}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                          {group.items.map((bank: any) => (
+                            <QuestionBankItem
+                              key={bank.id}
+                              bank={bank}
+                              isVip={isVip}
+                              isUnlocked={unlockedBankIds.has(bank.id)}
+                              questionCount={bank.items?.[0]?.count || 0}
+                              href={`/library/${subject.slug}/question-banks/${bank.slug}`}
+                            />
+                          ))}
+                        </div>
+                      </section>
                     ))}
                   </div>
                 </>
@@ -370,17 +407,31 @@ export function SubjectContent({
                       Mock Exams
                     </h2>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                    {exams.map((exam: any) => (
-                      <QuestionBankItem
-                        key={exam.id}
-                        bank={exam}
-                        isVip={isVip}
-                        questionCount={0}
-                        variant="exam"
-                        isUnlocked={unlockedExamIds.has(exam.id)}
-                        href={`/library/${subject.slug}/exams/${exam.slug}`}
-                      />
+                  <div className="space-y-10">
+                    {groupedExamsByAccessTier.map((group) => (
+                      <section key={`exam-${group.tier}`} className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-sm md:text-base font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-300">
+                            {ACCESS_TIER_LABELS[group.tier]}
+                          </h3>
+                          <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
+                            {group.items.length}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                          {group.items.map((exam: any) => (
+                            <QuestionBankItem
+                              key={exam.id}
+                              bank={exam}
+                              isVip={isVip}
+                              questionCount={0}
+                              variant="exam"
+                              isUnlocked={unlockedExamIds.has(exam.id)}
+                              href={`/library/${subject.slug}/exams/${exam.slug}`}
+                            />
+                          ))}
+                        </div>
+                      </section>
                     ))}
                   </div>
                 </>

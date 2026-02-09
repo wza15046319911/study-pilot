@@ -6,13 +6,13 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { slugOrEncodedId } from "@/lib/ids";
 import {
-  Calendar,
-  ChevronRight,
-  Sparkles,
-  Target,
-  Trophy,
-  ArrowUpRight,
-} from "lucide-react";
+  getStudyWeekFilterOptions,
+  getWeekStartDateKey,
+  resolveStudyWeekByStartDate,
+  type ResolvedStudyWeek,
+  type StudyWeekCode,
+} from "@/lib/weekly-practice-weeks";
+import { Calendar, Sparkles, Target, Trophy, ArrowUpRight } from "lucide-react";
 
 type WeeklyPracticeItem = {
   id: number;
@@ -38,15 +38,6 @@ interface UserWeeklyPracticeClientProps {
   showSummary?: boolean;
 }
 
-const formatWeek = (weekStart: string | null) => {
-  if (!weekStart) return "Week not set";
-  const date = new Date(weekStart);
-  if (Number.isNaN(date.getTime())) return "Week not set";
-  return new Intl.DateTimeFormat("en-AU", {
-    dateStyle: "medium",
-  }).format(date);
-};
-
 const isFullyCompleted = (
   submission:
     | {
@@ -69,6 +60,11 @@ export function UserWeeklyPracticeClient({
 }: UserWeeklyPracticeClientProps) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
+  const [weekFilter, setWeekFilter] = useState<"all-weeks" | StudyWeekCode>(
+    "all-weeks",
+  );
+
+  const weekFilterOptions = useMemo(() => getStudyWeekFilterOptions(), []);
 
   const summary = useMemo(() => {
     let totalCompleted = 0;
@@ -89,29 +85,52 @@ export function UserWeeklyPracticeClient({
     });
 
     const accuracy =
-      totalAnswered > 0
-        ? Math.round((totalCorrect / totalAnswered) * 100)
-        : 0;
+      totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
 
     return { totalCompleted, totalAnswered, accuracy };
   }, [initialData]);
 
-  const filtered = useMemo(() => {
-    return initialData.filter((practice) => {
-      const subjectName = practice.subject?.name || "";
-      const matchesQuery =
-        practice.title.toLowerCase().includes(query.toLowerCase()) ||
-        subjectName.toLowerCase().includes(query.toLowerCase());
-      if (!matchesQuery) return false;
-      if (filter === "all") return true;
-      const submission = practice.latestSubmission;
-      const totalQuestions = submission?.total_count || practice.items?.[0]?.count || 0;
-      const completed = isFullyCompleted(submission, totalQuestions);
-      if (filter === "completed") return completed;
-      if (filter === "pending") return !completed;
-      return true;
-    });
-  }, [initialData, query, filter]);
+  const filteredAndSorted = useMemo(() => {
+    const practicesWithWeek = initialData.map((practice) => ({
+      ...practice,
+      resolvedWeek: resolveStudyWeekByStartDate(practice.week_start),
+    }));
+
+    return practicesWithWeek
+      .filter((practice) => {
+        const subjectName = practice.subject?.name || "";
+        const matchesQuery =
+          practice.title.toLowerCase().includes(query.toLowerCase()) ||
+          subjectName.toLowerCase().includes(query.toLowerCase());
+        if (!matchesQuery) return false;
+
+        if (filter === "all") return true;
+        const submission = practice.latestSubmission;
+        const totalQuestions =
+          submission?.total_count || practice.items?.[0]?.count || 0;
+        const completed = isFullyCompleted(submission, totalQuestions);
+        const matchesStatusFilter =
+          filter === "completed"
+            ? completed
+            : filter === "pending"
+              ? !completed
+              : true;
+        if (!matchesStatusFilter) return false;
+
+        if (weekFilter === "all-weeks") return true;
+        return practice.resolvedWeek.code === weekFilter;
+      })
+      .sort((a, b) => {
+        const byStudyWeekOrder = a.resolvedWeek.order - b.resolvedWeek.order;
+        if (byStudyWeekOrder !== 0) return byStudyWeekOrder;
+
+        const aDateKey = getWeekStartDateKey(a.week_start) || 0;
+        const bDateKey = getWeekStartDateKey(b.week_start) || 0;
+        if (aDateKey !== bDateKey) return bDateKey - aDateKey;
+
+        return a.title.localeCompare(b.title);
+      });
+  }, [initialData, query, filter, weekFilter]);
 
   return (
     <div className="space-y-6">
@@ -155,26 +174,37 @@ export function UserWeeklyPracticeClient({
           />
         </div>
 
-        <Select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="md:w-56"
-          options={[
-            { value: "all", label: "All weeks" },
-            { value: "completed", label: "Completed" },
-            { value: "pending", label: "Pending" },
-          ]}
-          placeholder="Filter"
-        />
+        <div className="flex flex-col sm:flex-row gap-3 md:justify-end">
+          <Select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="md:w-44"
+            options={[
+              { value: "all", label: "All Status" },
+              { value: "completed", label: "Completed" },
+              { value: "pending", label: "Pending" },
+            ]}
+            placeholder="Status"
+          />
+          <Select
+            value={weekFilter}
+            onChange={(e) =>
+              setWeekFilter(e.target.value as "all-weeks" | StudyWeekCode)
+            }
+            className="md:w-56"
+            options={weekFilterOptions}
+            placeholder="Week"
+          />
+        </div>
       </div>
 
-      {filtered.length === 0 ? (
+      {filteredAndSorted.length === 0 ? (
         <div className="text-center py-16 text-slate-500 dark:text-slate-400">
           No weekly practice sets match your filters.
         </div>
       ) : (
         <div className="grid gap-6">
-          {filtered.map((practice) => {
+          {filteredAndSorted.map((practice) => {
             const submission = practice.latestSubmission;
             const totalQuestions =
               submission?.total_count || practice.items?.[0]?.count || 0;
@@ -188,6 +218,10 @@ export function UserWeeklyPracticeClient({
                     Math.round((answeredCount / totalQuestions) * 100),
                   )
                 : 0;
+            const resolvedWeek = practice.resolvedWeek as ResolvedStudyWeek;
+            const weekBadgeText = resolvedWeek.rangeLabel
+              ? `${resolvedWeek.label} · ${resolvedWeek.rangeLabel}`
+              : resolvedWeek.label;
 
             return (
               <div
@@ -199,7 +233,7 @@ export function UserWeeklyPracticeClient({
                     <div className="flex flex-wrap items-center gap-3">
                       <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
                         <Calendar className="size-3" />
-                        {formatWeek(practice.week_start)}
+                        {weekBadgeText}
                       </span>
                       {practice.subject?.name && (
                         <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
@@ -265,7 +299,7 @@ export function UserWeeklyPracticeClient({
                       href={`/weekly-practice/${slugOrEncodedId(practice.slug, practice.id)}/practice`}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors"
                     >
-                      {isInProgress ? "Continue Session" : "Start Session"}
+                      {isInProgress ? "Continue" : "Start"}
                       <ArrowUpRight className="size-3" />
                     </Link>
                   </div>

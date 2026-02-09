@@ -23,14 +23,16 @@ export function PricingContent() {
       description: "Perfect for getting started",
       features: [
         "Access to public question banks",
+        "Access to public mock exams",
         "Standard practice mode",
-        "Explanations",
         "Progress tracking",
         "Mistake tracking",
+        "Weekly Practice",
       ],
       notIncluded: [
         "Premium question banks",
         "Premium Mock exams",
+        "Homework",
         "PDF exam export",
       ],
       cta: "Get Started",
@@ -43,7 +45,7 @@ export function PricingContent() {
       originalPrice: NORMAL_PRICE,
       period: "one-time",
       popular: true,
-      description: "Limited time offer. Full lifetime access.",
+      description: "Limited time offer. Unlock everything!",
       features: [
         "Unlock ALL subjects forever",
         "Unlimited mock exams",
@@ -120,7 +122,7 @@ export function PricingContent() {
                 {tier.popular && isPromoActive ? (
                   <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm font-bold mt-2 ring-1 ring-amber-300/60 dark:ring-amber-500/40">
                     <Zap className="size-3" />
-                    Save 80%!
+                    Save 60%!
                   </div>
                 ) : null}
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">

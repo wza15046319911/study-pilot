@@ -17,7 +17,7 @@ const FAQS: FAQItem[] = [
   {
     question: "What is StudyPilot?",
     answer:
-      "StudyPilot is an exam practice platform with 10,000+ curated questions, spaced repetition flashcards, and smart mistake tracking for university students.",
+      "StudyPilot is an exam practice platform with 1000+ curated questions, mock exams, and curated question banks designed for university students. StudyPilot currently supports courses from the University of Queensland including CSSE1001, CSSE7030, COMP3506, INFS3202, INFS7202 and more.",
   },
   {
     question: "What is a Question Bank?",
@@ -45,11 +45,6 @@ const FAQS: FAQItem[] = [
       "StudyPilot currently supports courses from the University of Queensland including CSSE1001, CSSE7030, COMP3506, INFS3202, INFS7202 and more.",
   },
   {
-    question: "Can I cancel my subscription anytime?",
-    answer:
-      "Absolutely. If you choose a subscription plan (future), you can cancel anytime. For our current Lifetime Access deal, it's a one-time payment with no recurring fees.",
-  },
-  {
     question: "Do you offer student discounts?",
     answer:
       "Our pricing is already optimized for students. The Lifetime Access plan is priced to be affordable for a student budget, equivalent to the cost of a few coffees.",
@@ -57,7 +52,7 @@ const FAQS: FAQItem[] = [
   {
     question: "What payment methods do you accept?",
     answer:
-      "We currently accept all major credit cards (Visa, Mastercard, Amex) through our secure payment processor Stripe.",
+      "StudyPilot is still in its early testing phase. For any payment-related questions, please contact our team.",
   },
   {
     question: "What happens after the early bird promotion ends?",
