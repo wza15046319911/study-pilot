@@ -7,6 +7,7 @@ import { PlaceholdersAndVanishInput } from "@/components/ui/placeholders-and-van
 // import { SubjectGrid } from "./SubjectGrid";
 import { Subject } from "@/types/database";
 import { motion } from "framer-motion";
+import { useTranslations } from "next-intl";
 
 interface LibraryContentProps {
   subjects: Subject[];
@@ -51,15 +52,16 @@ export function LibraryContent({
   subjects,
   subjectStatsById,
 }: LibraryContentProps) {
+  const t = useTranslations("library");
   const router = useRouter();
   const [showComingSoon, setShowComingSoon] = useState(false);
 
   const placeholders = [
-    "Search for CSSE1001...",
-    "Looking for INFS3202?",
-    "Find mock exams for COMP3506...",
-    "Browse question banks...",
-    "Type a course code or name...",
+    t("search.placeholder1"),
+    t("search.placeholder2"),
+    t("search.placeholder3"),
+    t("search.placeholder4"),
+    t("search.placeholder5"),
   ];
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,11 +105,11 @@ export function LibraryContent({
       <div className="max-w-4xl mx-auto w-full text-center px-4">
         <div className="inline-block mb-6">
           <span className="px-4 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 text-xs font-bold uppercase tracking-widest rounded-full border border-blue-100 dark:border-blue-800">
-            Academic Year 2026
+            {t("badge")}
           </span>
         </div>
         <h1 className="text-4xl md:text-6xl font-serif font-medium text-slate-900 dark:text-white mb-8 tracking-tight">
-          What do you want to learn today?
+          {t("title")}
         </h1>
 
         <div className="max-w-xl mx-auto mb-12">
@@ -123,14 +125,14 @@ export function LibraryContent({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400">
-                  Available Subjects
+                  {t("availableSubjects")}
                 </p>
                 <h2 className="text-xl md:text-2xl font-serif font-semibold text-slate-900 dark:text-white mt-1">
-                  Pick a subject to start learning
+                  {t("pickSubject")}
                 </h2>
               </div>
               <span className="inline-flex items-center rounded-full border border-slate-200 dark:border-slate-700 px-3 py-1 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                {subjects.length} subjects
+                {t("subjectCount", { count: subjects.length })}
               </span>
             </div>
 
@@ -165,21 +167,33 @@ export function LibraryContent({
                             {subject.name}
                           </p>
                           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-[14px] text-slate-500 dark:text-slate-400">
-                            <span>{stats.weeklyPracticeCount} weekly</span>
+                            <span>
+                              {t("stats.weekly", {
+                                count: stats.weeklyPracticeCount,
+                              })}
+                            </span>
                             <span
                               aria-hidden
                               className="text-slate-300 dark:text-slate-600"
                             >
                               •
                             </span>
-                            <span>{stats.questionBankCount} banks</span>
+                            <span>
+                              {t("stats.banks", {
+                                count: stats.questionBankCount,
+                              })}
+                            </span>
                             <span
                               aria-hidden
                               className="text-slate-300 dark:text-slate-600"
                             >
                               •
                             </span>
-                            <span>{stats.mockExamCount} exams</span>
+                            <span>
+                              {t("stats.exams", {
+                                count: stats.mockExamCount,
+                              })}
+                            </span>
                           </div>
                         </div>
                       </Link>
@@ -189,7 +203,7 @@ export function LibraryContent({
               </div>
             ) : (
               <p className="mt-6 text-sm text-slate-500 dark:text-slate-400">
-                No subjects available yet. Please check back soon.
+                {t("noSubjects")}
               </p>
             )}
           </div>
@@ -203,11 +217,10 @@ export function LibraryContent({
           >
             <div className="text-4xl mb-3">🚧</div>
             <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-              Course Coming Soon
+              {t("comingSoon.title")}
             </h3>
             <p className="text-slate-600 dark:text-slate-400">
-              We could not find a matching course in our library right now. We
-              are constantly adding new materials!
+              {t("comingSoon.description")}
             </p>
           </motion.div>
         )}

@@ -34,17 +34,14 @@ interface HeaderProps {
 export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const t = useTranslations("nav");
-  const [mounted, setMounted] = useState(false);
+  const tHeader = useTranslations("header");
+  const tTheme = useTranslations("theme");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const authUser = useAuthStore((state) => state.user);
   const authIsAdmin = useAuthStore((state) => state.isAdmin);
   const effectiveUser = user ?? authUser;
   const effectiveIsAdmin = isAdmin ?? authIsAdmin;
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -102,13 +99,13 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                 href="/library"
                 className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
               >
-                Library
+                {tHeader("library")}
               </Link>
               <Link
                 href="/calendar"
                 className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
               >
-                Calendar
+                {tHeader("calendar")}
               </Link>
               <Link
                 href="/pricing"
@@ -120,13 +117,13 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                 href="/about"
                 className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
               >
-                About
+                {tHeader("about")}
               </Link>
               <Link
                 href="/contact"
                 className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
               >
-                Contact Us
+                {tHeader("contactUs")}
               </Link>
             </div>
           )}
@@ -136,7 +133,9 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
             <button
               className="md:hidden p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-label={
+                isMobileMenuOpen ? tHeader("closeMenu") : tHeader("openMenu")
+              }
               aria-expanded={isMobileMenuOpen}
             >
               {isMobileMenuOpen ? (
@@ -148,15 +147,15 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
 
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-3">
-              {/* <LanguageSwitcher /> */}
+              <LanguageSwitcher />
 
               {/* Theme Toggle Dropdown */}
               <div className="group relative focus-within:opacity-100 focus-within:visible">
                 <button
                   className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  aria-label="Toggle theme"
+                  aria-label={tTheme("toggle")}
                 >
-                  {mounted && resolvedTheme === "dark" ? (
+                  {resolvedTheme === "dark" ? (
                     <Moon className="size-5" />
                   ) : (
                     <Sun className="size-5" />
@@ -169,29 +168,29 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                     <button
                       onClick={() => setTheme("light")}
                       className={`flex items-center gap-2 w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                        mounted && theme === "light"
+                        theme === "light"
                           ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                           : "text-slate-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
                       }`}
                     >
                       <Sun className="size-4" />
-                      Light
+                      {tTheme("light")}
                     </button>
                     <button
                       onClick={() => setTheme("dark")}
                       className={`flex items-center gap-2 w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                        mounted && theme === "dark"
+                        theme === "dark"
                           ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                           : "text-slate-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
                       }`}
                     >
                       <Moon className="size-4" />
-                      Dark
+                      {tTheme("dark")}
                     </button>
                     <button
                       onClick={() => setTheme("system")}
                       className={`flex items-center gap-2 w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                        mounted && theme === "system"
+                        theme === "system"
                           ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                           : "text-slate-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
                       }`}
@@ -216,7 +215,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                         <line x1="8" y1="21" x2="16" y2="21" />
                         <line x1="12" y1="17" x2="12" y2="21" />
                       </svg>
-                      System
+                      {tTheme("system")}
                     </button>
                   </div>
                 </div>
@@ -301,7 +300,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                             className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
                           >
                             <Gift className="size-4 text-green-500" />
-                            Referrals
+                            {tHeader("referrals")}
                           </Link>
                           {effectiveIsAdmin && (
                             <Link
@@ -309,7 +308,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                               className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-900/30 rounded-lg transition-colors"
                             >
                               <AlertCircle className="size-4" />
-                              Admin Panel
+                              {tHeader("adminPanel")}
                             </Link>
                           )}
                         </div>
@@ -320,7 +319,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                             className="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors group/logout"
                           >
                             <LogOut className="size-4 group-hover/logout:translate-x-1 transition-transform" />
-                            {t("logout") || "Log out"}
+                            {t("logout")}
                           </Link>
                         </div>
                       </div>
@@ -405,7 +404,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                       </p>
                       {effectiveUser.is_vip && (
                         <p className="text-xs text-amber-500 font-bold uppercase">
-                          VIP Member
+                          {tHeader("vipMember")}
                         </p>
                       )}
                     </div>
@@ -442,7 +441,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                         onClick={() => setIsMobileMenuOpen(false)}
                       >
                         <AlertCircle className="size-4" />
-                        Admin Panel
+                        {tHeader("adminPanel")}
                       </Link>
                     )}
                   </div>
@@ -459,21 +458,21 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
 
               <div className="space-y-1">
                 <p className="px-3 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">
-                  Menu
+                  {tHeader("menu")}
                 </p>
                 <Link
                   href="/library"
                   className="block px-3 py-2 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Library
+                  {tHeader("library")}
                 </Link>
                 <Link
                   href="/calendar"
                   className="block px-3 py-2 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Calendar
+                  {tHeader("calendar")}
                 </Link>
                 <Link
                   href="/pricing"
@@ -487,28 +486,34 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                   className="block px-3 py-2 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  About
+                  {tHeader("about")}
                 </Link>
                 <Link
                   href="/contact"
                   className="block px-3 py-2 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Contact Us
+                  {tHeader("contactUs")}
                 </Link>
                 <Link
                   href="/blog"
                   className="block px-3 py-2 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
-                  Blog
+                  {tHeader("blog")}
                 </Link>
               </div>
 
               <div className="pt-6 border-t border-slate-200 dark:border-slate-800">
+                <div className="flex items-center justify-between px-3 mb-4">
+                  <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
+                    {tHeader("language")}
+                  </span>
+                  <LanguageSwitcher />
+                </div>
                 <div className="flex items-center justify-between px-3">
                   <span className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                    Theme
+                    {tHeader("theme")}
                   </span>
                   <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1">
                     <button
@@ -539,7 +544,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                           : "text-slate-500"
                       }`}
                     >
-                      <span className="sr-only">System</span>
+                      <span className="sr-only">{tTheme("system")}</span>
                       <svg
                         className="size-4"
                         viewBox="0 0 24 24"

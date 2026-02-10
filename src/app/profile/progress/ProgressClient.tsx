@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { Subject, Topic } from "@/types/database";
 import { cn } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 
 // Define the shape of data we expect
 export interface TopicWithProgress extends Topic {
@@ -50,6 +51,7 @@ interface ProgressClientProps {
 }
 
 export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
+  const t = useTranslations("profileProgress");
   const [activeTab, setActiveTab] = useState<"mastery" | "weakness">("mastery");
   const [expandedSubjects, setExpandedSubjects] = useState<number[]>(
     subjects.map((s) => s.id) // Default all expanded
@@ -89,26 +91,25 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
       {/* Header / Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-8">
         <Link href="/" className="hover:text-blue-600 transition-colors">
-          Home
+          {t("breadcrumb.home")}
         </Link>
         <ChevronRight className="size-4" />
         <Link href="/profile" className="hover:text-blue-600 transition-colors">
-          Profile
+          {t("breadcrumb.profile")}
         </Link>
         <ChevronRight className="size-4" />
         <span className="text-gray-900 dark:text-white font-medium">
-          Progress
+          {t("breadcrumb.progress")}
         </span>
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Learning Progress
+            {t("title")}
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            Track your mastery across subjects and identify areas for
-            improvement.
+            {t("subtitle")}
           </p>
         </div>
 
@@ -116,7 +117,7 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
         <div className="flex gap-4">
           <div className="px-5 py-3 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm text-center">
             <p className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">
-              Topics
+              {t("quickStats.topics")}
             </p>
             <p className="text-xl font-bold text-gray-900 dark:text-white">
               {topicsStarted} / {totalTopics}
@@ -124,7 +125,7 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
           </div>
           <div className="px-5 py-3 bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 shadow-sm text-center">
             <p className="text-xs text-gray-500 uppercase tracking-wider font-bold mb-1">
-              Weak Tags
+              {t("quickStats.weakTags")}
             </p>
             <p className="text-xl font-bold text-red-500">
               {tagStats.weak.length}
@@ -145,7 +146,7 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
           )}
         >
           <BookOpen className="size-4" />
-          Topic Mastery
+          {t("tabs.topicMastery")}
         </button>
         <button
           onClick={() => setActiveTab("weakness")}
@@ -157,7 +158,7 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
           )}
         >
           <Target className="size-4" />
-          Weak Points Analysis
+          {t("tabs.weakPoints")}
         </button>
       </div>
 
@@ -193,15 +194,17 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
                           {subject.name}
                         </h3>
                         <p className="text-sm text-gray-500">
-                          {subject.topics.length} topics • {totalQuestions}{" "}
-                          questions practiced
+                          {t("subjectSummary", {
+                            topics: subject.topics.length,
+                            questions: totalQuestions,
+                          })}
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-6">
                       <div className="text-right hidden sm:block">
                         <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">
-                          Overall Accuracy
+                          {t("overallAccuracy")}
                         </p>
                         <div className="flex items-center justify-end gap-2">
                           <span
@@ -293,9 +296,12 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
 
                               <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 flex justify-between">
                                 <span>
-                                  {tCorrect} / {totalTopicQuestions} mastered
+                                  {t("topic.mastered", {
+                                    correct: tCorrect,
+                                    total: totalTopicQuestions,
+                                  })}
                                 </span>
-                                <span>{tQuestions} attempted</span>
+                                <span>{t("topic.attempted", { count: tQuestions })}</span>
                               </div>
                             </div>
                             <Link
@@ -309,7 +315,7 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
                       })}
                       {subject.topics.length === 0 && (
                         <p className="text-center text-gray-500 py-4">
-                          No topics found for this subject.
+                          {t("topic.empty")}
                         </p>
                       )}
                     </div>
@@ -327,7 +333,7 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
                   <AlertCircle className="size-5" />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Areas for Improvement
+                  {t("weak.title")}
                 </h2>
               </div>
               {tagStats.weak.length > 0 ? (
@@ -345,7 +351,10 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
                           </span>
                         </div>
                         <div className="text-xs text-red-600/80 dark:text-red-400/80 font-medium">
-                          {stat.correct}/{stat.total} Correct
+                          {t("ratioCorrect", {
+                            correct: stat.correct,
+                            total: stat.total,
+                          })}
                         </div>
                       </div>
                       <div className="text-right">
@@ -362,10 +371,10 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
                     <Target className="size-8" />
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
-                    No Weak Areas Detected
+                    {t("weak.emptyTitle")}
                   </h3>
                   <p className="text-gray-500">
-                    Keep practicing to generate more insights!
+                    {t("weak.emptyDescription")}
                   </p>
                 </div>
               )}
@@ -378,7 +387,7 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
                   <CheckCircle2 className="size-5" />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Strong Areas
+                  {t("strong.title")}
                 </h2>
               </div>
               {tagStats.strong.length > 0 ? (
@@ -396,7 +405,10 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
                           </span>
                         </div>
                         <div className="text-xs text-green-600/80 dark:text-green-400/80 font-medium">
-                          {stat.correct}/{stat.total} Correct
+                          {t("ratioCorrect", {
+                            correct: stat.correct,
+                            total: stat.total,
+                          })}
                         </div>
                       </div>
                       <div className="text-right">
@@ -413,10 +425,10 @@ export function ProgressClient({ subjects, tagStats }: ProgressClientProps) {
                     <TrendingUp className="size-8" />
                   </div>
                   <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-1">
-                    No Strong Areas Yet
+                    {t("strong.emptyTitle")}
                   </h3>
                   <p className="text-gray-500">
-                    Achieve 80%+ accuracy to mark a tag as strong.
+                    {t("strong.emptyDescription")}
                   </p>
                 </div>
               )}

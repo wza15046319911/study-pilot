@@ -5,6 +5,7 @@ import { PracticeSession } from "@/app/practice/[subjectSlug]/PracticeSession";
 import { Profile } from "@/types/database";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
 import { decodeId } from "@/lib/ids";
+import { getTranslations } from "next-intl/server";
 
 interface PageProps {
   params: Promise<{
@@ -20,6 +21,7 @@ interface PageProps {
 }
 
 export default async function LibraryPracticePage(props: PageProps) {
+  const t = await getTranslations("libraryErrors");
   const searchParamsStr = await props.searchParams;
   const params = await props.params;
 
@@ -27,7 +29,6 @@ export default async function LibraryPracticePage(props: PageProps) {
     difficulty,
     count,
     topic: topicSlug,
-    timer,
     questions,
   } = searchParamsStr;
 
@@ -64,10 +65,10 @@ export default async function LibraryPracticePage(props: PageProps) {
 
         <div className="flex-grow flex items-center justify-center">
           <NotFoundPage
-            title="Subject Not Found"
-            description="We couldn't find the subject you're looking for."
+            title={t("subjectNotFound.title")}
+            description={t("subjectNotFound.description")}
             backLink="/library"
-            backText="Back to Library"
+            backText={t("subjectNotFound.backToLibrary")}
           />
         </div>
       </div>
@@ -121,10 +122,10 @@ export default async function LibraryPracticePage(props: PageProps) {
 
         <div className="flex-grow flex items-center justify-center">
           <NotFoundPage
-            title="No Questions Found"
-            description="We couldn't find any questions matching your filters."
+            title={t("noQuestionsFound.title")}
+            description={t("noQuestionsFound.description")}
             backLink={`/library/${subjectSlug}/setup`}
-            backText="Adjust Filters"
+            backText={t("noQuestionsFound.adjustFilters")}
           />
         </div>
       </div>
@@ -135,15 +136,24 @@ export default async function LibraryPracticePage(props: PageProps) {
   const questionCountStr = count || "10";
   let selectedQuestions = [...allQuestions];
 
+  const hashString = (value: string) =>
+    value.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  const seed = `${user.id}|${subject.id}|${difficulty || "all"}|${topicSlug || "all"}|${questions || "all"}`;
+  const rankedQuestions = selectedQuestions
+    .map((question, index) => ({
+      question,
+      rank: hashString(`${seed}|${question.id}|${index}`),
+    }))
+    .sort((a, b) => a.rank - b.rank)
+    .map((entry) => entry.question);
+
   if (questionCountStr !== "all") {
     const limit = parseInt(questionCountStr);
-    selectedQuestions = selectedQuestions
-      .sort(() => 0.5 - Math.random())
-      .slice(0, limit);
+    selectedQuestions = rankedQuestions.slice(0, limit);
   }
 
   if (questionCountStr === "all") {
-    selectedQuestions = selectedQuestions.sort(() => 0.5 - Math.random());
+    selectedQuestions = rankedQuestions;
   }
 
   // Fetch user profile
@@ -157,7 +167,7 @@ export default async function LibraryPracticePage(props: PageProps) {
 
   const sessionUser = profile || {
     id: user.id,
-    username: user.email?.split("@")[0] || "User",
+    username: user.email?.split("@")[0] || t("fallbackUser"),
     level: 1,
     streak_days: 0,
     avatar_url: null,

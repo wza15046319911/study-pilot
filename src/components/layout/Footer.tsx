@@ -2,8 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 export function Footer() {
+  const t = useTranslations("footer");
   return (
     <footer className="py-16 bg-card border-t border-border">
       <div className="max-w-6xl mx-auto px-6">
@@ -22,21 +24,20 @@ export function Footer() {
               </span>
             </div>
             <p className="text-muted-foreground max-w-sm">
-              The study companion that helps you master any subject
-              faster with personalized learning paths.
+              {t("description")}
             </p>
           </div>
           <div>
-            <h4 className="font-bold mb-4">Product</h4>
+            <h4 className="font-bold mb-4">{t("product")}</h4>
             <ul className="space-y-3 text-sm text-gray-500">
               <li>
                 <Link href="/library" className="hover:text-primary">
-                  Library
+                  {t("links.library")}
                 </Link>
               </li>
               <li>
                 <Link href="/pricing" className="hover:text-primary">
-                  Pricing
+                  {t("links.pricing")}
                 </Link>
               </li>
               <li>
@@ -52,16 +53,16 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="font-bold mb-4">Company</h4>
+            <h4 className="font-bold mb-4">{t("company")}</h4>
             <ul className="space-y-3 text-sm text-muted-foreground">
               <li>
                 <Link href="/about" className="hover:text-primary">
-                  About
+                  {t("links.about")}
                 </Link>
               </li>
               <li>
                 <Link href="/contact" className="hover:text-primary">
-                  Contact
+                  {t("links.contact")}
                 </Link>
               </li>
             </ul>
@@ -70,14 +71,14 @@ export function Footer() {
 
         <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="text-sm text-muted-foreground">
-            © 2026 StudyPilot Inc. All rights reserved.
+            {t("copyright")}
           </div>
           <div className="flex gap-6 text-sm text-muted-foreground">
             <Link href="/terms" className="hover:text-primary">
-              Terms
+              {t("links.terms")}
             </Link>
             <Link href="/privacy" className="hover:text-primary">
-              Privacy
+              {t("links.privacy")}
             </Link>
           </div>
         </div>

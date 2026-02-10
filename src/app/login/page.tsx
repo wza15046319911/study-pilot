@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/Input";
 import { createClient } from "@/lib/supabase/client";
 import { Mail, ArrowLeft, CheckCircle } from "lucide-react";
 import { LoginVisuals } from "./LoginVisuals";
+import { useTranslations } from "next-intl";
 
 function LoginForm() {
+  const t = useTranslations("login");
   const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [step, setStep] = useState<"email" | "sent">("email");
@@ -20,7 +22,7 @@ function LoginForm() {
 
   const handleMagicLink = async () => {
     if (!email) {
-      setError("Please enter your email address");
+      setError(t("errors.enterEmail"));
       return;
     }
     setLoading(true);
@@ -40,9 +42,7 @@ function LoginForm() {
       if (error) throw error;
       setStep("sent");
     } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to send login link"
-      );
+      setError(err instanceof Error ? err.message : t("errors.sendLinkFailed"));
     } finally {
       setLoading(false);
     }
@@ -62,7 +62,7 @@ function LoginForm() {
       });
       if (error) throw error;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Google login failed");
+      setError(err instanceof Error ? err.message : t("errors.googleFailed"));
       setLoading(false);
     }
   };
@@ -81,7 +81,7 @@ function LoginForm() {
       });
       if (error) throw error;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "GitHub login failed");
+      setError(err instanceof Error ? err.message : t("errors.githubFailed"));
       setLoading(false);
     }
   };
@@ -96,10 +96,10 @@ function LoginForm() {
               <CheckCircle className="size-8 text-green-600 dark:text-green-400" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-              Check your email
+              {t("checkEmailTitle")}
             </h1>
             <p className="text-gray-500 dark:text-gray-400">
-              We sent a login link to
+              {t("checkEmailSubtitle")}
               <br />
               <span className="font-medium text-gray-900 dark:text-white">
                 {email}
@@ -118,17 +118,17 @@ function LoginForm() {
               }}
             >
               <ArrowLeft className="size-4 mr-2" />
-              Back to login
+              {t("backToLogin")}
             </Button>
 
             <p className="text-center text-sm text-gray-500">
-              Didn&apos;t receive the email?{" "}
+              {t("didNotReceiveEmail")}{" "}
               <button
                 onClick={handleMagicLink}
                 disabled={loading}
                 className="font-bold text-gray-900 dark:text-white hover:underline"
               >
-                {loading ? "Sending..." : "Resend"}
+                {loading ? t("sending") : t("resend")}
               </button>
             </p>
           </div>
@@ -143,14 +143,14 @@ function LoginForm() {
       <div className="w-full max-w-[380px] space-y-8">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
-            Welcome to StudyPilot
+            {t("welcomeTitle")}
           </h1>
           <p className="text-gray-500 dark:text-gray-400">
-            Sign in to continue to your account
+            {t("welcomeSubtitle")}
           </p>
           {referralCode && (
             <div className="bg-green-50 dark:bg-green-900/30 text-green-600 dark:text-green-400 px-3 py-1 rounded text-sm font-medium inline-block">
-              Referral code applied
+              {t("referralApplied")}
             </div>
           )}
         </div>
@@ -161,12 +161,12 @@ function LoginForm() {
               className="text-sm font-medium text-gray-700 dark:text-gray-300"
               htmlFor="email"
             >
-              Email
+              {t("emailLabel")}
             </label>
             <Input
               id="email"
               type="email"
-              placeholder="name@example.com"
+              placeholder={t("emailPlaceholder")}
               className="rounded-lg border-gray-200"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -184,7 +184,7 @@ function LoginForm() {
             disabled={loading}
           >
             <Mail className="size-4" />
-            {loading ? "Sending..." : "Continue with Email"}
+            {loading ? t("sending") : t("continueWithEmail")}
           </Button>
 
           <div className="relative py-2">
@@ -193,7 +193,7 @@ function LoginForm() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-white dark:bg-slate-900 px-2 text-gray-400">
-                OR
+                {t("or")}
               </span>
             </div>
           </div>
@@ -223,7 +223,7 @@ function LoginForm() {
                 fill="#EA4335"
               />
             </svg>
-            Sign in with Google
+            {t("continueWithGoogle")}
           </Button>
 
           <Button
@@ -236,17 +236,17 @@ function LoginForm() {
             <svg className="size-5" viewBox="0 0 24 24" fill="currentColor">
               <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
             </svg>
-            Sign in with GitHub
+            {t("continueWithGithub")}
           </Button>
 
           <p className="text-center text-xs text-gray-400">
-            By continuing, you agree to our{" "}
+            {t("termsPrefix")}{" "}
             <a href="/terms" className="underline hover:text-gray-600">
-              Terms of Service
+              {t("termsOfService")}
             </a>{" "}
-            and{" "}
+            {t("and")}{" "}
             <a href="/privacy" className="underline hover:text-gray-600">
-              Privacy Policy
+              {t("privacyPolicy")}
             </a>
           </p>
         </form>
@@ -256,12 +256,14 @@ function LoginForm() {
 }
 
 export default function LoginPage() {
+  const t = useTranslations("login");
+
   return (
     <div className="flex min-h-screen w-full bg-white dark:bg-slate-900">
       <Suspense
         fallback={
           <div className="flex w-full flex-col items-center justify-center p-8 lg:w-1/2">
-            Loading…
+            {t("loading")}
           </div>
         }
       >

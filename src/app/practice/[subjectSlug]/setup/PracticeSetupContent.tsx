@@ -6,14 +6,13 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Switch } from "@/components/ui/Switch";
 import { Subject, Topic } from "@/types/database";
+import { useTranslations } from "next-intl";
 import {
   ChevronRight,
   Sparkles,
   ListChecks,
   FileText,
-  Layers,
   Timer,
-  Zap,
 } from "lucide-react";
 
 interface TopicWithCount extends Topic {
@@ -29,77 +28,76 @@ interface PracticeSetupContentProps {
   topics?: TopicWithCount[];
 }
 
-const modes = [
-  {
-    id: "standard",
-    name: "Standard",
-    description: "Practice with custom filters. Track progress.",
-    icon: ListChecks,
-    color: "text-blue-600",
-    bgColor: "bg-blue-50 dark:bg-blue-900/20",
-    borderColor: "border-blue-200 dark:border-blue-800",
-    ringColor: "ring-blue-500",
-    btnColor:
-      "bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600",
-  },
-  {
-    id: "immersive",
-    name: "Immersive",
-    description: "Endless stream. Minimalist. Pure focus.",
-    icon: Sparkles,
-    color: "text-purple-600",
-    bgColor: "bg-purple-50 dark:bg-purple-900/20",
-    borderColor: "border-purple-200 dark:border-purple-800",
-    ringColor: "ring-purple-500",
-    btnColor: "bg-purple-600 hover:bg-purple-700 text-white",
-  },
-  {
-    id: "exam",
-    name: "Mock Exam",
-    description: "Timed simulation under exam conditions.",
-    icon: FileText,
-    color: "text-orange-600",
-    bgColor: "bg-orange-50 dark:bg-orange-900/20",
-    borderColor: "border-orange-200 dark:border-orange-800",
-    ringColor: "ring-orange-500",
-    btnColor: "bg-orange-600 hover:bg-orange-700 text-white",
-  },
-];
-
-const difficulties = [
-  {
-    value: "easy",
-    label: "Easy",
-    color: "bg-green-100 text-green-700 border-green-200",
-  },
-  {
-    value: "medium",
-    label: "Medium",
-    color: "bg-yellow-100 text-yellow-700 border-yellow-200",
-  },
-  {
-    value: "hard",
-    label: "Hard",
-    color: "bg-red-100 text-red-700 border-red-200",
-  },
-  {
-    value: "all",
-    label: "Any",
-    color: "bg-slate-100 text-slate-600 border-slate-200",
-  },
-];
-
 export function PracticeSetupContent({
   subject,
   topics = [],
 }: PracticeSetupContentProps) {
+  type PracticeMode = "standard" | "immersive" | "exam";
+  const t = useTranslations("practiceSetup");
   const router = useRouter();
-  const [mode, setMode] = useState<"standard" | "immersive" | "exam">(
-    "standard",
-  );
+  const [mode, setMode] = useState<PracticeMode>("standard");
   const [difficulty, setDifficulty] = useState("all");
   const [selectedTopics, setSelectedTopics] = useState<string[]>(["all"]);
   const [enableTimer, setEnableTimer] = useState(true);
+  const modes = [
+    {
+      id: "standard",
+      name: t("modes.standard.name"),
+      description: t("modes.standard.description"),
+      icon: ListChecks,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50 dark:bg-blue-900/20",
+      borderColor: "border-blue-200 dark:border-blue-800",
+      ringColor: "ring-blue-500",
+      btnColor:
+        "bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600",
+    },
+    {
+      id: "immersive",
+      name: t("modes.immersive.name"),
+      description: t("modes.immersive.description"),
+      icon: Sparkles,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50 dark:bg-purple-900/20",
+      borderColor: "border-purple-200 dark:border-purple-800",
+      ringColor: "ring-purple-500",
+      btnColor: "bg-purple-600 hover:bg-purple-700 text-white",
+    },
+    {
+      id: "exam",
+      name: t("modes.exam.name"),
+      description: t("modes.exam.description"),
+      icon: FileText,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50 dark:bg-orange-900/20",
+      borderColor: "border-orange-200 dark:border-orange-800",
+      ringColor: "ring-orange-500",
+      btnColor: "bg-orange-600 hover:bg-orange-700 text-white",
+    },
+  ];
+
+  const difficulties = [
+    {
+      value: "easy",
+      label: t("difficulty.easy"),
+      color: "bg-green-100 text-green-700 border-green-200",
+    },
+    {
+      value: "medium",
+      label: t("difficulty.medium"),
+      color: "bg-yellow-100 text-yellow-700 border-yellow-200",
+    },
+    {
+      value: "hard",
+      label: t("difficulty.hard"),
+      color: "bg-red-100 text-red-700 border-red-200",
+    },
+    {
+      value: "all",
+      label: t("difficulty.any"),
+      color: "bg-slate-100 text-slate-600 border-slate-200",
+    },
+  ];
 
   const toggleTopic = (slug: string) => {
     if (slug === "all") {
@@ -155,7 +153,7 @@ export function PracticeSetupContent({
           href="/library"
           className="hover:text-gray-900 dark:hover:text-white transition-colors"
         >
-          Library
+          {t("breadcrumb.library")}
         </Link>
         <ChevronRight className="size-4" />
         <span className="text-gray-900 dark:text-white font-medium">
@@ -176,7 +174,7 @@ export function PracticeSetupContent({
               <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
             </span>
             <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide">
-              Setup Session
+              {t("badge")}
             </span>
           </motion.div>
           <motion.h1
@@ -185,7 +183,7 @@ export function PracticeSetupContent({
             transition={{ delay: 0.1 }}
             className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight"
           >
-            Practice Setup
+            {t("title")}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 10 }}
@@ -193,7 +191,7 @@ export function PracticeSetupContent({
             transition={{ delay: 0.2 }}
             className="text-gray-500 mt-2 text-lg"
           >
-            Customize your learning experience for{" "}
+            {t("subtitlePrefix")}{" "}
             <span className="text-gray-900 dark:text-white font-semibold">
               {subject.name}
             </span>
@@ -204,7 +202,7 @@ export function PracticeSetupContent({
           <div className="text-3xl font-bold text-gray-900 dark:text-white">
             {subject.question_count || 0}
           </div>
-          <div className="text-sm text-gray-500">Total Questions</div>
+          <div className="text-sm text-gray-500">{t("totalQuestions")}</div>
         </div>
       </div>
 
@@ -219,7 +217,7 @@ export function PracticeSetupContent({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 * (index + 1) }}
-              onClick={() => setMode(m.id as any)}
+              onClick={() => setMode(m.id as PracticeMode)}
               className={`group relative p-5 text-left rounded-2xl transition-[background-color,border-color,box-shadow,transform] duration-300 border-2 ${
                 isSelected
                   ? `bg-white dark:bg-slate-800 ${m.borderColor} ${m.ringColor} ring-1 shadow-xl translate-y-[-2px]`
@@ -270,7 +268,7 @@ export function PracticeSetupContent({
               {/* Option: Difficulty */}
               <div className="mb-8">
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
-                  Select Difficulty
+                  {t("selectDifficulty")}
                 </h3>
                 <div className="flex flex-wrap gap-3">
                   {difficulties.map((d) => (
@@ -293,9 +291,9 @@ export function PracticeSetupContent({
               {topics.length > 0 && (
                 <div className="mb-8">
                   <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">
-                    Focus Topic{" "}
+                    {t("focusTopic")}{" "}
                     <span className="text-xs text-gray-400 font-normal ml-1">
-                      (Multi-select enabled)
+                      ({t("multiSelectEnabled")})
                     </span>
                   </h3>
                   <div className="flex flex-wrap gap-2">
@@ -307,7 +305,7 @@ export function PracticeSetupContent({
                           : "bg-white dark:bg-slate-800 text-gray-600 border-gray-200 dark:border-gray-700 hover:border-gray-300"
                       }`}
                     >
-                      All Topics
+                      {t("allTopics")}
                     </button>
                     {topics.map((t) => (
                       <button
@@ -344,10 +342,10 @@ export function PracticeSetupContent({
                   </div>
                   <div className="text-sm">
                     <span className="block font-bold text-gray-900 dark:text-white">
-                      Timer
+                      {t("timer.title")}
                     </span>
                     <span className="text-gray-500">
-                      Track per-question time
+                      {t("timer.description")}
                     </span>
                   </div>
                 </div>
@@ -372,7 +370,7 @@ export function PracticeSetupContent({
           onClick={handleStart}
           className={`group relative inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl text-base font-bold shadow-lg transition-[background-color,box-shadow,transform,color] duration-200 hover:scale-[1.02] hover:shadow-xl ${selectedMode.btnColor}`}
         >
-          <span>Start Session</span>
+          <span>{t("startSession")}</span>
           <ChevronRight className="size-5 opacity-70 group-hover:opacity-100 group-hover:translate-x-1 transition-[transform,opacity]" />
         </button>
       </motion.div>

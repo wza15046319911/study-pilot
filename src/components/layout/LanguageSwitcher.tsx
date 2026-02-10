@@ -2,24 +2,23 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
-import { Globe } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+
+function setLocaleCookie(locale: string) {
+  document.cookie = `NEXT_LOCALE=${locale}; path=/; max-age=31536000; SameSite=Lax`;
+}
 
 export function LanguageSwitcher() {
   const router = useRouter();
-  const [locale, setLocale] = useState("zh");
+  const localeFromIntl = useLocale();
+  const tHeader = useTranslations("header");
+  const [locale, setLocale] = useState(localeFromIntl);
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Read current locale from cookie on mount
   useEffect(() => {
-    const cookieLocale = document.cookie
-      .split("; ")
-      .find((row) => row.startsWith("NEXT_LOCALE="))
-      ?.split("=")[1];
-    if (cookieLocale) {
-      setLocale(cookieLocale);
-    }
-  }, []);
+    setLocale(localeFromIntl);
+  }, [localeFromIntl]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -39,7 +38,7 @@ export function LanguageSwitcher() {
 
   const handleSwitch = (newLocale: string) => {
     setLocale(newLocale);
-    document.cookie = `NEXT_LOCALE=${newLocale}; path=/; max-age=31536000; SameSite=Lax`;
+    setLocaleCookie(newLocale);
     router.refresh();
     setIsOpen(false);
   };
@@ -54,7 +53,7 @@ export function LanguageSwitcher() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="size-10 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors flex items-center justify-center font-bold text-sm"
-        aria-label="Switch Language"
+        aria-label={tHeader("switchLanguage")}
       >
         {locale === "zh" ? "Zh" : "En"}
       </button>

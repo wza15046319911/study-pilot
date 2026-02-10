@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { Profile, Subject, Mistake, Question } from "@/types/database";
@@ -30,6 +30,7 @@ import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { slugOrEncodedId } from "@/lib/ids";
+import { useTranslations } from "next-intl";
 
 const DailyTrendChart = dynamic(
   () =>
@@ -153,6 +154,7 @@ export function ProfileContent({
   homeworkPreview = [],
   isAdmin = false,
 }: ProfileContentProps) {
+  const t = useTranslations("profileDashboard");
   const [open, setOpen] = useState(false);
 
   const mistakesStats = useMemo(() => {
@@ -190,18 +192,20 @@ export function ProfileContent({
     const now = new Date();
     const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-    if (diffInSeconds < 60) return "Just now";
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+    if (diffInSeconds < 60) return t("time.justNow");
+    if (diffInSeconds < 3600) {
+      return t("time.minutesAgo", { count: Math.floor(diffInSeconds / 60) });
+    }
     if (diffInSeconds < 86400)
-      return `${Math.floor(diffInSeconds / 3600)}h ago`;
-    return `${Math.floor(diffInSeconds / 86400)}d ago`;
+      return t("time.hoursAgo", { count: Math.floor(diffInSeconds / 3600) });
+    return t("time.daysAgo", { count: Math.floor(diffInSeconds / 86400) });
   };
 
-  const formatHomeworkDueLabel = (dueAt: string | null) => {
-    if (!dueAt) return "No deadline";
+  const formatHomeworkDueLabel = useCallback((dueAt: string | null) => {
+    if (!dueAt) return t("homework.noDeadline");
 
     const dueDate = new Date(dueAt);
-    if (Number.isNaN(dueDate.getTime())) return "No deadline";
+    if (Number.isNaN(dueDate.getTime())) return t("homework.noDeadline");
 
     const now = new Date();
     const isToday =
@@ -216,15 +220,15 @@ export function ProfileContent({
     });
 
     if (isToday) {
-      return `Tonight ${timeLabel}`;
+      return t("homework.tonight", { time: timeLabel });
     }
 
-    const dayLabel = dueDate.toLocaleDateString("en-US", {
+    const dayLabel = dueDate.toLocaleDateString(undefined, {
       weekday: "short",
     });
 
     return `${dayLabel} ${timeLabel}`;
-  };
+  }, [t]);
 
   const homeworkRows = useMemo(
     () =>
@@ -234,40 +238,40 @@ export function ProfileContent({
         done: !!item.completedAt,
         dueLabel: formatHomeworkDueLabel(item.dueAt),
       })),
-    [homeworkPreview],
+    [homeworkPreview, formatHomeworkDueLabel],
   );
 
   const links = [
     {
-      label: "Mistakes",
+      label: t("sidebar.mistakes"),
       href: "/profile/mistakes",
       icon: (
         <AlertCircle className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
       ),
     },
     {
-      label: "Bookmarks",
+      label: t("sidebar.bookmarks"),
       href: "/profile/bookmarks",
       icon: (
         <BookMarked className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
       ),
     },
     {
-      label: "Homework",
+      label: t("sidebar.homework"),
       href: "/profile/homework",
       icon: (
         <ClipboardCheck className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
       ),
     },
     {
-      label: "Weekly Practice",
+      label: t("sidebar.weeklyPractice"),
       href: "/profile/weekly-practice",
       icon: (
         <CalendarCheck className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
       ),
     },
     {
-      label: "Referrals",
+      label: t("sidebar.referrals"),
       href: "/profile/referrals",
       icon: (
         <Users className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
@@ -277,7 +281,7 @@ export function ProfileContent({
 
   if (isAdmin) {
     links.push({
-      label: "Admin Panel",
+      label: t("sidebar.adminPanel"),
       href: "/admin",
       icon: (
         <Layers className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
@@ -323,7 +327,7 @@ export function ProfileContent({
                     {user.username}
                   </p>
                   <p className="text-xs text-neutral-500">
-                    Level {user.level || 1}
+                    {t("sidebar.level", { level: user.level || 1 })}
                   </p>
                 </motion.div>
               )}
@@ -338,7 +342,7 @@ export function ProfileContent({
           <div>
             <SidebarLink
               link={{
-                label: "Logout",
+                label: t("sidebar.logout"),
                 href: "/login",
                 icon: (
                   <LogOut className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
@@ -361,10 +365,10 @@ export function ProfileContent({
                 <div className="px-6 py-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
                   <div>
                     <p className="text-xs uppercase tracking-[0.16em] font-semibold text-amber-600 dark:text-amber-400">
-                      Homework
+                      {t("homework.title")}
                     </p>
                     <h3 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
-                      Assigned
+                      {t("homework.assigned")}
                     </h3>
                   </div>
                   <div className="size-14 rounded-full bg-amber-100/80 dark:bg-amber-900/25 flex items-center justify-center text-amber-600 dark:text-amber-400">
@@ -378,8 +382,10 @@ export function ProfileContent({
                       <AlarmClock className="size-5 text-amber-500 dark:text-amber-400" />
                       <span className="text-sm sm:text-base font-medium">
                         {homeworkStats.due > 0
-                          ? `${homeworkStats.due} homework${homeworkStats.due > 1 ? "s" : ""} due this week`
-                          : "No homework due this week"}
+                          ? t("homework.dueThisWeek", {
+                              count: homeworkStats.due,
+                            })
+                          : t("homework.noDueThisWeek")}
                       </span>
                     </div>
 
@@ -388,7 +394,7 @@ export function ProfileContent({
                       className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-bold px-5 py-2.5 transition-colors"
                     >
                       <Upload className="size-4" />
-                      Submit
+                      {t("homework.submit")}
                     </Link>
                   </div>
 
@@ -396,7 +402,7 @@ export function ProfileContent({
                     {homeworkRows.length === 0 ? (
                       <div className="rounded-2xl border border-gray-200 dark:border-gray-700 px-5 py-5 bg-white dark:bg-slate-950/30">
                         <p className="text-base font-semibold text-slate-700 dark:text-slate-300">
-                          No homework assigned yet
+                          {t("homework.noAssignedYet")}
                         </p>
                       </div>
                     ) : (
@@ -412,7 +418,7 @@ export function ProfileContent({
                           {item.done ? (
                             <span className="inline-flex items-center gap-2 whitespace-nowrap text-sm font-semibold text-emerald-600 dark:text-emerald-400">
                               <CheckCircle2 className="size-5" />
-                              Done
+                              {t("homework.done")}
                             </span>
                           ) : (
                             <span className="whitespace-nowrap text-sm font-semibold text-amber-600 dark:text-amber-400">
@@ -431,10 +437,10 @@ export function ProfileContent({
                 <div className="px-6 py-6 border-b border-gray-200 dark:border-gray-800 flex items-center justify-between">
                   <div>
                     <p className="text-xs uppercase tracking-[0.16em] font-semibold text-sky-600 dark:text-sky-400">
-                      Weekly Practice
+                      {t("weeklyPractice.title")}
                     </p>
                     <h3 className="mt-1 text-xl font-bold text-slate-900 dark:text-white">
-                      7-Day Sprint
+                      {t("weeklyPractice.sprint")}
                     </h3>
                   </div>
                   <div className="size-14 rounded-full bg-sky-100/80 dark:bg-sky-900/25 flex items-center justify-center text-sky-600 dark:text-sky-400">
@@ -447,7 +453,7 @@ export function ProfileContent({
                     <div className="flex items-center gap-2.5 text-gray-700 dark:text-gray-200">
                       <Clock className="size-5 text-sky-500 dark:text-sky-400" />
                       <span className="text-sm sm:text-base font-medium">
-                        Weekly plan ready. Keep your streak for 13 weeks!.
+                        {t("weeklyPractice.ready")}
                       </span>
                     </div>
 
@@ -456,14 +462,14 @@ export function ProfileContent({
                       className="inline-flex items-center justify-center gap-2 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base font-bold px-5 py-2.5 transition-colors"
                     >
                       <CalendarCheck className="size-4" />
-                      Open
+                      {t("weeklyPractice.open")}
                     </Link>
                   </div>
 
                   <div className="space-y-3">
                     <div className="rounded-2xl border border-gray-200 dark:border-gray-700 px-5 py-5 bg-white dark:bg-slate-950/30 flex items-center justify-between gap-4">
                       <p className="truncate text-base font-semibold text-slate-900 dark:text-white">
-                        Progress Timeline
+                        {t("weeklyPractice.progressTimeline")}
                       </p>
                       <div className="flex gap-1.5">
                         {weekDots.map((_, idx) => (
@@ -476,10 +482,10 @@ export function ProfileContent({
                     </div>
                     <div className="rounded-2xl border border-gray-200 dark:border-gray-700 px-5 py-5 bg-white dark:bg-slate-950/30 flex items-center justify-between gap-4">
                       <p className="truncate text-base font-semibold text-slate-900 dark:text-white">
-                        Review Focus
+                        {t("weeklyPractice.reviewFocus")}
                       </p>
                       <span className="whitespace-nowrap text-sm font-semibold text-sky-600 dark:text-sky-400">
-                        This Week
+                        {t("weeklyPractice.thisWeek")}
                       </span>
                     </div>
                   </div>
@@ -495,58 +501,62 @@ export function ProfileContent({
                     <AlertCircle className="size-5" />
                   </div>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Mistakes
+                    {t("mistakes.title")}
                   </h2>
                 </div>
                 <Link
                   href="/profile/mistakes"
                   className="text-sm font-medium text-blue-600 hover:text-blue-700"
                 >
-                  View All
+                  {t("common.viewAll")}
                 </Link>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="p-4 rounded-2xl bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30">
                   <p className="text-[14px] uppercase tracking-widest text-red-600 dark:text-red-400 font-semibold">
-                    Recent Mistakes
+                    {t("mistakes.recent")}
                   </p>
                   <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
                     {mistakesStats.total}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">latest records</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {t("mistakes.latestRecords")}
+                  </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
                   <p className="text-[14px] uppercase tracking-widest text-gray-500 font-semibold">
-                    Error Hits
+                    {t("mistakes.errorHits")}
                   </p>
                   <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
                     {mistakesStats.totalErrors}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    accumulated attempts
+                    {t("mistakes.accumulatedAttempts")}
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
                   <p className="text-[14px] uppercase tracking-widest text-gray-500 font-semibold">
-                    Hard Questions
+                    {t("mistakes.hardQuestions")}
                   </p>
                   <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
                     {mistakesStats.hard}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">need more review</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {t("mistakes.needMoreReview")}
+                  </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
                   <p className="text-[14px] uppercase tracking-widest text-gray-500 font-semibold">
-                    Last Mistake
+                    {t("mistakes.lastMistake")}
                   </p>
                   <p className="mt-1 text-sm font-semibold text-gray-900 dark:text-white">
                     {mistakesStats.latestAt
                       ? formatTimeAgo(mistakesStats.latestAt)
-                      : "No record"}
+                      : t("common.noRecord")}
                   </p>
                   <p className="text-xs text-gray-500 mt-2">
-                    time since latest
+                    {t("mistakes.timeSinceLatest")}
                   </p>
                 </div>
               </div>
@@ -560,32 +570,32 @@ export function ProfileContent({
                     <BookMarked className="size-5" />
                   </div>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Bookmarks
+                    {t("bookmarks.title")}
                   </h2>
                 </div>
                 <Link
                   href="/profile/bookmarks"
                   className="text-sm font-medium text-blue-600 hover:text-blue-700"
                 >
-                  View All
+                  {t("common.viewAll")}
                 </Link>
               </div>
 
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/30 md:col-span-2">
                   <p className="text-[14px] uppercase tracking-widest text-amber-600 dark:text-amber-400 font-semibold">
-                    Saved Bookmarks
+                    {t("bookmarks.saved")}
                   </p>
                   <p className="mt-1 text-2xl font-bold text-gray-900 dark:text-white">
                     {bookmarkStats.total}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    quick-access questions
+                    {t("bookmarks.quickAccess")}
                   </p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
                   <p className="text-[14px] uppercase tracking-widest text-gray-500 font-semibold">
-                    Hard
+                    {t("difficulty.hard")}
                   </p>
                   <p className="mt-1 text-xl font-bold text-gray-900 dark:text-white">
                     {bookmarkStats.hard}
@@ -593,7 +603,7 @@ export function ProfileContent({
                 </div>
                 <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
                   <p className="text-[14px] uppercase tracking-widest text-gray-500 font-semibold">
-                    Medium
+                    {t("difficulty.medium")}
                   </p>
                   <p className="mt-1 text-xl font-bold text-gray-900 dark:text-white">
                     {bookmarkStats.medium}
@@ -601,16 +611,16 @@ export function ProfileContent({
                 </div>
                 <div className="p-4 rounded-2xl bg-white dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700">
                   <p className="text-[14px] uppercase tracking-widest text-gray-500 font-semibold">
-                    Easy
+                    {t("difficulty.easy")}
                   </p>
                   <p className="mt-1 text-xl font-bold text-gray-900 dark:text-white">
                     {bookmarkStats.easy}
                   </p>
                   <p className="text-xs text-gray-500 mt-1">
-                    Last:{" "}
+                    {t("common.last")}{" "}
                     {bookmarkStats.latestAt
                       ? formatTimeAgo(bookmarkStats.latestAt)
-                      : "No record"}
+                      : t("common.noRecord")}
                   </p>
                 </div>
               </div>
@@ -623,14 +633,14 @@ export function ProfileContent({
                   <TrendingUp className="size-5" />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                  Analytics
+                  {t("analytics.title")}
                 </h2>
               </div>
 
               <div className="grid grid-cols-1 gap-8 mb-8">
                 <div className="bg-white dark:bg-slate-900 rounded-2xl border border-gray-200 dark:border-gray-800 p-6">
                   <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-                    Daily Trends
+                    {t("analytics.dailyTrends")}
                   </h3>
                   <DailyTrendChart data={dailyActivity} />
                 </div>
@@ -644,7 +654,7 @@ export function ProfileContent({
                     {answerStats.total}
                   </span>
                   <span className="text-xs text-gray-500 uppercase font-bold">
-                    Questions
+                    {t("analytics.questions")}
                   </span>
                 </div>
                 <div className="bg-green-50 dark:bg-green-900/10 p-4 rounded-2xl flex flex-col items-center justify-center text-center">
@@ -653,7 +663,7 @@ export function ProfileContent({
                     {answerStats.accuracy}%
                   </span>
                   <span className="text-xs text-gray-500 uppercase font-bold">
-                    Accuracy
+                    {t("analytics.accuracy")}
                   </span>
                 </div>
               </div>
@@ -667,14 +677,14 @@ export function ProfileContent({
                     <Library className="size-5" />
                   </div>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                    My Question Banks
+                    {t("questionBanks.title")}
                   </h2>
                 </div>
                 <Link
                   href="/profile/question-banks"
                   className="text-sm font-medium text-blue-600 hover:text-blue-700"
                 >
-                  View All
+                  {t("common.viewAll")}
                 </Link>
               </div>
 
@@ -688,7 +698,8 @@ export function ProfileContent({
                     >
                       <div className="flex items-start justify-between mb-3">
                         <span className="text-[14px] font-bold px-2 py-1 rounded-md bg-violet-200/50 dark:bg-violet-800/50 text-violet-700 dark:text-violet-300 uppercase tracking-wider">
-                          {item.question_banks.subjects?.name || "General"}
+                          {item.question_banks.subjects?.name ||
+                            t("common.general")}
                         </span>
                         <ChevronRight className="size-4 text-gray-400 group-hover:text-violet-500 group-hover:translate-x-1 transition-all" />
                       </div>
@@ -698,11 +709,16 @@ export function ProfileContent({
                       <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                         <div className="flex items-center gap-1">
                           <Trophy className="size-3.5 text-amber-500" />
-                          <span>{item.completion_count} completed</span>
+                          <span>
+                            {t("questionBanks.completed", {
+                              count: item.completion_count,
+                            })}
+                          </span>
                         </div>
                         {item.last_completed_at && (
                           <span className="text-gray-400">
-                            Last: {formatTimeAgo(item.last_completed_at)}
+                            {t("common.last")}:{" "}
+                            {formatTimeAgo(item.last_completed_at)}
                           </span>
                         )}
                       </div>
@@ -712,13 +728,13 @@ export function ProfileContent({
                   <div className="md:col-span-2 p-8 rounded-2xl bg-gray-50 dark:bg-gray-800/20 text-center border border-dashed border-gray-200 dark:border-gray-700">
                     <Library className="size-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
                     <p className="text-gray-500 font-medium mb-2">
-                      No question banks added yet
+                      {t("questionBanks.emptyTitle")}
                     </p>
                     <Link
                       href="/library"
                       className="text-sm text-violet-600 hover:text-violet-700 font-medium"
                     >
-                      Browse question banks →
+                      {t("questionBanks.browse")}
                     </Link>
                   </div>
                 )}
@@ -733,14 +749,14 @@ export function ProfileContent({
                     <GraduationCap className="size-5" />
                   </div>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                    My Mock Exams
+                    {t("mockExams.title")}
                   </h2>
                 </div>
                 <Link
                   href="/profile/mock-exams"
                   className="text-sm font-medium text-blue-600 hover:text-blue-700"
                 >
-                  View All
+                  {t("common.viewAll")}
                 </Link>
               </div>
 
@@ -754,7 +770,7 @@ export function ProfileContent({
                     >
                       <div className="flex items-start justify-between mb-3">
                         <span className="text-[14px] font-bold px-2 py-1 rounded-md bg-emerald-200/50 dark:bg-emerald-800/50 text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
-                          {item.exams.subjects?.name || "Mock Exam"}
+                          {item.exams.subjects?.name || t("mockExams.mockExam")}
                         </span>
                         <ChevronRight className="size-4 text-gray-400 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
                       </div>
@@ -764,12 +780,20 @@ export function ProfileContent({
                       <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
                         <div className="flex items-center gap-1">
                           <Trophy className="size-3.5 text-amber-500" />
-                          <span>{item.completion_count} attempts</span>
+                          <span>
+                            {t("mockExams.attempts", {
+                              count: item.completion_count,
+                            })}
+                          </span>
                         </div>
                         {item.best_score !== null && (
                           <div className="flex items-center gap-1">
                             <Target className="size-3.5 text-green-500" />
-                            <span>Best: {item.best_score}%</span>
+                            <span>
+                              {t("mockExams.bestScore", {
+                                score: item.best_score,
+                              })}
+                            </span>
                           </div>
                         )}
                         {item.best_time_seconds !== null && (
@@ -787,13 +811,13 @@ export function ProfileContent({
                   <div className="md:col-span-2 p-8 rounded-2xl bg-gray-50 dark:bg-gray-800/20 text-center border border-dashed border-gray-200 dark:border-gray-700">
                     <GraduationCap className="size-10 text-gray-300 dark:text-gray-600 mx-auto mb-3" />
                     <p className="text-gray-500 font-medium mb-2">
-                      No mock exams added yet
+                      {t("mockExams.emptyTitle")}
                     </p>
                     <Link
                       href="/library"
                       className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
                     >
-                      Browse subjects and exams →
+                      {t("mockExams.browse")}
                     </Link>
                   </div>
                 )}

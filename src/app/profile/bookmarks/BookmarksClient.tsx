@@ -16,6 +16,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { encodeId } from "@/lib/ids";
+import { useTranslations } from "next-intl";
 
 interface BookmarkData {
   id: number;
@@ -42,6 +43,7 @@ interface BookmarksClientProps {
 export default function BookmarksClient({
   bookmarks: initialBookmarks,
 }: BookmarksClientProps) {
+  const t = useTranslations("profileBookmarks");
   const router = useRouter();
   const [bookmarks, setBookmarks] = useState(initialBookmarks);
   const [searchQuery, setSearchQuery] = useState("");
@@ -101,8 +103,8 @@ export default function BookmarksClient({
       (now.getTime() - date.getTime()) / (1000 * 3600 * 24),
     );
 
-    if (diffInDays === 0) return "Today";
-    if (diffInDays === 1) return "Yesterday";
+    if (diffInDays === 0) return t("time.today");
+    if (diffInDays === 1) return t("time.yesterday");
     return new Intl.DateTimeFormat(undefined, {
       year: "numeric",
       month: "short",
@@ -115,15 +117,15 @@ export default function BookmarksClient({
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-8">
         <Link href="/" className="hover:text-blue-600 transition-colors">
-          Home
+          {t("breadcrumb.home")}
         </Link>
         <ChevronRight className="size-4" />
         <Link href="/profile" className="hover:text-blue-600 transition-colors">
-          Profile
+          {t("breadcrumb.profile")}
         </Link>
         <ChevronRight className="size-4" />
         <span className="text-gray-900 dark:text-white font-medium">
-          Bookmarks
+          {t("breadcrumb.bookmarks")}
         </span>
       </div>
 
@@ -133,14 +135,14 @@ export default function BookmarksClient({
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 mb-4">
             <Bookmark className="size-3.5 text-amber-600 dark:text-amber-500" />
             <span className="text-xs font-semibold text-amber-700 dark:text-amber-400 uppercase tracking-wide">
-              Saved Items
+              {t("savedItems")}
             </span>
           </div>
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">
-            My Bookmarks
+            {t("title")}
           </h1>
           <p className="text-gray-500 text-lg">
-            Manage questions you've saved for later review.
+            {t("subtitle")}
           </p>
         </div>
 
@@ -151,7 +153,7 @@ export default function BookmarksClient({
             className="rounded-xl shadow-lg shadow-blue-500/20"
           >
             <Play className="size-4 mr-2" />
-            Practice All
+            {t("practiceAll")}
           </Button>
         )}
       </div>
@@ -162,13 +164,13 @@ export default function BookmarksClient({
           <Search className="size-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search bookmarks..."
+            placeholder={t("searchPlaceholder")}
             className="bg-transparent flex-1 border-none focus:ring-0 text-gray-900 dark:text-white placeholder-gray-400 outline-none"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
           <div className="text-sm text-gray-400 font-medium">
-            {filteredBookmarks.length} found
+            {t("foundCount", { count: filteredBookmarks.length })}
           </div>
         </div>
       )}
@@ -180,14 +182,13 @@ export default function BookmarksClient({
             <BookOpen className="size-10 text-gray-300 dark:text-gray-600" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            No bookmarks yet
+            {t("empty.title")}
           </h2>
           <p className="text-gray-500 max-w-md mx-auto mb-8">
-            When you encounter a question you want to review later, click the
-            bookmark icon to save it here.
+            {t("empty.description")}
           </p>
           <Button variant="outline" onClick={() => router.push("/library")}>
-            Explore Library
+            {t("empty.cta")}
           </Button>
         </div>
       ) : (
@@ -229,7 +230,7 @@ export default function BookmarksClient({
                           </span>
                           <span className="text-xs text-gray-400 flex items-center gap-1">
                             <Clock className="size-3" />
-                            Saved {formatTimeAgo(bookmark.created_at)}
+                            {t("savedAt", { time: formatTimeAgo(bookmark.created_at) })}
                           </span>
                         </div>
                         <h4 className="font-semibold text-gray-900 dark:text-white mb-1 group-hover:text-blue-600 transition-colors">
@@ -247,7 +248,7 @@ export default function BookmarksClient({
                             handleRemoveBookmark(bookmark.id);
                           }}
                           className="p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                          title="Remove bookmark"
+                          title={t("removeBookmark")}
                         >
                           <Trash2 className="size-5" />
                         </button>

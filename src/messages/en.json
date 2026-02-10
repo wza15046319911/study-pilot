@@ -1,150 +1,1052 @@
 {
-  "common": {
-    "loading": "Loading...",
-    "error": "An error occurred",
-    "save": "Save",
-    "cancel": "Cancel",
-    "confirm": "Confirm",
-    "delete": "Delete",
-    "edit": "Edit",
-    "back": "Back",
-    "next": "Next",
-    "previous": "Previous",
-    "submit": "Submit",
-    "search": "Search",
-    "noResults": "No results found"
+  "about": {
+    "meta": {
+      "description": "Learn why StudyPilot was built and the values behind the platform.",
+      "title": "About StudyPilot"
+    },
+    "page": {
+      "cta": {
+        "primary": "Start Practicing",
+        "secondary": "Contact Me",
+        "title": "Ready to upgrade your study routine?"
+      },
+      "developer": {
+        "imageAlt": "Developer",
+        "p1": "Hi there! I'm Lewis. With 8 years of experience teaching UQ CSSE1001/7030 and 5 years for INFS3202/7202 and COMP3506/7505, I've seen firsthand where students struggle most.",
+        "p2": "It all started when I realized students simply didn't have enough practice problems. I began by hand-picking 100 extra questions for CSSE1001/7030; today, that collection has evolved into a massive database of 500+ problems. I'm also excited to announce that our dedicated question banks for INFS3202/7202 and COMP3506/7505 are officially ready for launch!",
+        "p3": "Whether you're in a time crunch or aiming for that perfect Grade 7, this platform is built to help you bridge the gap and crush your academic goals. Let's get to work!",
+        "title": "Meet the Developer"
+      },
+      "hero": {
+        "subtitle": "Building the intelligent study companion I wish I had.",
+        "title": "About StudyPilot"
+      },
+      "inspiration": {
+        "leadPrefix": "It started with a simple frustration:",
+        "leadStrong": "Static PDF past papers just aren't enough.",
+        "newWayDescription": "Interactive question banks, instant feedback, and smart analytics that tell you exactly what to focus on.",
+        "newWayTitle": "The StudyPilot Way",
+        "oldWayDescription": "Endlessly scrolling through PDFs, guessing answers, and having no way to track what you've actually mastered.",
+        "oldWayTitle": "The Old Way",
+        "title": "The Spark of Inspiration"
+      },
+      "values": {
+        "access": {
+          "description": "High-quality exam preparation should be available to everyone. We're committed to keeping our core resources accessible.",
+          "title": "Accessible Education"
+        },
+        "mastery": {
+          "description": "We believe in quality over quantity. Our spaced repetition system ensures you don't just memorize, but truly master the concepts.",
+          "title": "Mastery First"
+        },
+        "student": {
+          "description": "Every feature is built with direct feedback from students. We solve real study challenges, not hypothetical ones.",
+          "title": "Student Centric"
+        },
+        "subtitle": "What drives every feature we build.",
+        "title": "Our Core Values"
+      }
+    }
   },
   "brand": {
     "name": "StudyPilot"
   },
-  "nav": {
-    "home": "Home",
-    "subjects": "Subjects",
-    "bookmarks": "Bookmarks",
-    "profile": "Profile",
-    "login": "Login",
-    "logout": "Logout",
-    "pricing": "Pricing",
-    "mistakes": "Mistakes"
+  "common": {
+    "back": "Back",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "delete": "Delete",
+    "edit": "Edit",
+    "error": "An error occurred",
+    "loading": "Loading...",
+    "next": "Next",
+    "noResults": "No results found",
+    "previous": "Previous",
+    "save": "Save",
+    "search": "Search",
+    "submit": "Submit"
+  },
+  "contact": {
+    "meta": {
+      "description": "Reach out for support, feedback, or collaboration.",
+      "title": "Contact StudyPilot"
+    },
+    "page": {
+      "email": {
+        "description": "For general inquiries, technical support, or partnership opportunities. We typically respond within 12 hours.",
+        "title": "Email Support"
+      },
+      "hero": {
+        "badge": "We'd love to hear from you",
+        "subtitle": "Have a question about StudyPilot or just want to say hello? We're here to help you every step of the way.",
+        "title": "Get in touch"
+      },
+      "wechat": {
+        "addAccount": "Add Official Account",
+        "description": "Join our student community, get instant updates, or chat with our support team directly.",
+        "qrAlt": "WeChat QR",
+        "scanCode": "Scan Code",
+        "title": "WeChat Community"
+      }
+    }
+  },
+  "faq": {
+    "jsonLd": {
+      "items": [
+        {
+          "answer": "StudyPilot is an exam practice platform designed for university students. It offers curated question banks from past exams, spaced repetition flashcards, and smart mistake tracking to help you study more effectively.",
+          "question": "What is StudyPilot?"
+        },
+        {
+          "answer": "Our question banks contain thousands of practice questions organized by subject and topic. Each question includes detailed explanations to help you learn.",
+          "question": "How does the Question Bank work?"
+        },
+        {
+          "answer": "Spaced repetition is a scientifically-proven learning technique that schedules reviews at optimal intervals to maximize long-term retention. StudyPilot's flashcard system automatically determines when you should review each card.",
+          "question": "What is Spaced Repetition?"
+        },
+        {
+          "answer": "Yes! StudyPilot offers a free tier that includes access to selected question banks and basic features. Premium features like unlimited question banks are available with a subscription.",
+          "question": "Is StudyPilot free to use?"
+        },
+        {
+          "answer": "StudyPilot currently supports courses from the University of Queensland, including CSSE1001, CSSE7030, COMP3506, INFS3202, and more. We're constantly adding new courses.",
+          "question": "Which courses are supported?"
+        },
+        {
+          "answer": "Absolutely! StudyPilot provides detailed analytics including accuracy rates by topic, time spent studying, improvement trends, and a knowledge radar that visualizes your strengths and weaknesses.",
+          "question": "Can I track my progress?"
+        },
+        {
+          "answer": "If you find an error in any question or answer, you can use the feedback button on the question page to report it. Our team reviews all submissions regularly.",
+          "question": "How do I report an error?"
+        }
+      ]
+    },
+    "meta": {
+      "description": "Find answers to common questions about StudyPilot - the exam practice platform.",
+      "title": "FAQ - Frequently Asked Questions | StudyPilot"
+    },
+    "page": {
+      "contactUs": "Contact us",
+      "subtitle": "Everything you need to know about StudyPilot. Can't find your answer?",
+      "support": "Support",
+      "title": "Frequently Asked Questions"
+    }
+  },
+  "faqSection": {
+    "items": [
+      {
+        "answer": "StudyPilot is an exam practice platform with 1000+ curated questions, mock exams, and curated question banks designed for university students. StudyPilot currently supports courses from the University of Queensland including CSSE1001, CSSE7030, COMP3506, INFS3202, INFS7202 and more.",
+        "question": "What is StudyPilot?"
+      },
+      {
+        "answer": "A Question Bank is a focused collection of curated questions for a topic or skill area. It is designed for targeted drilling with flexible practice modes, so you can train weak spots efficiently.",
+        "question": "What is a Question Bank?"
+      },
+      {
+        "answer": "A Mock Exam is a timed, full-length exam simulation. It helps you practice pacing, stamina, and decision-making under realistic exam conditions.",
+        "question": "What is a Mock Exam?"
+      },
+      {
+        "answer": "Homework includes assigned sets (published by staff/admin), often with deadlines and progress tracking. You can find and complete your assigned homework from your Profile.",
+        "question": "How does Homework work?"
+      },
+      {
+        "answer": "StudyPilot uses organized question banks from past exams and scientifically-proven spaced repetition to help students master course material efficiently.",
+        "question": "How does StudyPilot help with exam preparation?"
+      },
+      {
+        "answer": "StudyPilot currently supports courses from the University of Queensland including CSSE1001, CSSE7030, COMP3506, INFS3202, INFS7202 and more.",
+        "question": "Which universities and courses are supported?"
+      },
+      {
+        "answer": "Our pricing is already optimized for students. The Lifetime Access plan is priced to be affordable for a student budget, equivalent to the cost of a few coffees.",
+        "question": "Do you offer student discounts?"
+      },
+      {
+        "answer": "StudyPilot is still in its early testing phase. For any payment-related questions, please contact our team.",
+        "question": "What payment methods do you accept?"
+      },
+      {
+        "answer": "Once the early bird promotion ends, correct pricing will revert to the regular price. We recommend locking in the lifetime deal now to save over 80%.",
+        "question": "What happens after the early bird promotion ends?"
+      }
+    ],
+    "title": "Frequently Asked Questions"
+  },
+  "footer": {
+    "company": "Company",
+    "copyright": "© 2026 StudyPilot Inc. All rights reserved.",
+    "description": "The study companion that helps you master any subject faster with personalized learning paths.",
+    "links": {
+      "about": "About",
+      "contact": "Contact",
+      "library": "Library",
+      "pricing": "Pricing",
+      "privacy": "Privacy",
+      "terms": "Terms"
+    },
+    "product": "Product"
+  },
+  "header": {
+    "about": "About",
+    "adminPanel": "Admin Panel",
+    "blog": "Blog",
+    "calendar": "Calendar",
+    "closeMenu": "Close menu",
+    "contactUs": "Contact Us",
+    "language": "Language",
+    "library": "Library",
+    "menu": "Menu",
+    "openMenu": "Open menu",
+    "referrals": "Referrals",
+    "switchLanguage": "Switch language",
+    "theme": "Theme",
+    "vipMember": "VIP Member"
   },
   "home": {
-    "title": "StudyPilot — a pilot platform to help students practice smarter for midterms and finals",
-    "subtitle": "Built by students, tested in real courses.",
-    "startPractice": "Start Free Practice",
-    "watchDemo": "Watch Demo",
-    "joinUsers": "Join {count}+ users",
     "browseSubjects": {
-      "title": "Browse Subjects",
       "subtitle": "Start practicing with our comprehensive question banks",
+      "title": "Browse Subjects",
       "viewAll": "View All →"
     },
     "features": {
-      "coreFeatures": "Core Features",
-      "title": "Why Choose StudyPilot",
-      "subtitle": "Combining glassmorphism design with powerful practice features for the ultimate learning experience",
       "bank": {
-        "title": "Massive Question Bank",
-        "description": "Covering real exam questions and practice tests from all industries, updated regularly to ensure every question you practice is valuable and relevant."
+        "description": "Covering real exam questions and practice tests from all industries, updated regularly to ensure every question you practice is valuable and relevant.",
+        "title": "Massive Question Bank"
       },
-      "mistakes": {
-        "title": "Mistake Management",
-        "description": "Automatically collects mistakes and supports targeted reinforcement training to eliminate ineffective repetition and solidify your understanding."
+      "coreFeatures": "Core Features",
+      "flashcards": {
+        "description": "Use our new Flashcards mode to quickly review key concepts and definitions. Flip through cards to test your memory retention efficiently.",
+        "title": "Flashcards & Rapid Review"
       },
       "flow": {
-        "title": "Flow State Practice",
-        "description": "Enter Immersive Mode for distraction-free practice. Infinite scroll through random questions to build momentum and stay in the zone."
+        "description": "Enter Immersive Mode for distraction-free practice. Infinite scroll through random questions to build momentum and stay in the zone.",
+        "title": "Flow State Practice"
       },
-      "flashcards": {
-        "title": "Flashcards & Rapid Review",
-        "description": "Use our new Flashcards mode to quickly review key concepts and definitions. Flip through cards to test your memory retention efficiently."
-      }
+      "mistakes": {
+        "description": "Automatically collects mistakes and supports targeted reinforcement training to eliminate ineffective repetition and solidify your understanding.",
+        "title": "Mistake Management"
+      },
+      "subtitle": "Combining glassmorphism design with powerful practice features for the ultimate learning experience",
+      "title": "Why Choose StudyPilot"
     },
     "hero": {
       "completed": "Completed",
-      "tagList": "#List",
-      "tagFunction": "#Function"
+      "tagFunction": "#Function",
+      "tagList": "#List"
+    },
+    "joinUsers": "Join {count}+ users",
+    "startPractice": "Start Free Practice",
+    "stats": {
+      "questions": "Questions Available",
+      "subjects": "Subjects Covered",
+      "users": "Registered Users"
+    },
+    "subtitle": "Built by students, tested in real courses.",
+    "title": "StudyPilot — a pilot platform to help students practice smarter for midterms and finals",
+    "watchDemo": "Watch Demo"
+  },
+  "library": {
+    "availableSubjects": "Available Subjects",
+    "badge": "Academic Year 2026",
+    "comingSoon": {
+      "description": "We could not find a matching course in our library right now. We are constantly adding new materials!",
+      "title": "Course Coming Soon"
+    },
+    "noSubjects": "No subjects available yet. Please check back soon.",
+    "pickSubject": "Pick a subject to start learning",
+    "search": {
+      "placeholder1": "Search for CSSE1001...",
+      "placeholder2": "Looking for INFS3202?",
+      "placeholder3": "Find mock exams for COMP3506...",
+      "placeholder4": "Browse question banks...",
+      "placeholder5": "Type a course code or name..."
     },
     "stats": {
-      "users": "Registered Users",
-      "subjects": "Subjects Covered",
-      "questions": "Questions Available"
+      "banks": "{count} banks",
+      "exams": "{count} exams",
+      "weekly": "{count} weekly"
+    },
+    "subjectCount": "{count} subjects",
+    "subjectGrid": {
+      "browseResources": "Browse Resources",
+      "defaultDescription": "Access practice questions and mock exams.",
+      "emptyDescription": "No subjects found at the moment.",
+      "emptyTitle": "Library Empty"
+    },
+    "title": "What do you want to learn today?"
+  },
+  "libraryErrors": {
+    "examNotFound": {
+      "backToSubject": "Back to Subject",
+      "description": "The exam you are trying to access does not exist.",
+      "title": "Exam Not Found"
+    },
+    "fallbackUser": "User",
+    "noQuestionsFound": {
+      "adjustFilters": "Adjust Filters",
+      "description": "We couldn't find any questions matching your filters.",
+      "title": "No Questions Found"
+    },
+    "pastExamNotFound": {
+      "backToSubject": "Back to Subject",
+      "description": "The past exam you are looking for does not exist.",
+      "title": "Past Exam Not Found"
+    },
+    "questionBankNoQuestions": {
+      "backToQuestionBank": "Back to Question Bank",
+      "description": "This question bank doesn't have any questions yet.",
+      "title": "No Questions"
+    },
+    "questionBankNotFound": {
+      "backToSubject": "Back to Subject",
+      "description": "The question bank you're looking for doesn't exist.",
+      "title": "Question Bank Not Found"
+    },
+    "subjectNotFound": {
+      "backToLibrary": "Back to Library",
+      "description": "We couldn't find the subject you're looking for.",
+      "title": "Subject Not Found"
+    }
+  },
+  "librarySubjectPage": {
+    "breadcrumb": {
+      "library": "Library"
+    },
+    "fallbackUser": "User",
+    "subjectNotFound": {
+      "back": "Back to Library",
+      "description": "The subject you're looking for doesn't exist.",
+      "title": "Subject Not Found"
+    }
+  },
+  "login": {
+    "and": "and",
+    "backToLogin": "Back to login",
+    "checkEmailSubtitle": "We sent a login link to",
+    "checkEmailTitle": "Check your email",
+    "continueWithEmail": "Continue with Email",
+    "continueWithGithub": "Sign in with GitHub",
+    "continueWithGoogle": "Sign in with Google",
+    "didNotReceiveEmail": "Didn't receive the email?",
+    "emailLabel": "Email",
+    "emailPlaceholder": "name@example.com",
+    "errors": {
+      "enterEmail": "Please enter your email address",
+      "githubFailed": "GitHub login failed",
+      "googleFailed": "Google login failed",
+      "sendLinkFailed": "Failed to send login link"
+    },
+    "loading": "Loading...",
+    "or": "OR",
+    "privacyPolicy": "Privacy Policy",
+    "referralApplied": "Referral code applied",
+    "resend": "Resend",
+    "sending": "Sending...",
+    "termsOfService": "Terms of Service",
+    "termsPrefix": "By continuing, you agree to our",
+    "welcomeSubtitle": "Sign in to continue to your account",
+    "welcomeTitle": "Welcome to StudyPilot"
+  },
+  "marketingMeta": {
+    "pricing": {
+      "description": "Simple, transparent plans for smarter exam preparation.",
+      "title": "Pricing | StudyPilot"
+    }
+  },
+  "mistakes": {
+    "clear": "Clear All",
+    "empty": "No mistakes recorded yet!",
+    "exportPdf": "Export PDF",
+    "practiceAll": "Practice All Mistakes",
+    "title": "Mistake Book"
+  },
+  "nav": {
+    "bookmarks": "Bookmarks",
+    "home": "Home",
+    "login": "Login",
+    "logout": "Logout",
+    "mistakes": "Mistakes",
+    "pricing": "Pricing",
+    "profile": "Profile",
+    "subjects": "Subjects"
+  },
+  "notFound": {
+    "description": "Sorry, we couldn't find the page you're looking for. It might have been moved, deleted, or feels shy today.",
+    "goBack": "Go Back",
+    "goHome": "Go Home",
+    "returnHome": "Return Home",
+    "title": "Page Not Found"
+  },
+  "practice": {
+    "anyDifficulty": "Any Difficulty",
+    "checkAnswer": "Check Answer",
+    "correct": "Correct!",
+    "difficulty": "Difficulty Level",
+    "easy": "Easy",
+    "enterImmersive": "Enter Immersive Mode",
+    "estimatedTime": "Est. Minutes",
+    "exam": "Mock Exam",
+    "examDesc": "Timed exams with predefined question sets.",
+    "finish": "Finish",
+    "hard": "Hard",
+    "immersive": "Immersive",
+    "immersiveDesc": "Endless random questions. Minimalist UI. No progress tracking.",
+    "incorrect": "Incorrect",
+    "medium": "Medium",
+    "mode": "Practice Mode",
+    "nextQuestion": "Next Question",
+    "questionCount": "Number of Questions",
+    "questions": "{count} questions",
+    "standard": "Standard",
+    "standardDesc": "Select difficulty, topic, and number of questions. Progress is tracked.",
+    "start": "Start Practice",
+    "title": "Practice Setup",
+    "topic": "Topic / Concept"
+  },
+  "practicePage": {
+    "fallbackUser": "User",
+    "noQuestions": {
+      "back": "Adjust Filters",
+      "description": "We couldn't find any questions matching your filters.",
+      "title": "No Questions Found"
+    },
+    "subjectNotFound": {
+      "back": "Back to Library",
+      "description": "We couldn't find the subject you're looking for. It might have been deleted or moved.",
+      "title": "Subject Not Found"
+    }
+  },
+  "practiceSetup": {
+    "allTopics": "All Topics",
+    "badge": "Setup Session",
+    "breadcrumb": {
+      "library": "Library"
+    },
+    "difficulty": {
+      "any": "Any",
+      "easy": "Easy",
+      "hard": "Hard",
+      "medium": "Medium"
+    },
+    "focusTopic": "Focus Topic",
+    "modes": {
+      "exam": {
+        "description": "Timed simulation under exam conditions.",
+        "name": "Mock Exam"
+      },
+      "immersive": {
+        "description": "Endless stream. Minimalist. Pure focus.",
+        "name": "Immersive"
+      },
+      "standard": {
+        "description": "Practice with custom filters. Track progress.",
+        "name": "Standard"
+      }
+    },
+    "multiSelectEnabled": "Multi-select enabled",
+    "selectDifficulty": "Select Difficulty",
+    "startSession": "Start Session",
+    "subtitlePrefix": "Customize your learning experience for",
+    "timer": {
+      "description": "Track per-question time",
+      "title": "Timer"
+    },
+    "title": "Practice Setup",
+    "totalQuestions": "Total Questions"
+  },
+  "pricing": {
+    "badges": {
+      "bestValue": "Best Value",
+      "guarantee": "One-time payment. 30-day money-back guarantee.",
+      "save60": "Save 60%!"
+    },
+    "common": {
+      "comingSoon": "Coming Soon"
+    },
+    "comparison": {
+      "headers": {
+        "features": "Features"
+      },
+      "notIncludedSrOnly": "Not Included",
+      "rows": {
+        "homework": {
+          "beta": "Included",
+          "label": "Homework"
+        },
+        "mistakeAnalysis": {
+          "beta": "Advanced Analytics",
+          "free": "Basic Tracking",
+          "label": "Mistake Analysis"
+        },
+        "mockExams": {
+          "beta": "All Exams",
+          "free": "Public Exams Only",
+          "label": "Mock Exams"
+        },
+        "newFeatures": {
+          "beta": "Early Access",
+          "label": "New Features"
+        },
+        "pdfExport": {
+          "label": "PDF Exam Export"
+        },
+        "practiceModes": {
+          "beta": "Standard, Immersive & Flashcard",
+          "free": "Standard Only",
+          "label": "Practice Modes"
+        },
+        "questionBankAccess": {
+          "beta": "All Subjects & Premium",
+          "free": "Public Banks Only",
+          "label": "Question Bank Access"
+        }
+      },
+      "title": "Compare Features"
+    },
+    "hero": {
+      "subtitle": "Choose the plan that fits your study needs. No hidden fees.",
+      "title": "Simple, Transparent Pricing"
+    },
+    "tiers": {
+      "beta": {
+        "cta": "Join Beta",
+        "description": "Limited time offer. Unlock everything!",
+        "features": {
+          "earlyAccess": "Early access to new features",
+          "flashcardMode": "Flashcard study mode",
+          "homework": "Homework",
+          "immersiveMode": "Immersive study mode",
+          "mistakeAnalysis": "Mistake analysis",
+          "pdfExport": "PDF exam export",
+          "unlimitedMockExams": "Unlimited mock exams",
+          "unlockAllSubjects": "Unlock all subjects forever"
+        },
+        "name": "Beta Access",
+        "period": "one-time"
+      },
+      "free": {
+        "cta": "Get Started",
+        "description": "Perfect for getting started",
+        "features": {
+          "mistakeTracking": "Mistake tracking",
+          "progressTracking": "Progress tracking",
+          "publicMockExams": "Access to public mock exams",
+          "publicQuestionBanks": "Access to public question banks",
+          "standardPractice": "Standard practice mode",
+          "weeklyPractice": "Weekly Practice"
+        },
+        "name": "Free",
+        "notIncluded": {
+          "homework": "Homework",
+          "pdfExport": "PDF exam export",
+          "premiumMockExams": "Premium mock exams",
+          "premiumQuestionBanks": "Premium question banks"
+        }
+      }
+    }
+  },
+  "profile": {
+    "bookmarks": "Bookmarks",
+    "completed": "Completed",
+    "dayStreak": "Day Streak",
+    "editProfile": "Edit Profile",
+    "errors": "{count} errors",
+    "learningProgress": "Learning Progress",
+    "level": "Level",
+    "mistakeBook": "Mistake Book",
+    "noBookmarks": "No bookmarks yet.",
+    "noMistakes": "Great job! No mistakes found.",
+    "noProgress": "No progress yet. Start practicing!",
+    "review": "Review",
+    "title": "Profile",
+    "view": "View",
+    "viewAll": "View All"
+  },
+  "profileDashboard": {
+    "analytics": {
+      "accuracy": "Accuracy",
+      "dailyTrends": "Daily Trends",
+      "questions": "Questions",
+      "title": "Analytics"
+    },
+    "bookmarks": {
+      "quickAccess": "quick-access questions",
+      "saved": "Saved Bookmarks",
+      "title": "Bookmarks"
+    },
+    "common": {
+      "general": "General",
+      "last": "Last",
+      "noRecord": "No record",
+      "viewAll": "View All"
+    },
+    "difficulty": {
+      "easy": "Easy",
+      "hard": "Hard",
+      "medium": "Medium"
+    },
+    "homework": {
+      "assigned": "Assigned",
+      "done": "Done",
+      "dueThisWeek": "{count} homework(s) due this week",
+      "noAssignedYet": "No homework assigned yet",
+      "noDeadline": "No deadline",
+      "noDueThisWeek": "No homework due this week",
+      "submit": "Submit",
+      "title": "Homework",
+      "tonight": "Tonight {time}"
+    },
+    "mistakes": {
+      "accumulatedAttempts": "accumulated attempts",
+      "errorHits": "Error Hits",
+      "hardQuestions": "Hard Questions",
+      "lastMistake": "Last Mistake",
+      "latestRecords": "latest records",
+      "needMoreReview": "need more review",
+      "recent": "Recent Mistakes",
+      "timeSinceLatest": "time since latest",
+      "title": "Mistakes"
+    },
+    "mockExams": {
+      "attempts": "{count} attempts",
+      "bestScore": "Best: {score}%",
+      "browse": "Browse subjects and exams →",
+      "emptyTitle": "No mock exams added yet",
+      "mockExam": "Mock Exam",
+      "title": "My Mock Exams"
+    },
+    "questionBanks": {
+      "browse": "Browse question banks →",
+      "completed": "{count} completed",
+      "emptyTitle": "No question banks added yet",
+      "title": "My Question Banks"
+    },
+    "sidebar": {
+      "adminPanel": "Admin Panel",
+      "bookmarks": "Bookmarks",
+      "homework": "Homework",
+      "level": "Level {level}",
+      "logout": "Logout",
+      "mistakes": "Mistakes",
+      "referrals": "Referrals",
+      "weeklyPractice": "Weekly Practice"
+    },
+    "time": {
+      "daysAgo": "{count}d ago",
+      "hoursAgo": "{count}h ago",
+      "justNow": "Just now",
+      "minutesAgo": "{count}m ago"
+    },
+    "weeklyPractice": {
+      "open": "Open",
+      "progressTimeline": "Progress Timeline",
+      "ready": "Weekly plan ready. Keep your streak for 13 weeks!",
+      "reviewFocus": "Review Focus",
+      "sprint": "7-Day Sprint",
+      "thisWeek": "This Week",
+      "title": "Weekly Practice"
+    }
+  },
+  "profileHomework": {
+    "modes": {
+      "flashcard": "Flashcard",
+      "immersive": "Immersive",
+      "standard": "Standard"
+    },
+    "page": {
+      "fallbackUser": "User",
+      "premium": {
+        "cta": "Upgrade to Premium",
+        "description": "Upgrade to premium to access homework assignments and track your progress with deadlines.",
+        "title": "Homework is premium-only"
+      },
+      "subtitle": "Assigned practice sets with deadlines and progress tracking, all in one place.",
+      "title": "My Homework"
+    },
+    "pageMeta": {
+      "description": "View and complete your assigned homework",
+      "title": "My Homework | Profile"
+    },
+    "statusBadges": {
+      "dueIn1Day": "Due in 1 day",
+      "dueIn3Days": "Due in 3 days",
+      "dueIn7Days": "Due in 7 days",
+      "noDeadline": "No deadline",
+      "onTrack": "On track",
+      "overdue": "Overdue"
+    },
+    "searchPlaceholder": "Search homework...",
+    "filters": {
+      "all": "All",
+      "due7": "Due in 7 days",
+      "due3": "Due in 3 days",
+      "due1": "Due in 1 day",
+      "overdue": "Overdue",
+      "placeholder": "Filter by deadline"
+    },
+    "empty": "No homework matches your search or filter.",
+    "noDescription": "No description provided.",
+    "duePrefix": "Due",
+    "progressLabel": "Progress: {answered}/{total}",
+    "timeElapsed": "Time elapsed",
+    "lastSubmitted": "Last submitted",
+    "score": "Score",
+    "noSubmissionYet": "No submission yet",
+    "status": {
+      "completed": "Completed",
+      "inProgress": "In progress",
+      "notSubmitted": "Not submitted"
+    }
+  },
+  "profileMistakes": {
+    "attempts": "{count} Attempts",
+    "breadcrumb": {
+      "home": "Home",
+      "mistakes": "Mistakes",
+      "profile": "Profile"
+    },
+    "empty": {
+      "cta": "Start New Practice",
+      "description": "You don't have any pending mistakes to review. Keep up the great work!",
+      "title": "Clean Sheet!"
+    },
+    "labels": {
+      "correctAnswer": "Correct Answer",
+      "myAnswer": "My Answer",
+      "noAnswer": "(No Answer)"
+    },
+    "page": {
+      "fallbackUser": "User"
+    },
+    "practiceAll": "Practice All",
+    "remove": "Remove from mistakes",
+    "search": {
+      "allPlaceholder": "Search all mistakes...",
+      "noResults": "No mistakes found matching your search.",
+      "scopedPlaceholder": "Search {subject} mistakes..."
+    },
+    "subtitle": "Detailed breakdown of questions you've missed.",
+    "tabs": {
+      "allSubjects": "All Subjects"
+    },
+    "title": "Mistake Book"
+  },
+  "profileMockExams": {
+    "attempts": "{count} attempts",
+    "bestScore": "Best: {score}%",
+    "bestTime": "{minutes}m best",
+    "duration": "{minutes} mins",
+    "empty": {
+      "cta": "Browse Library",
+      "description": "You haven't started any mock exams yet.",
+      "searchDescription": "Try adjusting your search terms to find what you're looking for.",
+      "title": "No mock exams found"
+    },
+    "lastPrefix": "Last:",
+    "mockExam": "Mock Exam",
+    "page": {
+      "fallbackUser": "User",
+      "subtitle": "Timed, end-to-end exam simulations to practice pacing under real conditions and measure readiness over time.",
+      "title": "My Mock Exams"
+    },
+    "pageMeta": {
+      "description": "View and manage your history of mock exams",
+      "title": "My Mock Exams | Profile"
+    },
+    "searchPlaceholder": "Search mock exams...",
+    "showing": "Showing {shown} of {total} exams"
+  },
+  "profilePageMeta": {
+    "fallbackUser": "User"
+  },
+  "profileProgress": {
+    "breadcrumb": {
+      "home": "Home",
+      "profile": "Profile",
+      "progress": "Progress"
+    },
+    "overallAccuracy": "Overall Accuracy",
+    "page": {
+      "fallbackUser": "User"
+    },
+    "pageMeta": {
+      "description": "Track your mastery across subjects and identify weak areas",
+      "title": "Learning Progress | Profile"
+    },
+    "quickStats": {
+      "topics": "Topics",
+      "weakTags": "Weak Tags"
+    },
+    "ratioCorrect": "{correct}/{total} Correct",
+    "strong": {
+      "emptyDescription": "Achieve 80%+ accuracy to mark a tag as strong.",
+      "emptyTitle": "No Strong Areas Yet",
+      "title": "Strong Areas"
+    },
+    "subjectSummary": "{topics} topics • {questions} questions practiced",
+    "subtitle": "Track your mastery across subjects and identify areas for improvement.",
+    "tabs": {
+      "topicMastery": "Topic Mastery",
+      "weakPoints": "Weak Points Analysis"
+    },
+    "title": "Learning Progress",
+    "topic": {
+      "attempted": "{count} attempted",
+      "empty": "No topics found for this subject.",
+      "mastered": "{correct} / {total} mastered"
+    },
+    "weak": {
+      "emptyDescription": "Keep practicing to generate more insights!",
+      "emptyTitle": "No Weak Areas Detected",
+      "title": "Areas for Improvement"
+    }
+  },
+  "profileQuestionBanks": {
+    "completed": "{count} completed",
+    "empty": {
+      "cta": "Browse Library",
+      "description": "You haven't added any question banks to your collection yet.",
+      "searchDescription": "Try adjusting your search terms to find what you're looking for.",
+      "title": "No question banks found"
+    },
+    "general": "General",
+    "page": {
+      "fallbackUser": "User",
+      "subtitle": "Track your progress across all your collected question banks.",
+      "title": "My Question Banks"
+    },
+    "pageMeta": {
+      "description": "View and manage your collection of question banks",
+      "title": "My Question Banks | Profile"
+    },
+    "searchPlaceholder": "Search question banks...",
+    "showing": "Showing {shown} of {total} banks"
+  },
+  "profileReferrals": {
+    "dashboard": {
+      "invite": {
+        "title": "Your Invite Link"
+      },
+      "rules": {
+        "item1": "Share your unique invite link with friends.",
+        "item2": "When a friend signs up using your link, you both get 1 unlock credit.",
+        "item3": "Use your credit to unlock any \"Referral Exclusive\" question bank permanently.",
+        "title": "How it works"
+      },
+      "stats": {
+        "banksUnlocked": "Banks Unlocked",
+        "friendsInvited": "Friends Invited",
+        "unlockChances": "Unlock Chances"
+      },
+      "unlock": {
+        "cta": "Use Credit to Unlock",
+        "description": "You have {count} unlock credits available. Choose a premium question bank to unlock permanently.",
+        "noCreditsHint": "Invite more friends to earn unlock credits!",
+        "title": "Unlock a Premium Bank"
+      }
+    },
+    "modal": {
+      "actions": {
+        "unlock": "Unlock",
+        "unlocked": "Unlocked"
+      },
+      "close": "Close modal",
+      "credits": "{count} Credits",
+      "empty": {
+        "description": "New premium content will appear here when available.",
+        "title": "No Banks Available"
+      },
+      "errors": {
+        "unlockFailed": "Failed to unlock"
+      },
+      "footer": "Consumes 1 credit per unlock",
+      "questions": "{count} Questions",
+      "title": "Unlock Bank"
+    },
+    "page": {
+      "breadcrumb": {
+        "home": "Home",
+        "profile": "Profile",
+        "referrals": "Referrals"
+      },
+      "fallbackUser": "User",
+      "subtitle": "Share the love of learning and earn premium rewards.",
+      "title": "Invite Friends & Unlock"
+    }
+  },
+  "profileWeeklyPractice": {
+    "cta": {
+      "continue": "Continue",
+      "start": "Start"
+    },
+    "empty": "No weekly practice sets match your filters.",
+    "filters": {
+      "allStatus": "All Status",
+      "completed": "Completed",
+      "pending": "Pending",
+      "status": "Status",
+      "week": "Week"
+    },
+    "lastSubmitted": "Last submitted:",
+    "noDescription": "No description provided.",
+    "page": {
+      "fallbackUser": "User",
+      "subtitle": "Track your weekly progress and keep your momentum strong.",
+      "title": "Weekly Practice"
+    },
+    "pageMeta": {
+      "description": "Track your weekly practice progress",
+      "title": "Weekly Practice | Profile"
+    },
+    "progress": "Progress: {answered}/{total} answered",
+    "score": "Score {correct}/{total}",
+    "searchPlaceholder": "Search weekly practice...",
+    "status": {
+      "completed": "Completed",
+      "inProgress": "In progress",
+      "notStarted": "Not started"
+    },
+    "summary": {
+      "accuracy": "Accuracy",
+      "completedWeeks": "Completed Weeks",
+      "questionsAnswered": "Questions Answered"
+    }
+  },
+  "results": {
+    "accuracy": "Accuracy",
+    "again": "Again",
+    "completed": "You have completed the practice session",
+    "correct": "Correct",
+    "excellent": "Excellent!",
+    "goodJob": "Good Job!",
+    "home": "Home",
+    "keepPracticing": "Keep Practicing!",
+    "reviewMistakes": "Review Mistakes",
+    "time": "Time",
+    "wrong": "Wrong"
+  },
+  "subjectContent": {
+    "access": {
+      "invite": "Invite to Unlock",
+      "paid": "Paid Only",
+      "premium": "Premium",
+      "public": "Public"
+    },
+    "empty": {
+      "banks": {
+        "description": "We're still adding question banks for this subject. Check back soon!",
+        "title": "No Question Banks Yet"
+      },
+      "mockExams": {
+        "description": "We're still adding mock exams for this subject. Check back soon!",
+        "title": "No Mock Exams Yet"
+      },
+      "pastExams": {
+        "description": "Past exam answer keys will appear here once published.",
+        "title": "No Past Exams Yet"
+      },
+      "weekly": {
+        "description": "Weekly practice sets for this subject have not been published yet.",
+        "title": "No Weekly Practice Yet"
+      }
+    },
+    "hero": {
+      "description": "Explore practice materials, mock exams, and curated question banks.",
+      "examCountdown": "Exam Countdown:",
+      "final": "Final",
+      "midterm": "Midterm"
+    },
+    "mockExams": {
+      "title": "Mock Exams"
+    },
+    "pastExams": {
+      "answerKey": "Answer Key",
+      "archive": "Archive",
+      "paper": "Paper {number}"
+    },
+    "premiumModal": {
+      "description": "Configure your perfect practice session by choosing specific topics, difficulties, and question counts with StudyPilot Premium.",
+      "title": "Unlock Custom Practice"
+    },
+    "questionBanks": {
+      "curatedCollections": "Curated Collections"
+    },
+    "semester": {
+      "one": "Semester 1",
+      "two": "Semester 2"
+    },
+    "tabs": {
+      "mockExams": "Mock Exams",
+      "pastExamAnswers": "Past Exam Answers",
+      "questionBanks": "Question Banks",
+      "weeklyPractice": "Weekly Practice"
+    },
+    "toolkit": {
+      "cards": {
+        "bank": {
+          "body": "Topic-focused drills to target weak spots with flexible practice modes.",
+          "pill": "Drill",
+          "title": "Question Banks"
+        },
+        "mock": {
+          "body": "Timed simulations that mirror real exam pressure and pacing.",
+          "pill": "Timed",
+          "title": "Mock Exams"
+        },
+        "weekly": {
+          "body": "Scheduled sets for steady momentum across the semester.",
+          "pill": "Weekly",
+          "title": "Weekly Practice"
+        }
+      },
+      "homeworkInProfile": "Homework in Profile",
+      "title": "Your Study Toolkit"
+    },
+    "weeklyPractice": {
+      "subtitle": "Stay on track with curated weekly sets.",
+      "title": "Weekly Practice"
     }
   },
   "subjects": {
-    "title": "Choose a Subject",
-    "subtitle": "Select the subject you want to practice and start your learning journey",
     "allTopics": "All Topics",
+    "hot": "Hot",
+    "new": "New",
     "questions": "questions",
     "startPractice": "Start Practice",
-    "hot": "Hot",
-    "new": "New"
-  },
-  "practice": {
-    "title": "Practice Setup",
-    "mode": "Practice Mode",
-    "standard": "Standard",
-    "standardDesc": "Select difficulty, topic, and number of questions. Progress is tracked.",
-    "immersive": "Immersive",
-    "immersiveDesc": "Endless random questions. Minimalist UI. No progress tracking.",
-    "exam": "Mock Exam",
-    "examDesc": "Timed exams with predefined question sets.",
-    "difficulty": "Difficulty Level",
-    "easy": "Easy",
-    "medium": "Medium",
-    "hard": "Hard",
-    "anyDifficulty": "Any Difficulty",
-    "topic": "Topic / Concept",
-    "questionCount": "Number of Questions",
-    "questions": "{count} questions",
-    "estimatedTime": "Est. Minutes",
-    "start": "Start Practice",
-    "enterImmersive": "Enter Immersive Mode",
-    "checkAnswer": "Check Answer",
-    "nextQuestion": "Next Question",
-    "finish": "Finish",
-    "correct": "Correct!",
-    "incorrect": "Incorrect"
-  },
-  "results": {
-    "excellent": "Excellent!",
-    "goodJob": "Good Job!",
-    "keepPracticing": "Keep Practicing!",
-    "completed": "You have completed the practice session",
-    "accuracy": "Accuracy",
-    "correct": "Correct",
-    "wrong": "Wrong",
-    "time": "Time",
-    "reviewMistakes": "Review Mistakes",
-    "again": "Again",
-    "home": "Home"
-  },
-  "profile": {
-    "title": "Profile",
-    "level": "Level",
-    "dayStreak": "Day Streak",
-    "completed": "Completed",
-    "learningProgress": "Learning Progress",
-    "mistakeBook": "Mistake Book",
-    "bookmarks": "Bookmarks",
-    "editProfile": "Edit Profile",
-    "viewAll": "View All",
-    "noProgress": "No progress yet. Start practicing!",
-    "noMistakes": "Great job! No mistakes found.",
-    "noBookmarks": "No bookmarks yet.",
-    "errors": "{count} errors",
-    "review": "Review",
-    "view": "View"
-  },
-  "mistakes": {
-    "title": "Mistake Book",
-    "exportPdf": "Export PDF",
-    "clear": "Clear All",
-    "practiceAll": "Practice All Mistakes",
-    "empty": "No mistakes recorded yet!"
+    "subtitle": "Select the subject you want to practice and start your learning journey",
+    "title": "Choose a Subject"
   },
   "theme": {
-    "light": "Light Mode",
-    "dark": "Dark Mode",
+    "dark": "Dark",
+    "light": "Light",
+    "system": "System",
     "toggle": "Toggle theme"
+  },
+  "profileBookmarks": {
+    "breadcrumb": {
+      "home": "Home",
+      "profile": "Profile",
+      "bookmarks": "Bookmarks"
+    },
+    "savedItems": "Saved Items",
+    "title": "My Bookmarks",
+    "subtitle": "Quickly revisit the questions you marked for later.",
+    "practiceAll": "Practice All",
+    "searchPlaceholder": "Search bookmarks...",
+    "foundCount": "{count} found",
+    "empty": {
+      "title": "No bookmarks yet",
+      "description": "Save questions during practice to find them here.",
+      "cta": "Browse Library"
+    },
+    "time": {
+      "today": "Today",
+      "yesterday": "Yesterday"
+    },
+    "savedAt": "Saved {time}",
+    "removeBookmark": "Remove bookmark"
   }
 }

@@ -6,6 +6,7 @@ import { NotFoundPage } from "@/components/ui/NotFoundPage";
 import { SubjectContent } from "./SubjectContent";
 import Link from "next/link";
 import { ChevronRight, Home } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 interface PageProps {
   params: Promise<{
@@ -32,6 +33,33 @@ type WeeklyPracticeItem = {
   } | null;
 };
 
+type ProfileSummary = {
+  id: string;
+  username: string | null;
+  avatar_url: string | null;
+  is_vip: boolean | null;
+};
+
+type BankUnlockRow = { bank_id: number };
+type ExamUnlockRow = { exam_id: number };
+
+type WeeklySubmissionRow = {
+  weekly_practice_id: number;
+  submitted_at: string;
+  answered_count: number;
+  correct_count: number;
+  total_count: number;
+};
+
+type PastExamRow = {
+  id: number;
+  year: number;
+  semester: number;
+  created_at: string | null;
+  title: string | null;
+  questions?: { count: number }[] | null;
+};
+
 export async function generateMetadata(props: PageProps) {
   const params = await props.params;
   const supabase = await createClient();
@@ -55,6 +83,7 @@ export async function generateMetadata(props: PageProps) {
 }
 
 export default async function SubjectPage(props: PageProps) {
+  const t = await getTranslations("librarySubjectPage");
   const params = await props.params;
   const { subjectSlug } = params;
   const supabase = await createClient();
@@ -86,13 +115,13 @@ export default async function SubjectPage(props: PageProps) {
     return (
       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc]">
         <AmbientBackground />
-        <Header user={{ username: "User" }} />
+        <Header user={{ username: t("fallbackUser") }} />
         <div className="flex-grow flex items-center justify-center">
           <NotFoundPage
-            title="Subject Not Found"
-            description="The subject you're looking for doesn't exist."
+            title={t("subjectNotFound.title")}
+            description={t("subjectNotFound.description")}
             backLink="/library"
-            backText="Back to Library"
+            backText={t("subjectNotFound.back")}
           />
         </div>
       </div>
@@ -114,7 +143,8 @@ export default async function SubjectPage(props: PageProps) {
     .eq("is_published", true)
     .order("created_at", { ascending: false });
 
-  const banksPromise = (supabase.from("question_banks") as any)
+  const banksPromise = supabase
+    .from("question_banks")
     .select(
       `
       id,
@@ -212,23 +242,20 @@ export default async function SubjectPage(props: PageProps) {
     pastExamsPromise,
   ]);
 
-  const profile = profileResult.data as { is_vip?: boolean } | null;
+  const profile = profileResult.data as ProfileSummary | null;
   const isVip = profile?.is_vip || false;
 
   const userData = {
-    username:
-      (profileResult.data as any)?.username ||
-      user.email?.split("@")[0] ||
-      "User",
-    avatar_url: (profileResult.data as any)?.avatar_url ?? undefined,
+    username: profile?.username || user.email?.split("@")[0] || t("fallbackUser"),
+    avatar_url: profile?.avatar_url ?? undefined,
     is_vip: isVip,
   };
 
   const unlockedBankIds = new Set(
-    (unlocksResult.data || []).map((u: any) => u.bank_id),
+    ((unlocksResult.data as BankUnlockRow[] | null) || []).map((u) => u.bank_id),
   );
   const unlockedExamIds = new Set(
-    (examUnlocksResult.data || []).map((u: any) => u.exam_id),
+    ((examUnlocksResult.data as ExamUnlockRow[] | null) || []).map((u) => u.exam_id),
   );
 
   const exams = examsResult.data || [];
@@ -244,17 +271,18 @@ export default async function SubjectPage(props: PageProps) {
     .filter(Boolean);
 
   const { data: submissions } = weeklyPracticeIds.length
-    ? await (supabase.from("weekly_practice_submissions") as any)
+    ? await supabase
+        .from("weekly_practice_submissions")
         .select(
           "weekly_practice_id, submitted_at, answered_count, correct_count, total_count",
         )
         .eq("user_id", user.id)
         .in("weekly_practice_id", weeklyPracticeIds)
         .order("submitted_at", { ascending: false })
-    : { data: [] as any[] };
+    : { data: [] as WeeklySubmissionRow[] };
 
-  const latestSubmissionMap = new Map<number, any>();
-  (submissions || []).forEach((submission: any) => {
+  const latestSubmissionMap = new Map<number, WeeklySubmissionRow>();
+  (((submissions as WeeklySubmissionRow[] | null) || [])).forEach((submission) => {
     if (!latestSubmissionMap.has(submission.weekly_practice_id)) {
       latestSubmissionMap.set(submission.weekly_practice_id, submission);
     }
@@ -265,7 +293,7 @@ export default async function SubjectPage(props: PageProps) {
     latestSubmission: latestSubmissionMap.get(practice.id) || null,
   }));
 
-  const pastExams = (pastExamsResult.data || []).map((exam: any) => ({
+  const pastExams = ((pastExamsResult.data as PastExamRow[] | null) || []).map((exam) => ({
     id: exam.id,
     year: exam.year,
     semester: exam.semester,
@@ -287,7 +315,7 @@ export default async function SubjectPage(props: PageProps) {
             className="hover:text-slate-700 dark:hover:text-slate-200 transition-colors flex items-center gap-1"
           >
             <Home className="size-4" />
-            Library
+            {t("breadcrumb.library")}
           </Link>
           <ChevronRight className="size-4" />
           <span className="text-slate-900 dark:text-white font-medium flex items-center gap-2">

@@ -2,13 +2,19 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { UserWeeklyPracticeClient } from "./UserWeeklyPracticeClient";
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata = {
-  title: "Weekly Practice | Profile",
-  description: "Track your weekly practice progress",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("profileWeeklyPractice.pageMeta");
+  return {
+    title: t("title"),
+    description: t("description"),
+  };
+}
 
 export default async function WeeklyPracticePage() {
+  const t = await getTranslations("profileWeeklyPractice.page");
   const supabase = await createClient();
   const {
     data: { user },
@@ -47,7 +53,7 @@ export default async function WeeklyPracticePage() {
   ]);
 
   const headerUser = {
-    username: profile?.username || user.user_metadata?.name || "User",
+    username: profile?.username || user.user_metadata?.name || t("fallbackUser"),
     avatar_url:
       profile?.avatar_url ||
       user.user_metadata?.avatar_url ||
@@ -90,10 +96,10 @@ export default async function WeeklyPracticePage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Weekly Practice
+            {t("title")}
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Track your weekly progress and keep your momentum strong.
+            {t("subtitle")}
           </p>
         </div>
 

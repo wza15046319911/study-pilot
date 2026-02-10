@@ -1,150 +1,1052 @@
 {
-  "common": {
-    "loading": "加载中...",
-    "error": "发生错误",
-    "save": "保存",
-    "cancel": "取消",
-    "confirm": "确认",
-    "delete": "删除",
-    "edit": "编辑",
-    "back": "返回",
-    "next": "下一步",
-    "previous": "上一步",
-    "submit": "提交",
-    "search": "搜索",
-    "noResults": "未找到结果"
+  "about": {
+    "meta": {
+      "description": "了解 StudyPilot 的初衷与产品价值观。",
+      "title": "关于 StudyPilot"
+    },
+    "page": {
+      "cta": {
+        "primary": "开始练习",
+        "secondary": "联系我",
+        "title": "准备升级你的学习方式了吗？"
+      },
+      "developer": {
+        "imageAlt": "开发者",
+        "p1": "你好，我是 Lewis。过去 8 年我教授 UQ 的 CSSE1001/7030，过去 5 年教授 INFS3202/7202 与 COMP3506/7505，亲眼见过学生最常见的卡点。",
+        "p2": "这一切始于一个简单问题：学生练习题不够。我从为 CSSE1001/7030 手动整理 100 道题开始，到今天已经扩展为 500+ 题规模。INFS3202/7202 与 COMP3506/7505 专项题库也已准备上线。",
+        "p3": "无论你是临近考试冲刺，还是目标冲击 Grade 7，这个平台都希望帮助你补齐差距、达成目标。一起开始吧！",
+        "title": "开发者介绍"
+      },
+      "hero": {
+        "subtitle": "打造我曾经最想拥有的智能学习伙伴。",
+        "title": "关于 StudyPilot"
+      },
+      "inspiration": {
+        "leadPrefix": "一切始于一个朴素的挫败感：",
+        "leadStrong": "静态 PDF 真题远远不够。",
+        "newWayDescription": "交互式题库、即时反馈和智能分析，明确告诉你下一步该学什么。",
+        "newWayTitle": "StudyPilot 方式",
+        "oldWayDescription": "反复翻 PDF、靠猜答案、也无法追踪自己到底掌握了什么。",
+        "oldWayTitle": "旧方式",
+        "title": "灵感来源"
+      },
+      "values": {
+        "access": {
+          "description": "高质量备考资源应当人人可得，我们会持续保持核心资源的可访问性。",
+          "title": "教育可及性"
+        },
+        "mastery": {
+          "description": "我们相信质量优先于数量。通过间隔重复，不只会做题，更能真正掌握知识。",
+          "title": "以掌握为先"
+        },
+        "student": {
+          "description": "每个功能都来自学生真实反馈，解决真实学习问题，而非假设问题。",
+          "title": "以学生为中心"
+        },
+        "subtitle": "我们构建每个功能时坚持的原则。",
+        "title": "核心价值"
+      }
+    }
   },
   "brand": {
     "name": "StudyPilot"
   },
-  "nav": {
-    "home": "首页",
-    "subjects": "科目",
-    "bookmarks": "收藏夹",
-    "profile": "个人中心",
-    "login": "登录",
-    "logout": "退出",
-    "pricing": "价格",
-    "mistakes": "错题本"
+  "common": {
+    "back": "返回",
+    "cancel": "取消",
+    "confirm": "确认",
+    "delete": "删除",
+    "edit": "编辑",
+    "error": "发生错误",
+    "loading": "加载中...",
+    "next": "下一步",
+    "noResults": "未找到结果",
+    "previous": "上一步",
+    "save": "保存",
+    "search": "搜索",
+    "submit": "提交"
+  },
+  "contact": {
+    "meta": {
+      "description": "联系支持团队，获取帮助、反馈或合作。",
+      "title": "联系 StudyPilot"
+    },
+    "page": {
+      "email": {
+        "description": "适用于一般咨询、技术支持或合作沟通。我们通常在 12 小时内回复。",
+        "title": "邮件支持"
+      },
+      "hero": {
+        "badge": "我们很乐意听到你的声音",
+        "subtitle": "无论是咨询 StudyPilot，还是想打个招呼，我们都愿意随时协助你。",
+        "title": "联系我们"
+      },
+      "wechat": {
+        "addAccount": "添加官方账号",
+        "description": "加入学生社群，获取最新动态，或直接与支持团队沟通。",
+        "qrAlt": "微信二维码",
+        "scanCode": "扫码",
+        "title": "微信社群"
+      }
+    }
+  },
+  "faq": {
+    "jsonLd": {
+      "items": [
+        {
+          "answer": "StudyPilot 是面向大学生的备考练习平台，提供历年题库、间隔重复闪卡与错题追踪，帮助你更高效学习。",
+          "question": "什么是 StudyPilot？"
+        },
+        {
+          "answer": "题库按学科和主题组织，包含大量练习题，并提供详细解析帮助理解。",
+          "question": "题库是如何工作的？"
+        },
+        {
+          "answer": "间隔重复是一种经验证的学习方法，会在最佳时间安排复习，以提升长期记忆效果。StudyPilot 闪卡会自动安排复习节奏。",
+          "question": "什么是间隔重复？"
+        },
+        {
+          "answer": "可以。StudyPilot 提供免费方案，支持部分题库与基础功能。高级功能可通过订阅获取。",
+          "question": "StudyPilot 可以免费使用吗？"
+        },
+        {
+          "answer": "目前支持 UQ 多门课程，包括 CSSE1001、CSSE7030、COMP3506、INFS3202 等，并持续扩展。",
+          "question": "支持哪些课程？"
+        },
+        {
+          "answer": "可以。平台提供按主题正确率、学习时长、进步趋势等分析，并支持知识雷达视图。",
+          "question": "可以追踪学习进度吗？"
+        },
+        {
+          "answer": "你可以在题目页面提交反馈，我们会定期审核处理。",
+          "question": "发现题目错误怎么办？"
+        }
+      ]
+    },
+    "meta": {
+      "description": "快速了解 StudyPilot 的常见问题与解答。",
+      "title": "常见问题 FAQ | StudyPilot"
+    },
+    "page": {
+      "contactUs": "联系我们",
+      "subtitle": "你需要了解的内容都在这里。没有找到答案？",
+      "support": "支持",
+      "title": "常见问题"
+    }
+  },
+  "faqSection": {
+    "items": [
+      {
+        "answer": "StudyPilot 是面向大学生的备考练习平台，提供 1000+ 精选题目、模拟考试与专题题库。",
+        "question": "什么是 StudyPilot？"
+      },
+      {
+        "answer": "题库是面向某一主题或能力点的题目集合，适合针对性训练薄弱环节。",
+        "question": "什么是题库（Question Bank）？"
+      },
+      {
+        "answer": "模拟考试是计时、全流程的实战演练，帮助你训练节奏和应试稳定性。",
+        "question": "什么是模拟考试（Mock Exam）？"
+      },
+      {
+        "answer": "作业由教师/管理员发布，可含截止时间和进度追踪，你可在个人中心完成。",
+        "question": "作业功能怎么用？"
+      },
+      {
+        "answer": "通过历年题库组织与间隔重复机制，让你更高效掌握课程内容。",
+        "question": "StudyPilot 如何帮助备考？"
+      },
+      {
+        "answer": "目前支持 UQ 多门课程，包括 CSSE1001、CSSE7030、COMP3506、INFS3202、INFS7202 等。",
+        "question": "支持哪些学校和课程？"
+      },
+      {
+        "answer": "当前定价已尽可能面向学生预算优化。",
+        "question": "有学生优惠吗？"
+      },
+      {
+        "answer": "平台仍在测试阶段，支付相关问题可联系团队咨询。",
+        "question": "支持哪些支付方式？"
+      },
+      {
+        "answer": "活动结束后将恢复常规定价，建议在活动期内锁定优惠。",
+        "question": "早鸟活动结束后会怎样？"
+      }
+    ],
+    "title": "常见问题"
+  },
+  "footer": {
+    "company": "公司",
+    "copyright": "© 2026 StudyPilot Inc. 保留所有权利。",
+    "description": "帮助你高效掌握任意学科的学习伙伴，提供个性化学习路径。",
+    "links": {
+      "about": "关于",
+      "contact": "联系",
+      "library": "题库",
+      "pricing": "价格",
+      "privacy": "隐私",
+      "terms": "条款"
+    },
+    "product": "产品"
+  },
+  "header": {
+    "about": "关于我们",
+    "adminPanel": "管理面板",
+    "blog": "博客",
+    "calendar": "日历",
+    "closeMenu": "关闭菜单",
+    "contactUs": "联系我们",
+    "language": "语言",
+    "library": "题库",
+    "menu": "菜单",
+    "openMenu": "打开菜单",
+    "referrals": "邀请奖励",
+    "switchLanguage": "切换语言",
+    "theme": "主题",
+    "vipMember": "VIP 会员"
   },
   "home": {
-    "title": "StudyPilot — 助力期中和期末考试的智能刷题领航员",
-    "subtitle": "学生开发，经真实课程验证。",
-    "startPractice": "免费开始刷题",
-    "watchDemo": "观看演示",
-    "joinUsers": "加入 {count}+ 用户",
     "browseSubjects": {
-      "title": "浏览科目",
       "subtitle": "开始使用我们全面的题库进行练习",
+      "title": "浏览科目",
       "viewAll": "查看全部 →"
     },
     "features": {
-      "coreFeatures": "核心功能",
-      "title": "为什么选择 StudyPilot",
-      "subtitle": "结合当下流行的毛玻璃设计与强大的刷题功能，为您带来极致的学习体验",
       "bank": {
-        "title": "海量题库",
-        "description": "涵盖各行业真题与模拟题，定期更新，确保您刷到的每一道题都具有实战价值。"
+        "description": "涵盖各行业真题与模拟题，定期更新，确保您刷到的每一道题都具有实战价值。",
+        "title": "海量题库"
       },
-      "mistakes": {
-        "title": "错题管理",
-        "description": "自动收录错题，支持针对性强化训练，拒绝无效重复，帮您查漏补缺巩固知识点。"
+      "coreFeatures": "核心功能",
+      "flashcards": {
+        "description": "使用全新的闪卡模式快速复习核心概念和定义。翻转卡片，高效测试记忆留存率。",
+        "title": "闪卡速记"
       },
       "flow": {
-        "title": "心流刷题",
-        "description": "进入沉浸模式，无干扰刷题。无限随机出题，建立刷题惯性，让您保持专注状态。"
+        "description": "进入沉浸模式，无干扰刷题。无限随机出题，建立刷题惯性，让您保持专注状态。",
+        "title": "心流刷题"
       },
-      "flashcards": {
-        "title": "闪卡速记",
-        "description": "使用全新的闪卡模式快速复习核心概念和定义。翻转卡片，高效测试记忆留存率。"
-      }
+      "mistakes": {
+        "description": "自动收录错题，支持针对性强化训练，拒绝无效重复，帮您查漏补缺巩固知识点。",
+        "title": "错题管理"
+      },
+      "subtitle": "结合当下流行的毛玻璃设计与强大的刷题功能，为您带来极致的学习体验",
+      "title": "为什么选择 StudyPilot"
     },
     "hero": {
       "completed": "已完成",
-      "tagList": "#列表",
-      "tagFunction": "#函数"
+      "tagFunction": "#函数",
+      "tagList": "#列表"
+    },
+    "joinUsers": "加入 {count}+ 用户",
+    "startPractice": "免费开始刷题",
+    "stats": {
+      "questions": "收录题目",
+      "subjects": "覆盖学科",
+      "users": "注册用户"
+    },
+    "subtitle": "学生开发，经真实课程验证。",
+    "title": "StudyPilot — 助力期中和期末考试的智能刷题领航员",
+    "watchDemo": "观看演示"
+  },
+  "library": {
+    "availableSubjects": "可用科目",
+    "badge": "2026 学年",
+    "comingSoon": {
+      "description": "我们暂时没有找到匹配的课程，正在持续补充新内容。",
+      "title": "课程即将上线"
+    },
+    "noSubjects": "当前暂无可用科目，请稍后再来查看。",
+    "pickSubject": "选择一个科目开始学习",
+    "search": {
+      "placeholder1": "搜索 CSSE1001...",
+      "placeholder2": "在找 INFS3202？",
+      "placeholder3": "查找 COMP3506 的模拟考试...",
+      "placeholder4": "浏览题库...",
+      "placeholder5": "输入课程代码或名称..."
     },
     "stats": {
-      "users": "注册用户",
-      "subjects": "覆盖学科",
-      "questions": "收录题目"
+      "banks": "{count} 题库",
+      "exams": "{count} 模考",
+      "weekly": "{count} 周练"
+    },
+    "subjectCount": "{count} 门科目",
+    "subjectGrid": {
+      "browseResources": "浏览资源",
+      "defaultDescription": "访问练习题与模拟考试资源。",
+      "emptyDescription": "当前没有可展示的科目。",
+      "emptyTitle": "题库为空"
+    },
+    "title": "今天想学什么？"
+  },
+  "libraryErrors": {
+    "examNotFound": {
+      "backToSubject": "返回科目页",
+      "description": "你访问的考试不存在。",
+      "title": "未找到考试"
+    },
+    "fallbackUser": "用户",
+    "noQuestionsFound": {
+      "adjustFilters": "调整筛选条件",
+      "description": "没有找到符合筛选条件的题目。",
+      "title": "未找到题目"
+    },
+    "pastExamNotFound": {
+      "backToSubject": "返回科目页",
+      "description": "你访问的往年试卷不存在。",
+      "title": "未找到往年试卷"
+    },
+    "questionBankNoQuestions": {
+      "backToQuestionBank": "返回题库详情",
+      "description": "该题库暂时还没有题目。",
+      "title": "暂无题目"
+    },
+    "questionBankNotFound": {
+      "backToSubject": "返回科目页",
+      "description": "你访问的题库不存在。",
+      "title": "未找到题库"
+    },
+    "subjectNotFound": {
+      "backToLibrary": "返回题库",
+      "description": "我们找不到你要访问的科目。",
+      "title": "未找到该科目"
+    }
+  },
+  "librarySubjectPage": {
+    "breadcrumb": {
+      "library": "题库"
+    },
+    "fallbackUser": "用户",
+    "subjectNotFound": {
+      "back": "返回题库",
+      "description": "你访问的科目不存在。",
+      "title": "未找到该科目"
+    }
+  },
+  "login": {
+    "and": "和",
+    "backToLogin": "返回登录",
+    "checkEmailSubtitle": "我们已向以下邮箱发送登录链接",
+    "checkEmailTitle": "请检查邮箱",
+    "continueWithEmail": "邮箱继续",
+    "continueWithGithub": "使用 GitHub 登录",
+    "continueWithGoogle": "使用 Google 登录",
+    "didNotReceiveEmail": "没收到邮件？",
+    "emailLabel": "邮箱",
+    "emailPlaceholder": "name@example.com",
+    "errors": {
+      "enterEmail": "请输入邮箱地址",
+      "githubFailed": "GitHub 登录失败",
+      "googleFailed": "Google 登录失败",
+      "sendLinkFailed": "发送登录链接失败"
+    },
+    "loading": "加载中...",
+    "or": "或",
+    "privacyPolicy": "隐私政策",
+    "referralApplied": "已应用推荐码",
+    "resend": "重新发送",
+    "sending": "发送中...",
+    "termsOfService": "服务条款",
+    "termsPrefix": "继续即表示你同意我们的",
+    "welcomeSubtitle": "登录以继续使用你的账号",
+    "welcomeTitle": "欢迎来到 StudyPilot"
+  },
+  "marketingMeta": {
+    "pricing": {
+      "description": "透明、简单的学习方案，助你更高效备考。",
+      "title": "定价 | StudyPilot"
+    }
+  },
+  "mistakes": {
+    "clear": "清空全部",
+    "empty": "还没有错题记录！",
+    "exportPdf": "导出PDF",
+    "practiceAll": "练习全部错题",
+    "title": "错题本"
+  },
+  "nav": {
+    "bookmarks": "收藏夹",
+    "home": "首页",
+    "login": "登录",
+    "logout": "退出",
+    "mistakes": "错题本",
+    "pricing": "价格",
+    "profile": "个人中心",
+    "subjects": "科目"
+  },
+  "notFound": {
+    "description": "抱歉，未找到你访问的页面。它可能已被移动、删除，或暂时不可用。",
+    "goBack": "返回上一页",
+    "goHome": "返回首页",
+    "returnHome": "回到首页",
+    "title": "页面未找到"
+  },
+  "practice": {
+    "anyDifficulty": "任意难度",
+    "checkAnswer": "检查答案",
+    "correct": "正确！",
+    "difficulty": "难度等级",
+    "easy": "简单",
+    "enterImmersive": "进入沉浸模式",
+    "estimatedTime": "预计时间",
+    "exam": "模拟考试",
+    "examDesc": "限时考试，预设题目集。",
+    "finish": "完成",
+    "hard": "困难",
+    "immersive": "沉浸模式",
+    "immersiveDesc": "随机无限刷题，极简界面，不记录进度。",
+    "incorrect": "错误",
+    "medium": "中等",
+    "mode": "练习模式",
+    "nextQuestion": "下一题",
+    "questionCount": "题目数量",
+    "questions": "{count} 道题",
+    "standard": "标准模式",
+    "standardDesc": "选择难度、主题和题目数量，进度会被追踪。",
+    "start": "开始练习",
+    "title": "练习设置",
+    "topic": "主题/概念"
+  },
+  "practicePage": {
+    "fallbackUser": "用户",
+    "noQuestions": {
+      "back": "调整筛选条件",
+      "description": "没有找到符合筛选条件的题目。",
+      "title": "未找到题目"
+    },
+    "subjectNotFound": {
+      "back": "返回题库",
+      "description": "我们找不到你要访问的科目，它可能已删除或移动。",
+      "title": "未找到该科目"
+    }
+  },
+  "practiceSetup": {
+    "allTopics": "全部主题",
+    "badge": "会话设置",
+    "breadcrumb": {
+      "library": "题库"
+    },
+    "difficulty": {
+      "any": "任意",
+      "easy": "简单",
+      "hard": "困难",
+      "medium": "中等"
+    },
+    "focusTopic": "聚焦主题",
+    "modes": {
+      "exam": {
+        "description": "在考试条件下进行限时模拟。",
+        "name": "模拟考试"
+      },
+      "immersive": {
+        "description": "无尽题流，极简界面，专注练习。",
+        "name": "沉浸模式"
+      },
+      "standard": {
+        "description": "按筛选条件练习并追踪进度。",
+        "name": "标准模式"
+      }
+    },
+    "multiSelectEnabled": "支持多选",
+    "selectDifficulty": "选择难度",
+    "startSession": "开始练习",
+    "subtitlePrefix": "为以下科目自定义你的学习体验：",
+    "timer": {
+      "description": "记录每题作答时间",
+      "title": "计时器"
+    },
+    "title": "练习设置",
+    "totalQuestions": "总题量"
+  },
+  "pricing": {
+    "badges": {
+      "bestValue": "最优选择",
+      "guarantee": "一次性付款，30 天无理由退款保障。",
+      "save60": "立省 60%！"
+    },
+    "common": {
+      "comingSoon": "即将上线"
+    },
+    "comparison": {
+      "headers": {
+        "features": "功能"
+      },
+      "notIncludedSrOnly": "不包含",
+      "rows": {
+        "homework": {
+          "beta": "包含",
+          "label": "作业功能"
+        },
+        "mistakeAnalysis": {
+          "beta": "高级分析",
+          "free": "基础追踪",
+          "label": "错题分析"
+        },
+        "mockExams": {
+          "beta": "全部考试",
+          "free": "仅公开考试",
+          "label": "模拟考试"
+        },
+        "newFeatures": {
+          "beta": "抢先体验",
+          "label": "新功能"
+        },
+        "pdfExport": {
+          "label": "试卷 PDF 导出"
+        },
+        "practiceModes": {
+          "beta": "标准 + 沉浸 + 闪卡",
+          "free": "仅标准模式",
+          "label": "练习模式"
+        },
+        "questionBankAccess": {
+          "beta": "全部科目与高级题库",
+          "free": "仅公开题库",
+          "label": "题库访问"
+        }
+      },
+      "title": "功能对比"
+    },
+    "hero": {
+      "subtitle": "选择适合你学习需求的方案，无隐藏费用。",
+      "title": "简单透明的定价"
+    },
+    "tiers": {
+      "beta": {
+        "cta": "加入 Beta",
+        "description": "限时优惠，解锁全部功能！",
+        "features": {
+          "earlyAccess": "新功能抢先体验",
+          "flashcardMode": "闪卡学习模式",
+          "homework": "作业功能",
+          "immersiveMode": "沉浸式学习模式",
+          "mistakeAnalysis": "错题分析",
+          "pdfExport": "试卷 PDF 导出",
+          "unlimitedMockExams": "无限模拟考试",
+          "unlockAllSubjects": "永久解锁全部科目"
+        },
+        "name": "Beta 访问",
+        "period": "一次性"
+      },
+      "free": {
+        "cta": "立即开始",
+        "description": "适合初次使用",
+        "features": {
+          "mistakeTracking": "错题追踪",
+          "progressTracking": "学习进度追踪",
+          "publicMockExams": "可访问公开模拟考试",
+          "publicQuestionBanks": "可访问公开题库",
+          "standardPractice": "标准练习模式",
+          "weeklyPractice": "每周练习"
+        },
+        "name": "免费版",
+        "notIncluded": {
+          "homework": "作业功能",
+          "pdfExport": "试卷 PDF 导出",
+          "premiumMockExams": "高级模拟考试",
+          "premiumQuestionBanks": "高级题库"
+        }
+      }
+    }
+  },
+  "profile": {
+    "bookmarks": "收藏夹",
+    "completed": "已完成",
+    "dayStreak": "连续打卡",
+    "editProfile": "编辑资料",
+    "errors": "{count} 次错误",
+    "learningProgress": "学习进度",
+    "level": "等级",
+    "mistakeBook": "错题本",
+    "noBookmarks": "还没有收藏哦。",
+    "noMistakes": "太棒了！没有错题。",
+    "noProgress": "还没有进度哦，快开始练习吧！",
+    "review": "复习",
+    "title": "个人中心",
+    "view": "查看",
+    "viewAll": "查看全部"
+  },
+  "profileDashboard": {
+    "analytics": {
+      "accuracy": "正确率",
+      "dailyTrends": "每日趋势",
+      "questions": "答题数",
+      "title": "学习分析"
+    },
+    "bookmarks": {
+      "quickAccess": "快速访问题目",
+      "saved": "已收藏题目",
+      "title": "收藏"
+    },
+    "common": {
+      "general": "通用",
+      "last": "最近",
+      "noRecord": "暂无记录",
+      "viewAll": "查看全部"
+    },
+    "difficulty": {
+      "easy": "简单",
+      "hard": "困难",
+      "medium": "中等"
+    },
+    "homework": {
+      "assigned": "已分配",
+      "done": "已完成",
+      "dueThisWeek": "本周有 {count} 份作业待完成",
+      "noAssignedYet": "暂无已分配作业",
+      "noDeadline": "无截止时间",
+      "noDueThisWeek": "本周暂无待交作业",
+      "submit": "提交",
+      "title": "作业",
+      "tonight": "今晚 {time}"
+    },
+    "mistakes": {
+      "accumulatedAttempts": "累计作答",
+      "errorHits": "错误次数",
+      "hardQuestions": "困难题",
+      "lastMistake": "最近一次错题",
+      "latestRecords": "最新记录",
+      "needMoreReview": "仍需加强",
+      "recent": "近期错题",
+      "timeSinceLatest": "距今时间",
+      "title": "错题"
+    },
+    "mockExams": {
+      "attempts": "{count} 次尝试",
+      "bestScore": "最佳：{score}%",
+      "browse": "去浏览科目与考试 →",
+      "emptyTitle": "还没有添加模拟考试",
+      "mockExam": "模拟考试",
+      "title": "我的模拟考试"
+    },
+    "questionBanks": {
+      "browse": "去浏览题库 →",
+      "completed": "已完成 {count} 次",
+      "emptyTitle": "还没有添加题库",
+      "title": "我的题库"
+    },
+    "sidebar": {
+      "adminPanel": "管理面板",
+      "bookmarks": "收藏",
+      "homework": "作业",
+      "level": "等级 {level}",
+      "logout": "退出登录",
+      "mistakes": "错题",
+      "referrals": "邀请奖励",
+      "weeklyPractice": "每周练习"
+    },
+    "time": {
+      "daysAgo": "{count} 天前",
+      "hoursAgo": "{count} 小时前",
+      "justNow": "刚刚",
+      "minutesAgo": "{count} 分钟前"
+    },
+    "weeklyPractice": {
+      "open": "打开",
+      "progressTimeline": "进度时间线",
+      "ready": "周计划已就绪，保持 13 周连续学习！",
+      "reviewFocus": "复习重点",
+      "sprint": "7 天冲刺",
+      "thisWeek": "本周",
+      "title": "每周练习"
+    }
+  },
+  "profileHomework": {
+    "modes": {
+      "flashcard": "闪卡模式",
+      "immersive": "沉浸模式",
+      "standard": "标准模式"
+    },
+    "page": {
+      "fallbackUser": "用户",
+      "premium": {
+        "cta": "升级高级会员",
+        "description": "升级高级会员后即可使用作业与截止时间进度跟踪。",
+        "title": "作业功能仅限高级会员"
+      },
+      "subtitle": "带截止时间与进度跟踪的作业练习，集中管理。",
+      "title": "我的作业"
+    },
+    "pageMeta": {
+      "description": "查看并完成你的已分配作业",
+      "title": "我的作业 | 个人中心"
+    },
+    "statusBadges": {
+      "dueIn1Day": "1 天内截止",
+      "dueIn3Days": "3 天内截止",
+      "dueIn7Days": "7 天内截止",
+      "noDeadline": "无截止时间",
+      "onTrack": "进度正常",
+      "overdue": "已逾期"
+    },
+    "searchPlaceholder": "搜索作业...",
+    "filters": {
+      "all": "全部",
+      "due7": "7 天内截止",
+      "due3": "3 天内截止",
+      "due1": "1 天内截止",
+      "overdue": "已逾期",
+      "placeholder": "按截止时间筛选"
+    },
+    "empty": "没有匹配当前搜索或筛选的作业。",
+    "noDescription": "暂无描述。",
+    "duePrefix": "截止",
+    "progressLabel": "进度：{answered}/{total}",
+    "timeElapsed": "时间消耗",
+    "lastSubmitted": "最近提交",
+    "score": "得分",
+    "noSubmissionYet": "尚未提交",
+    "status": {
+      "completed": "已完成",
+      "inProgress": "进行中",
+      "notSubmitted": "未提交"
+    }
+  },
+  "profileMistakes": {
+    "attempts": "{count} 次尝试",
+    "breadcrumb": {
+      "home": "首页",
+      "mistakes": "错题",
+      "profile": "个人中心"
+    },
+    "empty": {
+      "cta": "开始新练习",
+      "description": "当前没有待复习错题，继续保持！",
+      "title": "状态完美！"
+    },
+    "labels": {
+      "correctAnswer": "正确答案",
+      "myAnswer": "我的答案",
+      "noAnswer": "（未作答）"
+    },
+    "page": {
+      "fallbackUser": "用户"
+    },
+    "practiceAll": "练习全部",
+    "remove": "从错题本移除",
+    "search": {
+      "allPlaceholder": "搜索全部错题...",
+      "noResults": "未找到匹配搜索条件的错题。",
+      "scopedPlaceholder": "搜索 {subject} 错题..."
+    },
+    "subtitle": "查看你做错题目的详细分析。",
+    "tabs": {
+      "allSubjects": "全部科目"
+    },
+    "title": "错题本"
+  },
+  "profileMockExams": {
+    "attempts": "{count} 次尝试",
+    "bestScore": "最好成绩：{score}%",
+    "bestTime": "最佳用时：{minutes} 分钟",
+    "duration": "{minutes} 分钟",
+    "empty": {
+      "cta": "去题库看看",
+      "description": "你还没有开始任何模拟考试。",
+      "searchDescription": "试试调整搜索关键词。",
+      "title": "未找到模拟考试"
+    },
+    "lastPrefix": "最近：",
+    "mockExam": "模拟考试",
+    "page": {
+      "fallbackUser": "用户",
+      "subtitle": "通过限时全流程模拟，训练考试节奏并持续衡量准备度。",
+      "title": "我的模拟考试"
+    },
+    "pageMeta": {
+      "description": "查看并管理你的模拟考试记录",
+      "title": "我的模拟考试 | 个人中心"
+    },
+    "searchPlaceholder": "搜索模拟考试...",
+    "showing": "显示 {shown}/{total} 份考试"
+  },
+  "profilePageMeta": {
+    "fallbackUser": "用户"
+  },
+  "profileProgress": {
+    "breadcrumb": {
+      "home": "首页",
+      "profile": "个人中心",
+      "progress": "学习进度"
+    },
+    "overallAccuracy": "整体正确率",
+    "page": {
+      "fallbackUser": "用户"
+    },
+    "pageMeta": {
+      "description": "追踪你的学科掌握度并识别薄弱点",
+      "title": "学习进度 | 个人中心"
+    },
+    "quickStats": {
+      "topics": "主题",
+      "weakTags": "薄弱标签"
+    },
+    "ratioCorrect": "正确 {correct}/{total}",
+    "strong": {
+      "emptyDescription": "标签正确率达到 80%+ 后会出现在这里。",
+      "emptyTitle": "暂未形成稳定优势",
+      "title": "优势区域"
+    },
+    "subjectSummary": "{topics} 个主题 • 已练习 {questions} 题",
+    "subtitle": "追踪各学科掌握情况，识别需要提升的薄弱环节。",
+    "tabs": {
+      "topicMastery": "主题掌握",
+      "weakPoints": "薄弱点分析"
+    },
+    "title": "学习进度",
+    "topic": {
+      "attempted": "已尝试 {count}",
+      "empty": "该科目暂无主题。",
+      "mastered": "已掌握 {correct}/{total}"
+    },
+    "weak": {
+      "emptyDescription": "继续练习以获得更多洞察。",
+      "emptyTitle": "当前无明显薄弱点",
+      "title": "待提升区域"
+    }
+  },
+  "profileQuestionBanks": {
+    "completed": "已完成 {count}",
+    "empty": {
+      "cta": "去题库看看",
+      "description": "你还没有收藏任何题库。",
+      "searchDescription": "试试调整搜索关键词。",
+      "title": "未找到题库"
+    },
+    "general": "通用",
+    "page": {
+      "fallbackUser": "用户",
+      "subtitle": "追踪你在所有收藏题库中的学习进度。",
+      "title": "我的题库"
+    },
+    "pageMeta": {
+      "description": "查看并管理你收藏的题库",
+      "title": "我的题库 | 个人中心"
+    },
+    "searchPlaceholder": "搜索题库...",
+    "showing": "显示 {shown}/{total} 个题库"
+  },
+  "profileReferrals": {
+    "dashboard": {
+      "invite": {
+        "title": "你的邀请链接"
+      },
+      "rules": {
+        "item1": "把你的专属邀请链接分享给好友。",
+        "item2": "好友通过链接注册后，你和好友都可获得 1 次解锁额度。",
+        "item3": "使用额度可永久解锁任意“邀请专属”题库。",
+        "title": "规则说明"
+      },
+      "stats": {
+        "banksUnlocked": "已解锁题库",
+        "friendsInvited": "已邀请好友",
+        "unlockChances": "可解锁次数"
+      },
+      "unlock": {
+        "cta": "使用额度解锁",
+        "description": "你当前有 {count} 次解锁机会，选择一个高级题库永久解锁。",
+        "noCreditsHint": "邀请更多好友以获得解锁额度！",
+        "title": "解锁高级题库"
+      }
+    },
+    "modal": {
+      "actions": {
+        "unlock": "解锁",
+        "unlocked": "已解锁"
+      },
+      "close": "关闭弹窗",
+      "credits": "{count} 次额度",
+      "empty": {
+        "description": "后续上新后会显示在这里。",
+        "title": "暂无可解锁题库"
+      },
+      "errors": {
+        "unlockFailed": "解锁失败"
+      },
+      "footer": "每次解锁消耗 1 次额度",
+      "questions": "{count} 道题",
+      "title": "解锁题库"
+    },
+    "page": {
+      "breadcrumb": {
+        "home": "首页",
+        "profile": "个人中心",
+        "referrals": "邀请奖励"
+      },
+      "fallbackUser": "用户",
+      "subtitle": "分享学习乐趣，赢取高级奖励。",
+      "title": "邀请好友，解锁权益"
+    }
+  },
+  "profileWeeklyPractice": {
+    "cta": {
+      "continue": "继续",
+      "start": "开始"
+    },
+    "empty": "没有匹配筛选条件的每周练习。",
+    "filters": {
+      "allStatus": "全部状态",
+      "completed": "已完成",
+      "pending": "未完成",
+      "status": "状态",
+      "week": "周次"
+    },
+    "lastSubmitted": "最近提交：",
+    "noDescription": "暂无描述。",
+    "page": {
+      "fallbackUser": "用户",
+      "subtitle": "追踪每周进展，持续保持学习节奏。",
+      "title": "每周练习"
+    },
+    "pageMeta": {
+      "description": "追踪你的每周练习进度",
+      "title": "每周练习 | 个人中心"
+    },
+    "progress": "进度：已答 {answered}/{total}",
+    "score": "得分 {correct}/{total}",
+    "searchPlaceholder": "搜索每周练习...",
+    "status": {
+      "completed": "已完成",
+      "inProgress": "进行中",
+      "notStarted": "未开始"
+    },
+    "summary": {
+      "accuracy": "正确率",
+      "completedWeeks": "完成周数",
+      "questionsAnswered": "已答题数"
+    }
+  },
+  "results": {
+    "accuracy": "正确率",
+    "again": "再来一次",
+    "completed": "您已完成本次练习",
+    "correct": "正确",
+    "excellent": "太棒了！",
+    "goodJob": "做得不错！",
+    "home": "返回首页",
+    "keepPracticing": "继续努力！",
+    "reviewMistakes": "查看错题",
+    "time": "用时",
+    "wrong": "错误"
+  },
+  "subjectContent": {
+    "access": {
+      "invite": "邀请解锁",
+      "paid": "付费",
+      "premium": "高级",
+      "public": "公开"
+    },
+    "empty": {
+      "banks": {
+        "description": "该科目的题库仍在持续补充中，请稍后查看。",
+        "title": "暂无题库"
+      },
+      "mockExams": {
+        "description": "该科目的模拟考试仍在持续补充中，请稍后查看。",
+        "title": "暂无模拟考试"
+      },
+      "pastExams": {
+        "description": "往年试卷答案发布后会展示在这里。",
+        "title": "暂无往年试卷"
+      },
+      "weekly": {
+        "description": "该科目的每周练习还未发布。",
+        "title": "暂无每周练习"
+      }
+    },
+    "hero": {
+      "description": "浏览练习资料、模拟考试与精选题库。",
+      "examCountdown": "考试倒计时：",
+      "final": "期末",
+      "midterm": "期中"
+    },
+    "mockExams": {
+      "title": "模拟考试"
+    },
+    "pastExams": {
+      "answerKey": "答案解析",
+      "archive": "归档",
+      "paper": "试卷 {number}"
+    },
+    "premiumModal": {
+      "description": "通过 StudyPilot Premium 选择主题、难度与题量，配置你的专属练习会话。",
+      "title": "解锁自定义练习"
+    },
+    "questionBanks": {
+      "curatedCollections": "精选题集"
+    },
+    "semester": {
+      "one": "第一学期",
+      "two": "第二学期"
+    },
+    "tabs": {
+      "mockExams": "模拟考试",
+      "pastExamAnswers": "往年试卷答案",
+      "questionBanks": "题库",
+      "weeklyPractice": "每周练习"
+    },
+    "toolkit": {
+      "cards": {
+        "bank": {
+          "body": "按主题集中训练，精准补齐薄弱点，练习模式灵活切换。",
+          "pill": "专项",
+          "title": "题库练习"
+        },
+        "mock": {
+          "body": "还原真实考试节奏与压力，提升临场发挥。",
+          "pill": "限时",
+          "title": "模拟考试"
+        },
+        "weekly": {
+          "body": "按周安排练习，稳定推进整学期学习节奏。",
+          "pill": "周练",
+          "title": "每周练习"
+        }
+      },
+      "homeworkInProfile": "去个人中心查看作业",
+      "title": "你的学习工具包"
+    },
+    "weeklyPractice": {
+      "subtitle": "通过每周精选练习，持续保持学习节奏。",
+      "title": "每周练习"
     }
   },
   "subjects": {
-    "title": "选择科目",
-    "subtitle": "选择您想练习的科目，开启学习之旅",
     "allTopics": "所有主题",
+    "hot": "热门",
+    "new": "新",
     "questions": "道题",
     "startPractice": "开始练习",
-    "hot": "热门",
-    "new": "新"
-  },
-  "practice": {
-    "title": "练习设置",
-    "mode": "练习模式",
-    "standard": "标准模式",
-    "standardDesc": "选择难度、主题和题目数量，进度会被追踪。",
-    "immersive": "沉浸模式",
-    "immersiveDesc": "随机无限刷题，极简界面，不记录进度。",
-    "exam": "模拟考试",
-    "examDesc": "限时考试，预设题目集。",
-    "difficulty": "难度等级",
-    "easy": "简单",
-    "medium": "中等",
-    "hard": "困难",
-    "anyDifficulty": "任意难度",
-    "topic": "主题/概念",
-    "questionCount": "题目数量",
-    "questions": "{count} 道题",
-    "estimatedTime": "预计时间",
-    "start": "开始练习",
-    "enterImmersive": "进入沉浸模式",
-    "checkAnswer": "检查答案",
-    "nextQuestion": "下一题",
-    "finish": "完成",
-    "correct": "正确！",
-    "incorrect": "错误"
-  },
-  "results": {
-    "excellent": "太棒了！",
-    "goodJob": "做得不错！",
-    "keepPracticing": "继续努力！",
-    "completed": "您已完成本次练习",
-    "accuracy": "正确率",
-    "correct": "正确",
-    "wrong": "错误",
-    "time": "用时",
-    "reviewMistakes": "查看错题",
-    "again": "再来一次",
-    "home": "返回首页"
-  },
-  "profile": {
-    "title": "个人中心",
-    "level": "等级",
-    "dayStreak": "连续打卡",
-    "completed": "已完成",
-    "learningProgress": "学习进度",
-    "mistakeBook": "错题本",
-    "bookmarks": "收藏夹",
-    "editProfile": "编辑资料",
-    "viewAll": "查看全部",
-    "noProgress": "还没有进度哦，快开始练习吧！",
-    "noMistakes": "太棒了！没有错题。",
-    "noBookmarks": "还没有收藏哦。",
-    "errors": "{count} 次错误",
-    "review": "复习",
-    "view": "查看"
-  },
-  "mistakes": {
-    "title": "错题本",
-    "exportPdf": "导出PDF",
-    "clear": "清空全部",
-    "practiceAll": "练习全部错题",
-    "empty": "还没有错题记录！"
+    "subtitle": "选择您想练习的科目，开启学习之旅",
+    "title": "选择科目"
   },
   "theme": {
-    "light": "浅色模式",
-    "dark": "深色模式",
+    "dark": "深色",
+    "light": "浅色",
+    "system": "跟随系统",
     "toggle": "切换主题"
+  },
+  "profileBookmarks": {
+    "breadcrumb": {
+      "home": "首页",
+      "profile": "个人中心",
+      "bookmarks": "收藏"
+    },
+    "savedItems": "已收藏",
+    "title": "我的收藏",
+    "subtitle": "快速回看你标记稍后复习的题目。",
+    "practiceAll": "全部练习",
+    "searchPlaceholder": "搜索收藏...",
+    "foundCount": "找到 {count} 条",
+    "empty": {
+      "title": "还没有收藏",
+      "description": "练习时收藏题目后，会显示在这里。",
+      "cta": "浏览题库"
+    },
+    "time": {
+      "today": "今天",
+      "yesterday": "昨天"
+    },
+    "savedAt": "收藏于 {time}",
+    "removeBookmark": "移除收藏"
   }
 }

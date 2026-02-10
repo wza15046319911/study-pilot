@@ -70,10 +70,6 @@ export const metadata: Metadata = {
   // Alternates for i18n
   alternates: {
     canonical: "/",
-    languages: {
-      en: "/en",
-      zh: "/zh",
-    },
   },
 
   // Open Graph (Facebook, LinkedIn, etc.)

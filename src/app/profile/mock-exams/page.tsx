@@ -3,13 +3,18 @@ import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { UserMockExamsClient } from "./UserMockExamsClient";
 import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
 
-export const metadata: Metadata = {
-  title: "My Mock Exams | Profile",
-  description: "View and manage your history of mock exams",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("profileMockExams.pageMeta");
+  return {
+    title: t("title"),
+    description: t("description"),
+  };
+}
 
 export default async function MockExamsPage() {
+  const t = await getTranslations("profileMockExams.page");
   const supabase = await createClient();
 
   const {
@@ -71,7 +76,7 @@ export default async function MockExamsPage() {
   } | null;
 
   const headerUser = {
-    username: profile?.username || user.user_metadata?.name || "User",
+    username: profile?.username || user.user_metadata?.name || t("fallbackUser"),
     avatar_url:
       profile?.avatar_url ||
       user.user_metadata?.avatar_url ||
@@ -87,11 +92,10 @@ export default async function MockExamsPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            My Mock Exams
+            {t("title")}
           </h1>
           <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Timed, end-to-end exam simulations to practice pacing under real
-            conditions and measure readiness over time.
+            {t("subtitle")}
           </p>
         </div>
 

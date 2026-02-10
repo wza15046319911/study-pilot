@@ -6,6 +6,7 @@ import { Library, ChevronRight, Trophy, Clock, Search } from "lucide-react";
 import { useDeferredValue, useMemo, useState } from "react";
 import { Subject } from "@/types/database";
 import { slugOrEncodedId } from "@/lib/ids";
+import { useTranslations } from "next-intl";
 
 interface UserQuestionBanksClientProps {
   initialData: Array<{
@@ -26,6 +27,7 @@ interface UserQuestionBanksClientProps {
 export function UserQuestionBanksClient({
   initialData,
 }: UserQuestionBanksClientProps) {
+  const t = useTranslations("profileQuestionBanks");
   const [searchTerm, setSearchTerm] = useState("");
   const deferredSearchTerm = useDeferredValue(searchTerm);
 
@@ -51,14 +53,14 @@ export function UserQuestionBanksClient({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Search question banks..."
+            placeholder={t("searchPlaceholder")}
             className="w-full pl-9 pr-4 py-2 text-sm border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary/20"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
         <div className="text-sm text-muted-foreground">
-          Showing {filteredData.length} of {initialData.length} banks
+          {t("showing", { shown: filteredData.length, total: initialData.length })}
         </div>
       </div>
 
@@ -72,7 +74,7 @@ export function UserQuestionBanksClient({
             >
               <div className="flex items-start justify-between mb-4">
                 <span className="text-[14px] font-bold px-2.5 py-1 rounded-md bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 uppercase tracking-wider">
-                  {item.question_banks.subjects?.name || "General"}
+                  {item.question_banks.subjects?.name || t("general")}
                 </span>
                 <div className="p-2 rounded-full bg-gray-50 dark:bg-gray-800 group-hover:bg-violet-50 dark:group-hover:bg-violet-900/20 transition-colors">
                   <ChevronRight className="size-4 text-gray-400 group-hover:text-violet-500 transition-colors" />
@@ -86,7 +88,7 @@ export function UserQuestionBanksClient({
               <div className="mt-auto pt-4 flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 border-t border-gray-100 dark:border-gray-800">
                 <div className="flex items-center gap-1.5">
                   <Trophy className="size-3.5 text-amber-500" />
-                  <span>{item.completion_count} completed</span>
+                  <span>{t("completed", { count: item.completion_count })}</span>
                 </div>
                 {item.last_completed_at && (
                   <div
@@ -109,19 +111,19 @@ export function UserQuestionBanksClient({
         <div className="flex flex-col items-center justify-center py-16 px-4 text-center border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-2xl bg-gray-50/50 dark:bg-gray-900/50">
           <Library className="size-12 text-gray-300 dark:text-gray-600 mb-4" />
           <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-            No question banks found
+            {t("empty.title")}
           </h3>
           <p className="text-gray-500 max-w-sm mb-6">
             {searchTerm
-              ? "Try adjusting your search terms to find what you're looking for."
-              : "You haven't added any question banks to your collection yet."}
+              ? t("empty.searchDescription")
+              : t("empty.description")}
           </p>
           {!searchTerm && (
             <Link
               href="/library"
               className="px-4 py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg font-medium transition-colors"
             >
-              Browse Library
+              {t("empty.cta")}
             </Link>
           )}
         </div>

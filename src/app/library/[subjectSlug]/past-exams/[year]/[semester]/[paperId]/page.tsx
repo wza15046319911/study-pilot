@@ -5,6 +5,7 @@ import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
 import { PastExamAnswerContent } from "../PastExamAnswerContent";
 import { decodeId } from "@/lib/ids";
+import { getTranslations } from "next-intl/server";
 
 interface PageProps {
   params: Promise<{
@@ -25,6 +26,7 @@ type PastExamQuestion = {
 };
 
 export default async function PastExamPaperPage({ params }: PageProps) {
+  const t = await getTranslations("libraryErrors");
   const { subjectSlug, year, semester, paperId } = await params;
   const parsedYear = parseInt(year, 10);
   const parsedSemester = parseInt(semester, 10);
@@ -46,13 +48,13 @@ export default async function PastExamPaperPage({ params }: PageProps) {
     return (
       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc]">
         <AmbientBackground />
-        <Header user={{ username: "User" }} />
+        <Header user={{ username: t("fallbackUser") }} />
         <div className="flex-grow flex items-center justify-center">
           <NotFoundPage
-            title="Past Exam Not Found"
-            description="The past exam you are looking for does not exist."
+            title={t("pastExamNotFound.title")}
+            description={t("pastExamNotFound.description")}
             backLink={`/library/${subjectSlug}`}
-            backText="Back to Subject"
+            backText={t("pastExamNotFound.backToSubject")}
           />
         </div>
       </div>
@@ -77,13 +79,13 @@ export default async function PastExamPaperPage({ params }: PageProps) {
     return (
       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc]">
         <AmbientBackground />
-        <Header user={{ username: "User" }} />
+        <Header user={{ username: t("fallbackUser") }} />
         <div className="flex-grow flex items-center justify-center">
           <NotFoundPage
-            title="Subject Not Found"
-            description="The subject you are looking for does not exist."
+            title={t("subjectNotFound.title")}
+            description={t("subjectNotFound.description")}
             backLink="/library"
-            backText="Back to Library"
+            backText={t("subjectNotFound.backToLibrary")}
           />
         </div>
       </div>
@@ -111,13 +113,13 @@ export default async function PastExamPaperPage({ params }: PageProps) {
     return (
       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc]">
         <AmbientBackground />
-        <Header user={{ username: "User" }} />
+        <Header user={{ username: t("fallbackUser") }} />
         <div className="flex-grow flex items-center justify-center">
           <NotFoundPage
-            title="Past Exam Not Found"
-            description="The past exam you are looking for does not exist."
+            title={t("pastExamNotFound.title")}
+            description={t("pastExamNotFound.description")}
             backLink={`/library/${subjectSlug}`}
-            backText="Back to Subject"
+            backText={t("pastExamNotFound.backToSubject")}
           />
         </div>
       </div>
@@ -156,7 +158,7 @@ export default async function PastExamPaperPage({ params }: PageProps) {
   } | null;
 
   const userData = {
-    username: profile?.username || user.email?.split("@")[0] || "User",
+    username: profile?.username || user.email?.split("@")[0] || t("fallbackUser"),
     avatar_url: profile?.avatar_url ?? undefined,
     is_vip: profile?.is_vip || false,
   };

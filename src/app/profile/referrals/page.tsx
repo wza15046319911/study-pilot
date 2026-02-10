@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/Header";
 import { Profile } from "@/types/database";
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 import {
   getOrCreateReferralCode,
@@ -15,6 +16,7 @@ import {
 } from "@/lib/actions/referral";
 
 export default async function ReferralsPage() {
+  const t = await getTranslations("profileReferrals.page");
   const supabase = await createClient();
   const {
     data: { user },
@@ -36,7 +38,7 @@ export default async function ReferralsPage() {
   // Header user data construction
   const rawProfile = profile || {
     id: user.id,
-    username: user.email?.split("@")[0] || "User",
+    username: user.email?.split("@")[0] || t("fallbackUser"),
     email: user.email,
     level: 1,
     streak_days: 0,
@@ -57,7 +59,7 @@ export default async function ReferralsPage() {
   };
 
   const headerUser = {
-    username: userData.username || user.user_metadata?.name || "User",
+    username: userData.username || user.user_metadata?.name || t("fallbackUser"),
     avatar_url:
       userData.avatar_url ||
       user.user_metadata?.avatar_url ||
@@ -89,27 +91,27 @@ export default async function ReferralsPage() {
           {/* Breadcrumb */}
           <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
             <Link href="/" className="hover:text-blue-600 transition-colors">
-              Home
+              {t("breadcrumb.home")}
             </Link>
             <ChevronRight className="size-4" />
             <Link
               href="/profile"
               className="hover:text-blue-600 transition-colors"
             >
-              Profile
+              {t("breadcrumb.profile")}
             </Link>
             <ChevronRight className="size-4" />
             <span className="text-gray-900 dark:text-white font-medium">
-              Referrals
+              {t("breadcrumb.referrals")}
             </span>
           </div>
 
           <div>
             <h1 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-              Invite Friends & Unlock
+              {t("title")}
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-2 text-lg">
-              Share the love of learning and earn premium rewards.
+              {t("subtitle")}
             </p>
           </div>
 
@@ -123,7 +125,6 @@ export default async function ReferralsPage() {
               }
             }
             banks={availableBanks}
-            userId={user.id}
           />
         </div>
       </main>

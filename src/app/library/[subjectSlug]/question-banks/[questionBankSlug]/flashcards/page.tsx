@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import FlashcardSession from "@/app/practice/[subjectSlug]/flashcards/FlashcardSession";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
 import { Profile } from "@/types/database";
+import { getTranslations } from "next-intl/server";
 
 interface PageProps {
   params: Promise<{
@@ -13,9 +14,26 @@ interface PageProps {
   }>;
 }
 
+type QuestionBankFlashcardItemRow = {
+  question: {
+    id: number;
+    title: string;
+    content: string;
+    answer: string;
+    explanation: string | null;
+    type: string;
+    options: string[] | null;
+    code_snippet: string | null;
+    topic_id: number | null;
+    subject_id: number | null;
+    difficulty: string | null;
+  } | null;
+};
+
 export default async function LibraryQuestionBankFlashcardsPage(
   props: PageProps,
 ) {
+  const t = await getTranslations("libraryErrors");
   const params = await props.params;
   const { subjectSlug, questionBankSlug } = params;
   const supabase = await createClient();
@@ -49,7 +67,8 @@ export default async function LibraryQuestionBankFlashcardsPage(
   }
 
   // Fetch bank
-  const { data: bank } = await (supabase.from("question_banks") as any)
+  const { data: bank } = await supabase
+    .from("question_banks")
     .select("id, slug, title, subject_id")
     .eq("slug", questionBankSlug)
     .eq("subject_id", subject.id)
@@ -61,10 +80,10 @@ export default async function LibraryQuestionBankFlashcardsPage(
         <AmbientBackground />
         <div className="flex-grow flex items-center justify-center">
           <NotFoundPage
-            title="Question Bank Not Found"
-            description="The question bank you're looking for doesn't exist."
+            title={t("questionBankNotFound.title")}
+            description={t("questionBankNotFound.description")}
             backLink={`/library/${subjectSlug}`}
-            backText="Back to Subject"
+            backText={t("questionBankNotFound.backToSubject")}
           />
         </div>
       </div>
@@ -94,8 +113,11 @@ export default async function LibraryQuestionBankFlashcardsPage(
     .eq("bank_id", bank.id)
     .order("order_index");
 
-  const questions = (items || []).map((item: any) => ({
-    ...item.question,
+  const questions = ((items as QuestionBankFlashcardItemRow[] | null) || [])
+    .map((item) => item.question)
+    .filter(Boolean)
+    .map((question) => ({
+    ...question,
     review: null,
   }));
 
@@ -122,7 +144,7 @@ export default async function LibraryQuestionBankFlashcardsPage(
 
   const profile = profileData as Profile | null;
   const userData = {
-    username: profile?.username || "User",
+    username: profile?.username || t("fallbackUser"),
     avatar_url: profile?.avatar_url ?? undefined,
     is_vip: profile?.is_vip || false,
   };

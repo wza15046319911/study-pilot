@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { ProfileContent } from "./ProfileContent";
 import { getReferralStats } from "@/lib/actions/referral";
 import { Profile, Subject, Mistake, Question } from "@/types/database";
+import { getTranslations } from "next-intl/server";
 
 type QuestionSummary = Pick<Question, "title" | "difficulty">;
 
@@ -47,6 +48,7 @@ interface AccessibleBank {
 }
 
 export default async function ProfilePage() {
+  const t = await getTranslations("profilePageMeta");
   const supabase = await createClient();
 
   // Get current user
@@ -402,7 +404,7 @@ export default async function ProfilePage() {
   // Also merge auth metadata avatar if profile doesn't have one
   const rawProfile = profile || {
     id: user.id,
-    username: user.email?.split("@")[0] || "User",
+    username: user.email?.split("@")[0] || t("fallbackUser"),
     level: 1,
     streak_days: 0,
     avatar_url: null,
@@ -425,7 +427,7 @@ export default async function ProfilePage() {
 
   // Header requires avatar_url to be string | undefined, not null
   const headerUser = {
-    username: userData.username || user.user_metadata?.name || "User",
+    username: userData.username || user.user_metadata?.name || t("fallbackUser"),
     avatar_url:
       userData.avatar_url ||
       user.user_metadata?.avatar_url ||

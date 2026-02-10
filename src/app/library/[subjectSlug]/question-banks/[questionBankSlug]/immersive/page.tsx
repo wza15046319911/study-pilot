@@ -5,6 +5,7 @@ import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import ImmersiveSession from "@/app/practice/[subjectSlug]/immersive/ImmersiveSession";
 import { Profile, Question, Subject } from "@/types/database";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
+import { getTranslations } from "next-intl/server";
 
 interface PageProps {
   params: Promise<{
@@ -13,9 +14,14 @@ interface PageProps {
   }>;
 }
 
+type ImmersiveItemRow = {
+  question: Question | null;
+};
+
 export default async function LibraryQuestionBankImmersivePage(
   props: PageProps,
 ) {
+  const t = await getTranslations("libraryErrors");
   const params = await props.params;
   const { subjectSlug, questionBankSlug } = params;
   const supabase = await createClient();
@@ -44,7 +50,8 @@ export default async function LibraryQuestionBankImmersivePage(
   }
 
   // Fetch bank
-  const { data: bank } = await (supabase.from("question_banks") as any)
+  const { data: bank } = await supabase
+    .from("question_banks")
     .select("id, slug, title, subject_id")
     .eq("slug", questionBankSlug)
     .eq("subject_id", subject.id)
@@ -56,10 +63,10 @@ export default async function LibraryQuestionBankImmersivePage(
         <AmbientBackground />
         <div className="flex-grow flex items-center justify-center">
           <NotFoundPage
-            title="Question Bank Not Found"
-            description="The question bank you're looking for doesn't exist."
+            title={t("questionBankNotFound.title")}
+            description={t("questionBankNotFound.description")}
             backLink={`/library/${subjectSlug}`}
-            backText="Back to Subject"
+            backText={t("questionBankNotFound.backToSubject")}
           />
         </div>
       </div>
@@ -88,7 +95,9 @@ export default async function LibraryQuestionBankImmersivePage(
     .order("order_index")
     .limit(1);
 
-  const firstQuestion = ((items?.[0] as any)?.question as Question) || null;
+  const firstQuestion =
+    (((items as ImmersiveItemRow[] | null)?.[0] as ImmersiveItemRow | undefined)
+      ?.question as Question | null) || null;
 
   // Fetch user profile for session
   const { data: profileData } = await supabase
@@ -121,7 +130,7 @@ export default async function LibraryQuestionBankImmersivePage(
 
   const sessionUser = profile || {
     id: user.id,
-    username: userData.username,
+    username: userData.username || t("fallbackUser"),
     level: 1,
     streak_days: 0,
     avatar_url: null,

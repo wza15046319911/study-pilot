@@ -6,12 +6,12 @@ import {
   Loader2,
   LockOpen,
   Check,
-  ArrowRight,
   Wallet,
   Box,
 } from "lucide-react";
 import { unlockBankWithReferral } from "@/lib/actions/referral";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 
 // Animated Modal component
 function Modal({
@@ -50,6 +50,7 @@ export function UnlockBankModal({
   banks,
   credits,
 }: UnlockBankModalProps) {
+  const t = useTranslations("profileReferrals.modal");
   const router = useRouter();
   const [loading, setLoading] = useState<number | null>(null);
   const [error, setError] = useState("");
@@ -70,7 +71,7 @@ export function UnlockBankModal({
         }, 1200);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to unlock");
+      setError(err instanceof Error ? err.message : t("errors.unlockFailed"));
     } finally {
       setLoading(null);
     }
@@ -83,7 +84,7 @@ export function UnlockBankModal({
         <div className="px-6 pt-6 pb-4 flex justify-between items-start bg-white dark:bg-[#09090b]">
           <div>
             <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-50 tracking-tight">
-              Unlock Bank
+              {t("title")}
             </h2>
             <div className="flex items-center gap-2 mt-1.5">
               <span
@@ -98,7 +99,7 @@ export function UnlockBankModal({
               >
                 <Wallet className="size-3" />
                 <span>
-                  {credits} Credit{credits !== 1 && "s"}
+                  {t("credits", { count: credits })}
                 </span>
               </span>
             </div>
@@ -107,7 +108,7 @@ export function UnlockBankModal({
           <button
             onClick={onClose}
             className="p-2 -mr-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors rounded-full hover:bg-slate-100 dark:hover:bg-slate-800"
-            aria-label="Close modal"
+            aria-label={t("close")}
           >
             <svg
               className="size-5"
@@ -146,10 +147,10 @@ export function UnlockBankModal({
                 />
               </div>
               <h3 className="text-base font-medium text-slate-900 dark:text-slate-200">
-                No Banks Available
+                {t("empty.title")}
               </h3>
               <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 max-w-[200px]">
-                New premium content will appear here when available.
+                {t("empty.description")}
               </p>
             </div>
           ) : (
@@ -202,7 +203,7 @@ export function UnlockBankModal({
                         </span>
                       </div>
                       <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                        {bank.items?.[0]?.count || 0} Questions
+                        {t("questions", { count: bank.items?.[0]?.count || 0 })}
                       </p>
                     </div>
 
@@ -225,12 +226,12 @@ export function UnlockBankModal({
                       ) : isSuccess ? (
                         <div className="flex items-center gap-1.5">
                           <Check className="size-3.5" />
-                          <span>Unlocked</span>
+                          <span>{t("actions.unlocked")}</span>
                         </div>
                       ) : (
                         <div className="flex items-center gap-1.5">
                           <LockOpen className="size-3.5 opacity-60" />
-                          <span>Unlock</span>
+                          <span>{t("actions.unlock")}</span>
                         </div>
                       )}
                     </Button>
@@ -246,7 +247,7 @@ export function UnlockBankModal({
           <div className="p-3 bg-slate-50 dark:bg-[#0c0c0e] border-t border-slate-100 dark:border-slate-800/60">
             <div className="text-center text-[11px] text-slate-400 dark:text-slate-500 flex items-center justify-center gap-1.5">
               <span className="size-1.5 rounded-full bg-slate-300 dark:bg-slate-700" />
-              Consumes 1 credit per unlock
+              {t("footer")}
             </div>
           </div>
         )}

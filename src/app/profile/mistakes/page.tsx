@@ -4,8 +4,10 @@ import MistakesClient from "./MistakesClient";
 import { Header } from "@/components/layout/Header";
 // import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { Profile } from "@/types/database";
+import { getTranslations } from "next-intl/server";
 
 export default async function MistakesPage() {
+  const t = await getTranslations("profileMistakes.page");
   const supabase = await createClient();
 
   const {
@@ -28,7 +30,7 @@ export default async function MistakesPage() {
   // Header user data construction
   const rawProfile = profile || {
     id: user.id,
-    username: user.email?.split("@")[0] || "User",
+    username: user.email?.split("@")[0] || t("fallbackUser"),
     email: user.email,
     level: 1,
     streak_days: 0,
@@ -49,7 +51,7 @@ export default async function MistakesPage() {
   };
 
   const headerUser = {
-    username: userData.username || user.user_metadata?.name || "User",
+    username: userData.username || user.user_metadata?.name || t("fallbackUser"),
     avatar_url:
       userData.avatar_url ||
       user.user_metadata?.avatar_url ||

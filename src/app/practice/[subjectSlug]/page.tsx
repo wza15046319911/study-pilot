@@ -3,9 +3,9 @@ import { redirect } from "next/navigation";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { PracticeSession } from "./PracticeSession";
 import { Profile } from "@/types/database";
-import { Frown } from "lucide-react";
 import { decodeId } from "@/lib/ids";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
+import { getTranslations } from "next-intl/server";
 
 interface PageProps {
   params: Promise<{
@@ -21,7 +21,23 @@ interface PageProps {
   }>;
 }
 
+type PracticeQuestion = {
+  id: number;
+  content: string;
+  type: string;
+  options: string[] | null;
+  answer: string | null;
+  explanation: string | null;
+  code_snippet: string | null;
+  topic_id: number | null;
+  test_cases: unknown;
+};
+
+const hashString = (value: string) =>
+  value.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+
 export default async function PracticePage(props: PageProps) {
+  const t = await getTranslations("practicePage");
   const searchParamsStr = await props.searchParams;
   const params = await props.params;
 
@@ -29,7 +45,6 @@ export default async function PracticePage(props: PageProps) {
     difficulty,
     count,
     topic: topicSlug,
-    timer,
     questions,
   } = searchParamsStr;
 
@@ -77,10 +92,10 @@ export default async function PracticePage(props: PageProps) {
 
         <div className="flex-grow flex items-center justify-center">
           <NotFoundPage
-            title="Subject Not Found"
-            description="We couldn't find the subject you're looking for. It might have been deleted or moved."
+            title={t("subjectNotFound.title")}
+            description={t("subjectNotFound.description")}
             backLink="/library"
-            backText="Back to Library"
+            backText={t("subjectNotFound.back")}
           />
         </div>
       </div>
@@ -133,7 +148,7 @@ export default async function PracticePage(props: PageProps) {
       .map((id) => decodeId(id))
       .filter((id) => id !== null) || [];
 
-  let selectedQuestions: any[] = [];
+  let selectedQuestions: PracticeQuestion[] = [];
   const questionCountStr = count || "10";
 
   if (questionIds.length > 0) {
@@ -153,13 +168,19 @@ export default async function PracticePage(props: PageProps) {
     if (totalMatching && totalMatching > 0) {
       const limit = Math.min(parseInt(questionCountStr, 10), totalMatching);
       const maxOffset = Math.max(totalMatching - limit, 0);
-      const offset =
-        maxOffset > 0 ? Math.floor(Math.random() * (maxOffset + 1)) : 0;
+      const seed = [
+        user.id,
+        subject.id.toString(),
+        difficulty || "all",
+        topicSlug || "all",
+        questions || "all",
+      ].join("|");
+      const offset = maxOffset > 0 ? hashString(seed) % (maxOffset + 1) : 0;
 
       const { data: questionsPage } = await buildQuestionsQuery(questionSelect)
         .order("id")
         .range(offset, offset + limit - 1);
-      selectedQuestions = questionsPage || [];
+      selectedQuestions = (questionsPage as PracticeQuestion[] | null) || [];
     }
   }
 
@@ -170,10 +191,10 @@ export default async function PracticePage(props: PageProps) {
 
         <div className="flex-grow flex items-center justify-center">
           <NotFoundPage
-            title="No Questions Found"
-            description="We couldn't find any questions matching your filters."
+            title={t("noQuestions.title")}
+            description={t("noQuestions.description")}
             backLink={`/practice/${subject.slug}/setup`}
-            backText="Adjust Filters"
+            backText={t("noQuestions.back")}
           />
         </div>
       </div>
@@ -183,9 +204,7 @@ export default async function PracticePage(props: PageProps) {
   if (questionCountStr !== "all") {
     const limit = parseInt(questionCountStr, 10);
     if (selectedQuestions.length > limit) {
-      selectedQuestions = selectedQuestions
-        .sort(() => 0.5 - Math.random())
-        .slice(0, limit);
+      selectedQuestions = selectedQuestions.slice(0, limit);
     }
   }
 
@@ -218,7 +237,7 @@ export default async function PracticePage(props: PageProps) {
       profile?.username ||
       user.user_metadata?.name ||
       user.email?.split("@")[0] ||
-      "User",
+      t("fallbackUser"),
     avatar_url:
       profile?.avatar_url ||
       user.user_metadata?.avatar_url ||

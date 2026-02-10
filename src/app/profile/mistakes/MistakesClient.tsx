@@ -20,6 +20,7 @@ import {
   Check,
 } from "lucide-react";
 import { LatexContent } from "@/components/ui/LatexContent";
+import { useTranslations } from "next-intl";
 
 interface MistakeData {
   id: number;
@@ -49,7 +50,6 @@ interface MistakeData {
   };
 }
 
-// Stats are now handled by MistakesAnalytics component
 interface MistakesClientProps {
   mistakes: MistakeData[];
   userId: string;
@@ -62,6 +62,7 @@ export default function MistakesClient({
   userId,
   isVip,
 }: MistakesClientProps) {
+  const t = useTranslations("profileMistakes");
   const router = useRouter();
   const [mistakes, setMistakes] = useState(initialMistakes);
   const [showExportModal, setShowExportModal] = useState(false);
@@ -76,11 +77,7 @@ export default function MistakesClient({
 
   const handlePracticeAll = () => {
     if (mistakes.length === 0) return;
-    const subjectIds = [
-      ...new Set(mistakes.map((m) => m.questions.subject_id)),
-    ];
-    // If multiple subjects, just pick the first one for now as per previous logic
-    // Improvements could be made to handle multi-subject practice if backend supports it
+    const subjectIds = [...new Set(mistakes.map((m) => m.questions.subject_id))];
     const firstSubjectId = subjectIds[0];
     const questionIds = mistakes
       .filter((m) => m.questions.subject_id === firstSubjectId)
@@ -98,7 +95,6 @@ export default function MistakesClient({
     }
   };
 
-  // Get unique subjects for tabs
   const subjects = useMemo(() => {
     const uniqueSubjects = new Map();
     mistakes.forEach((m) => {
@@ -115,7 +111,6 @@ export default function MistakesClient({
     return Array.from(uniqueSubjects.values());
   }, [mistakes]);
 
-  // Filter mistakes based on search
   const filteredMistakes = useMemo(() => {
     const normalizedSearch = deferredSearchQuery.trim().toLowerCase();
     if (!normalizedSearch) {
@@ -131,49 +126,37 @@ export default function MistakesClient({
 
   return (
     <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-8">
         <Link href="/" className="hover:text-blue-600 transition-colors">
-          Home
+          {t("breadcrumb.home")}
         </Link>
         <ChevronRight className="size-4" />
         <Link href="/profile" className="hover:text-blue-600 transition-colors">
-          Profile
+          {t("breadcrumb.profile")}
         </Link>
         <ChevronRight className="size-4" />
         <span className="text-gray-900 dark:text-white font-medium">
-          Mistakes
+          {t("breadcrumb.mistakes")}
         </span>
       </div>
 
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-8">
         <div>
           <h1 className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight mb-2">
-            Mistake Book
+            {t("title")}
           </h1>
-          <p className="text-gray-500 text-lg">
-            Detailed breakdown of questions you&apos;ve missed.
-          </p>
+          <p className="text-gray-500 text-lg">{t("subtitle")}</p>
         </div>
 
         {mistakes.length > 0 && (
           <div className="flex gap-3">
-            {/* <Button
-              variant="outline"
-              onClick={() => setShowExportModal(true)}
-              className="rounded-xl border-gray-200 dark:border-gray-700"
-            >
-              <Download className="size-4 mr-2" />
-              Export
-            </Button> */}
             <Button
               onClick={handlePracticeAll}
               size="lg"
               className="rounded-xl shadow-lg shadow-blue-500/20 text-white bg-blue-600 hover:bg-blue-700"
             >
               <Play className="size-4 mr-2" />
-              Practice All
+              {t("practiceAll")}
             </Button>
           </div>
         )}
@@ -185,14 +168,11 @@ export default function MistakesClient({
             <Check className="size-10 text-green-500" />
           </div>
           <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
-            Clean Sheet!
+            {t("empty.title")}
           </h2>
-          <p className="text-gray-500 max-w-md mx-auto mb-8">
-            You don&apos;t have any pending mistakes to review. Keep up the
-            great work!
-          </p>
+          <p className="text-gray-500 max-w-md mx-auto mb-8">{t("empty.description")}</p>
           <Button variant="outline" onClick={() => router.push("/library")}>
-            Start New Practice
+            {t("empty.cta")}
           </Button>
         </div>
       ) : (
@@ -202,7 +182,7 @@ export default function MistakesClient({
               value="all"
               className="data-[state=active]:bg-blue-600 data-[state=active]:text-white bg-white dark:bg-slate-900 border border-gray-200 dark:border-gray-800 px-4 py-2 rounded-full"
             >
-              All Subjects
+              {t("tabs.allSubjects")}
               <span className="ml-2 text-xs opacity-70 bg-black/10 px-1.5 py-0.5 rounded-full">
                 {mistakes.length}
               </span>
@@ -221,16 +201,14 @@ export default function MistakesClient({
             ))}
           </TabsList>
 
-          {/* Content for All Subjects */}
           <TabsContent value="all" className="space-y-8">
             <MistakesAnalytics mistakes={mistakes} isPremium={isVip} />
 
-            {/* Search */}
             <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-200 dark:border-gray-800 flex items-center gap-4">
               <Search className="size-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search all mistakes..."
+                placeholder={t("search.allPlaceholder")}
                 className="bg-transparent flex-1 border-none focus:ring-0 text-gray-900 dark:text-white placeholder-gray-400 outline-none"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -243,30 +221,27 @@ export default function MistakesClient({
                   key={mistake.id}
                   mistake={mistake}
                   onRemove={handleRemoveMistake}
+                  t={t}
                 />
               ))}
             </div>
           </TabsContent>
 
-          {/* Content for Each Subject */}
           {subjects.map((subject: any) => {
             const subjectMistakes = filteredMistakes.filter(
               (m) => m.questions.subject_id === subject.id,
             );
             return (
-              <TabsContent
-                key={subject.id}
-                value={subject.name}
-                className="space-y-8"
-              >
+              <TabsContent key={subject.id} value={subject.name} className="space-y-8">
                 <MistakesAnalytics mistakes={subjectMistakes} isPremium={isVip} />
 
-                {/* Search (Scoped) */}
                 <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-gray-200 dark:border-gray-800 flex items-center gap-4">
                   <Search className="size-5 text-gray-400" />
                   <input
                     type="text"
-                    placeholder={`Search ${subject.name} mistakes...`}
+                    placeholder={t("search.scopedPlaceholder", {
+                      subject: subject.name,
+                    })}
                     className="bg-transparent flex-1 border-none focus:ring-0 text-gray-900 dark:text-white placeholder-gray-400 outline-none"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -280,11 +255,12 @@ export default function MistakesClient({
                         key={mistake.id}
                         mistake={mistake}
                         onRemove={handleRemoveMistake}
+                        t={t}
                       />
                     ))
                   ) : (
                     <div className="text-center py-12 text-gray-500">
-                      No mistakes found matching your search.
+                      {t("search.noResults")}
                     </div>
                   )}
                 </div>
@@ -304,20 +280,21 @@ export default function MistakesClient({
   );
 }
 
-// Sub-component for individual mistake card to keep main component clean
 function MistakeCard({
   mistake,
   onRemove,
+  t,
 }: {
   mistake: MistakeData;
   onRemove: (id: number) => void;
+  t: ReturnType<typeof useTranslations>;
 }) {
   return (
     <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-red-200 dark:hover:border-red-900/40 transition-colors flex flex-col md:flex-row gap-6 relative group">
       <button
         onClick={() => onRemove(mistake.id)}
         className="absolute top-4 right-4 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
-        title="Remove from mistakes"
+        title={t("remove")}
       >
         <Trash2 className="size-4" />
       </button>
@@ -326,7 +303,7 @@ function MistakeCard({
         <div className="flex items-center gap-2 flex-wrap">
           <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-xs font-bold rounded uppercase tracking-wider flex items-center gap-1.5">
             <RotateCw className="size-3" />
-            {mistake.error_count} Attempts
+            {t("attempts", { count: mistake.error_count })}
           </span>
         </div>
         <div>
@@ -336,7 +313,6 @@ function MistakeCard({
           <div className="text-sm text-gray-500 leading-relaxed mb-4">
             <LatexContent>{mistake.questions.content}</LatexContent>
           </div>
-          {/* Render Options if available */}
           {(() => {
             let options: any[] = [];
             if (Array.isArray(mistake.questions.options)) {
@@ -369,9 +345,7 @@ function MistakeCard({
 
                     return (
                       <div key={idx} className="flex items-start gap-3 text-sm">
-                        <span
-                          className={`shrink-0 size-6 flex items-center justify-center rounded-full font-bold text-xs border bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700`}
-                        >
+                        <span className="shrink-0 size-6 flex items-center justify-center rounded-full font-bold text-xs border bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700">
                           {derivedLabel}
                         </span>
                         <div className="flex-1 text-gray-600 dark:text-gray-400">
@@ -392,16 +366,16 @@ function MistakeCard({
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 text-xs font-bold text-red-500 uppercase tracking-wider">
             <XCircle className="size-3.5" />
-            My Answer
+            {t("labels.myAnswer")}
           </div>
           <p className="font-mono text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-900 p-2 rounded border border-red-100 dark:border-red-900/20">
-            {mistake.last_wrong_answer || "(No Answer)"}
+            {mistake.last_wrong_answer || t("labels.noAnswer")}
           </p>
         </div>
         <div className="space-y-1.5">
           <div className="flex items-center gap-2 text-xs font-bold text-green-500 uppercase tracking-wider">
             <CheckCircle2 className="size-3.5" />
-            Correct Answer
+            {t("labels.correctAnswer")}
           </div>
           <p className="font-mono text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-900 p-2 rounded border border-green-100 dark:border-green-900/20">
             {mistake.questions.answer}

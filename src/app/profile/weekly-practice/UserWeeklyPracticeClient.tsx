@@ -13,6 +13,7 @@ import {
   type StudyWeekCode,
 } from "@/lib/weekly-practice-weeks";
 import { Calendar, Sparkles, Target, Trophy, ArrowUpRight } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 type WeeklyPracticeItem = {
   id: number;
@@ -58,6 +59,8 @@ export function UserWeeklyPracticeClient({
   initialData,
   showSummary = true,
 }: UserWeeklyPracticeClientProps) {
+  const t = useTranslations("profileWeeklyPractice");
+  const locale = useLocale();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [weekFilter, setWeekFilter] = useState<"all-weeks" | StudyWeekCode>(
@@ -139,7 +142,7 @@ export function UserWeeklyPracticeClient({
           <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5">
             <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
               <Trophy className="size-4" />
-              Completed Weeks
+              {t("summary.completedWeeks")}
             </div>
             <div className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
               {summary.totalCompleted}
@@ -148,7 +151,7 @@ export function UserWeeklyPracticeClient({
           <div className="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5">
             <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
               <Target className="size-4" />
-              Questions Answered
+              {t("summary.questionsAnswered")}
             </div>
             <div className="mt-2 text-3xl font-bold text-slate-900 dark:text-white">
               {summary.totalAnswered}
@@ -157,7 +160,7 @@ export function UserWeeklyPracticeClient({
           <div className="rounded-2xl bg-gradient-to-br from-indigo-500 via-blue-500 to-cyan-500 text-white p-5">
             <div className="flex items-center gap-2 text-sm text-white/80">
               <Sparkles className="size-4" />
-              Accuracy
+              {t("summary.accuracy")}
             </div>
             <div className="mt-2 text-3xl font-bold">{summary.accuracy}%</div>
           </div>
@@ -169,7 +172,7 @@ export function UserWeeklyPracticeClient({
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search weekly practice..."
+            placeholder={t("searchPlaceholder")}
             className="border-none bg-transparent focus:ring-0 focus:outline-none"
           />
         </div>
@@ -180,11 +183,11 @@ export function UserWeeklyPracticeClient({
             onChange={(e) => setFilter(e.target.value)}
             className="md:w-44"
             options={[
-              { value: "all", label: "All Status" },
-              { value: "completed", label: "Completed" },
-              { value: "pending", label: "Pending" },
+              { value: "all", label: t("filters.allStatus") },
+              { value: "completed", label: t("filters.completed") },
+              { value: "pending", label: t("filters.pending") },
             ]}
-            placeholder="Status"
+            placeholder={t("filters.status")}
           />
           <Select
             value={weekFilter}
@@ -193,14 +196,14 @@ export function UserWeeklyPracticeClient({
             }
             className="md:w-56"
             options={weekFilterOptions}
-            placeholder="Week"
+            placeholder={t("filters.week")}
           />
         </div>
       </div>
 
       {filteredAndSorted.length === 0 ? (
         <div className="text-center py-16 text-slate-500 dark:text-slate-400">
-          No weekly practice sets match your filters.
+          {t("empty")}
         </div>
       ) : (
         <div className="grid gap-6">
@@ -250,10 +253,10 @@ export function UserWeeklyPracticeClient({
                         }`}
                       >
                         {isCompleted
-                          ? "Completed"
+                          ? t("status.completed")
                           : isInProgress
-                            ? "In progress"
-                            : "Not started"}
+                            ? t("status.inProgress")
+                            : t("status.notStarted")}
                       </span>
                     </div>
 
@@ -262,14 +265,17 @@ export function UserWeeklyPracticeClient({
                         {practice.title}
                       </h3>
                       <p className="mt-2 text-slate-600 dark:text-slate-400">
-                        {practice.description || "No description provided."}
+                        {practice.description || t("noDescription")}
                       </p>
                     </div>
 
                     <div className="mt-3">
                       <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                         <span>
-                          Progress: {answeredCount}/{totalQuestions} answered
+                          {t("progress", {
+                            answered: answeredCount,
+                            total: totalQuestions,
+                          })}
                         </span>
                         <span>{progressPercent}%</span>
                       </div>
@@ -283,13 +289,18 @@ export function UserWeeklyPracticeClient({
 
                     {submission && (
                       <div className="text-xs text-slate-500 dark:text-slate-400">
-                        Last submitted:{" "}
-                        {new Intl.DateTimeFormat("en-AU", {
+                        {t("lastSubmitted")}{" "}
+                        {new Intl.DateTimeFormat(
+                          locale === "zh" ? "zh-CN" : "en-AU",
+                          {
                           dateStyle: "medium",
                           timeStyle: "short",
-                        }).format(new Date(submission.submitted_at))}{" "}
-                        · Score {submission.correct_count}/
-                        {submission.total_count}
+                          },
+                        ).format(new Date(submission.submitted_at))} ·{" "}
+                        {t("score", {
+                          correct: submission.correct_count,
+                          total: submission.total_count,
+                        })}
                       </div>
                     )}
                   </div>
@@ -299,7 +310,7 @@ export function UserWeeklyPracticeClient({
                       href={`/weekly-practice/${slugOrEncodedId(practice.slug, practice.id)}/practice`}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors"
                     >
-                      {isInProgress ? "Continue" : "Start"}
+                      {isInProgress ? t("cta.continue") : t("cta.start")}
                       <ArrowUpRight className="size-3" />
                     </Link>
                   </div>

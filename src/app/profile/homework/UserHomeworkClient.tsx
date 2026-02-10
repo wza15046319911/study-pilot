@@ -15,6 +15,7 @@ import {
   Brain,
   GraduationCap,
 } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 
 type HomeworkAssignment = {
   id: number;
@@ -45,29 +46,29 @@ interface UserHomeworkClientProps {
   initialData: HomeworkAssignment[];
 }
 
-const modeMap = {
+const getModeMap = (t: ReturnType<typeof useTranslations>) => ({
   standard: {
-    label: "Standard",
+    label: t("modes.standard"),
     icon: ListChecks,
     route: "practice",
     className:
       "bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-400",
   },
   immersive: {
-    label: "Immersive",
+    label: t("modes.immersive"),
     icon: Brain,
     route: "immersive",
     className:
       "bg-violet-600 text-white hover:bg-violet-700 dark:bg-violet-500 dark:hover:bg-violet-400",
   },
   flashcard: {
-    label: "Flashcard",
+    label: t("modes.flashcard"),
     icon: GraduationCap,
     route: "flashcards",
     className:
       "bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-400",
   },
-};
+});
 
 const getDaysLeft = (dueAt: string | null) => {
   if (!dueAt) return null;
@@ -78,10 +79,13 @@ const getDaysLeft = (dueAt: string | null) => {
   return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
 };
 
-const getStatus = (daysLeft: number | null) => {
+const getStatus = (
+  daysLeft: number | null,
+  t: ReturnType<typeof useTranslations>,
+) => {
   if (daysLeft === null) {
     return {
-      label: "No deadline",
+      label: t("statusBadges.noDeadline"),
       className:
         "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300",
       accent: "border-slate-200 dark:border-slate-700",
@@ -90,7 +94,7 @@ const getStatus = (daysLeft: number | null) => {
   }
   if (daysLeft < 0) {
     return {
-      label: "Overdue",
+      label: t("statusBadges.overdue"),
       className:
         "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300",
       accent: "border-rose-300 dark:border-rose-700",
@@ -99,7 +103,7 @@ const getStatus = (daysLeft: number | null) => {
   }
   if (daysLeft <= 1) {
     return {
-      label: "Due in 1 day",
+      label: t("statusBadges.dueIn1Day"),
       className:
         "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
       accent: "border-amber-300 dark:border-amber-700",
@@ -108,7 +112,7 @@ const getStatus = (daysLeft: number | null) => {
   }
   if (daysLeft <= 3) {
     return {
-      label: "Due in 3 days",
+      label: t("statusBadges.dueIn3Days"),
       className:
         "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
       accent: "border-orange-300 dark:border-orange-700",
@@ -117,7 +121,7 @@ const getStatus = (daysLeft: number | null) => {
   }
   if (daysLeft <= 7) {
     return {
-      label: "Due in 7 days",
+      label: t("statusBadges.dueIn7Days"),
       className:
         "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
       accent: "border-blue-300 dark:border-blue-700",
@@ -125,7 +129,7 @@ const getStatus = (daysLeft: number | null) => {
     };
   }
   return {
-    label: "On track",
+    label: t("statusBadges.onTrack"),
     className:
       "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
     accent: "border-emerald-300 dark:border-emerald-700",
@@ -133,11 +137,15 @@ const getStatus = (daysLeft: number | null) => {
   };
 };
 
-const formatDueDate = (dueAt: string | null) => {
-  if (!dueAt) return "No deadline";
+const formatDueDate = (
+  dueAt: string | null,
+  t: ReturnType<typeof useTranslations>,
+  locale: string,
+) => {
+  if (!dueAt) return t("statusBadges.noDeadline");
   const date = new Date(dueAt);
-  if (Number.isNaN(date.getTime())) return "No deadline";
-  return new Intl.DateTimeFormat("en-AU", {
+  if (Number.isNaN(date.getTime())) return t("statusBadges.noDeadline");
+  return new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-AU", {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(date);
@@ -166,6 +174,9 @@ const getTimeProgress = (assignedAt: string, dueAt: string | null) => {
 };
 
 export function UserHomeworkClient({ initialData }: UserHomeworkClientProps) {
+  const t = useTranslations("profileHomework");
+  const locale = useLocale();
+  const modeMap = useMemo(() => getModeMap(t), [t]);
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
 
@@ -199,7 +210,7 @@ export function UserHomeworkClient({ initialData }: UserHomeworkClientProps) {
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search homework or subject..."
+            placeholder={t("searchPlaceholder")}
             className="border-none bg-transparent focus:ring-0 focus:outline-none"
           />
         </div>
@@ -209,26 +220,26 @@ export function UserHomeworkClient({ initialData }: UserHomeworkClientProps) {
           onChange={(e) => setFilter(e.target.value)}
           className="md:w-56"
           options={[
-            { value: "all", label: "All homework" },
-            { value: "due_7", label: "Due in 7 days" },
-            { value: "due_3", label: "Due in 3 days" },
-            { value: "due_1", label: "Due in 1 day" },
-            { value: "overdue", label: "Overdue" },
+            { value: "all", label: t("filters.all") },
+            { value: "due_7", label: t("filters.due7") },
+            { value: "due_3", label: t("filters.due3") },
+            { value: "due_1", label: t("filters.due1") },
+            { value: "overdue", label: t("filters.overdue") },
           ]}
-          placeholder="Filter"
+          placeholder={t("filters.placeholder")}
         />
       </div>
 
       {filtered.length === 0 ? (
         <div className="text-center py-16 text-slate-500 dark:text-slate-400">
-          No homework assignments match your filters.
+          {t("empty")}
         </div>
       ) : (
         <div className="grid gap-6">
           {filtered.map((assignment) => {
             const homework = assignment.homework;
             const daysLeft = getDaysLeft(homework.due_at);
-            const status = getStatus(daysLeft);
+            const status = getStatus(daysLeft, t);
             const StatusIcon = status.icon;
             const allowedModes = homework.allowed_modes || [
               "standard",
@@ -248,10 +259,10 @@ export function UserHomeworkClient({ initialData }: UserHomeworkClientProps) {
                 ? Math.min(100, Math.round((answeredCount / totalCount) * 100))
                 : 0;
             const completionLabel = isCompleted
-              ? "Completed"
+              ? t("status.completed")
               : hasProgress
-                ? "In progress"
-                : "Not submitted";
+                ? t("status.inProgress")
+                : t("status.notSubmitted");
 
             return (
               <div
@@ -290,20 +301,22 @@ export function UserHomeworkClient({ initialData }: UserHomeworkClientProps) {
                         {homework.title}
                       </h3>
                       <p className="mt-2 text-slate-600 dark:text-slate-400">
-                        {homework.description || "No description provided."}
+                        {homework.description || t("noDescription")}
                       </p>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500 dark:text-slate-400">
                       <CalendarClock className="size-4" />
-                      Due: {formatDueDate(homework.due_at)}
+                      {t("duePrefix")}: {formatDueDate(homework.due_at, t, locale)}
                     </div>
 
                     <div className="mt-3">
                       <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                         <span>
-                          Progress: {answeredCount}/
-                          {totalCount || totalQuestions} answered
+                          {t("progressLabel", {
+                            answered: answeredCount,
+                            total: totalCount || totalQuestions,
+                          })}
                         </span>
                         <span>{progressPercent}%</span>
                       </div>
@@ -327,7 +340,7 @@ export function UserHomeworkClient({ initialData }: UserHomeworkClientProps) {
                             <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
                               <span className="flex items-center gap-1.5">
                                 <Flame className="size-3 text-orange-500" />
-                                Time Elapsed
+                                {t("timeElapsed")}
                               </span>
                               <span>{Math.round(timeProgress.percent)}%</span>
                             </div>
@@ -349,16 +362,19 @@ export function UserHomeworkClient({ initialData }: UserHomeworkClientProps) {
                   <div className="mt-3 text-xs text-slate-500 dark:text-slate-400">
                     {latestSubmission ? (
                       <span>
-                        Last submitted:{" "}
-                        {new Intl.DateTimeFormat("en-AU", {
+                        {t("lastSubmitted")}:{" "}
+                        {new Intl.DateTimeFormat(
+                          locale === "zh" ? "zh-CN" : "en-AU",
+                          {
                           dateStyle: "medium",
                           timeStyle: "short",
-                        }).format(new Date(latestSubmission.submitted_at))}{" "}
-                        · Score {latestSubmission.correct_count}/
+                          },
+                        ).format(new Date(latestSubmission.submitted_at))}{" "}
+                        · {t("score")} {latestSubmission.correct_count}/
                         {latestSubmission.total_count}
                       </span>
                     ) : (
-                      <span>No submission yet.</span>
+                      <span>{t("noSubmissionYet")}</span>
                     )}
                   </div>
                 </div>

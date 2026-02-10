@@ -5,6 +5,7 @@ import { NotFoundPage } from "@/components/ui/NotFoundPage";
 import { Header } from "@/components/layout/Header";
 import { QuestionBankPreviewContent } from "@/app/question-banks/[slug]/QuestionBankPreviewContent";
 import { slugOrEncodedId } from "@/lib/ids";
+import { getTranslations } from "next-intl/server";
 
 interface PageProps {
   params: Promise<{
@@ -12,6 +13,42 @@ interface PageProps {
     questionBankSlug: string;
   }>;
 }
+
+type BankPreviewRow = {
+  id: number;
+  title: string;
+  slug: string | null;
+  description: string | null;
+  subject_id: number;
+  unlock_type: "free" | "premium" | "referral" | "paid";
+  is_premium: boolean;
+  price: number | null;
+  allowed_modes: string[] | null;
+  subject: {
+    name: string;
+    slug: string | null;
+    icon?: string | null;
+  } | null;
+};
+
+type ProfileRow = {
+  id: string;
+  username: string | null;
+  avatar_url: string | null;
+  is_vip: boolean | null;
+};
+
+type UnlockRow = {
+  id: number;
+  unlock_type: string;
+};
+
+type BankItemStatsRow = {
+  question: {
+    difficulty: "easy" | "medium" | "hard" | string;
+    topic: { name: string } | { name: string }[] | null;
+  } | null;
+};
 
 export async function generateMetadata(props: PageProps) {
   const params = await props.params;
@@ -32,6 +69,7 @@ export async function generateMetadata(props: PageProps) {
 }
 
 export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
+  const t = await getTranslations("libraryErrors");
   const params = await props.params;
   const { subjectSlug, questionBankSlug } = params;
   const supabase = await createClient();
@@ -47,9 +85,8 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
     );
   }
 
-  const { data: banks, error: bankError } = await (
-    supabase.from("question_banks") as any
-  )
+  const { data: banks, error: bankError } = await supabase
+    .from("question_banks")
     .select(
       `
       id,
@@ -66,33 +103,35 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
     )
     .eq("slug", questionBankSlug);
 
-  const bank = (banks || []).find(
-    (candidate: any) => candidate.subject?.slug === subjectSlug,
+  const bank = ((banks as BankPreviewRow[] | null) || []).find(
+    (candidate) => candidate.subject?.slug === subjectSlug,
   );
 
   if (!bank || bankError) {
     return (
       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc]">
         <AmbientBackground />
-        <Header user={{ username: "User" }} />
+        <Header user={{ username: t("fallbackUser") }} />
         <div className="flex-grow flex items-center justify-center">
           <NotFoundPage
-            title="Question Bank Not Found"
-            description="The question bank you are trying to access does not exist."
+            title={t("questionBankNotFound.title")}
+            description={t("questionBankNotFound.description")}
             backLink={`/library/${subjectSlug}`}
-            backText="Back to Subject"
+            backText={t("questionBankNotFound.backToSubject")}
           />
         </div>
       </div>
     );
   }
 
-  const profilePromise = (supabase.from("profiles") as any)
+  const profilePromise = supabase
+    .from("profiles")
     .select("id, username, avatar_url, is_vip")
     .eq("id", user.id)
     .single();
 
-  const unlockPromise = (supabase.from("user_bank_unlocks") as any)
+  const unlockPromise = supabase
+    .from("user_bank_unlocks")
     .select("id, unlock_type")
     .eq("user_id", user.id)
     .eq("bank_id", bank.id)
@@ -125,8 +164,8 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
       itemsPromise,
     ]);
 
-  const profile = profileResult.data as any;
-  const unlock = unlockResult.data as any;
+  const profile = profileResult.data as ProfileRow | null;
+  const unlock = unlockResult.data as UnlockRow | null;
 
   // Check Unlock Status
   let isUnlocked = false;
@@ -143,7 +182,7 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
     unlockReason = unlock.unlock_type;
   }
 
-  const items = (itemsResult.data || []) as any[];
+  const items = (itemsResult.data || []) as BankItemStatsRow[];
   const difficultyCounts = { easy: 0, medium: 0, hard: 0 };
   const topicCounts: Record<string, number> = {};
   let totalQuestions = 0;
@@ -166,14 +205,14 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
     topicCounts[topicName] = (topicCounts[topicName] || 0) + 1;
   }
 
-  const sortedTopics = Object.entries(topicCounts)
-    .sort(([, a], [, b]) => (b as number) - (a as number))
+  const sortedTopics = (Object.entries(topicCounts) as [string, number][])
+    .sort(([, a], [, b]) => b - a)
     .slice(0, 5);
 
   const isCollected = !!collectionResult.data;
 
   const userData = {
-    username: profile?.username || user.email?.split("@")[0] || "User",
+    username: profile?.username || user.email?.split("@")[0] || t("fallbackUser"),
     avatar_url: profile?.avatar_url ?? undefined,
     is_vip: profile?.is_vip || false,
   };
@@ -190,7 +229,7 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
       bank={bankWithLibraryContext}
       user={userData}
       difficultyCounts={difficultyCounts}
-      sortedTopics={sortedTopics as any}
+      sortedTopics={sortedTopics}
       totalQuestions={totalQuestions}
       isUnlocked={isUnlocked}
       unlockReason={unlockReason}

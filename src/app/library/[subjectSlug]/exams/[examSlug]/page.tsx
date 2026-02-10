@@ -5,6 +5,7 @@ import { NotFoundPage } from "@/components/ui/NotFoundPage";
 import { Header } from "@/components/layout/Header";
 import { ExamPreviewContent } from "./ExamPreviewContent";
 import { decodeId, slugOrEncodedId } from "@/lib/ids";
+import { getTranslations } from "next-intl/server";
 
 interface PageProps {
   params: Promise<{
@@ -12,6 +13,13 @@ interface PageProps {
     examSlug: string;
   }>;
 }
+
+type ExamQuestionRow = {
+  question: {
+    difficulty: "easy" | "medium" | "hard" | string;
+    topic: { name: string } | { name: string }[] | null;
+  } | null;
+};
 
 export async function generateMetadata(props: PageProps) {
   const params = await props.params;
@@ -32,6 +40,7 @@ export async function generateMetadata(props: PageProps) {
 }
 
 export default async function LibraryExamPreviewPage(props: PageProps) {
+  const t = await getTranslations("libraryErrors");
   const params = await props.params;
   const { subjectSlug, examSlug } = params;
   const decodedExamId = decodeId(examSlug);
@@ -65,7 +74,8 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
   }
 
   // Fetch Exam
-  let { data: exam, error: examError } = await (supabase.from("exams") as any)
+  let { data: exam, error: examError } = await supabase
+    .from("exams")
     .select(
       [
         "id",
@@ -84,7 +94,8 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
     .maybeSingle();
 
   if (!exam && decodedExamId !== null) {
-    const fallbackResult = await (supabase.from("exams") as any)
+    const fallbackResult = await supabase
+      .from("exams")
       .select(
         [
           "id",
@@ -109,13 +120,13 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
     return (
       <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc]">
         <AmbientBackground />
-        <Header user={{ username: "User" }} />
+        <Header user={{ username: t("fallbackUser") }} />
         <div className="flex-grow flex items-center justify-center">
           <NotFoundPage
-            title="Exam Not Found"
-            description="The exam you are trying to access does not exist."
+            title={t("examNotFound.title")}
+            description={t("examNotFound.description")}
             backLink={`/library/${subjectSlug}`}
-            backText="Back to Subject"
+            backText={t("examNotFound.backToSubject")}
           />
         </div>
       </div>
@@ -123,13 +134,14 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
   }
 
   // Fetch User Profile
-  const { data: profile } = await (supabase.from("profiles") as any)
+  const { data: profile } = await supabase
+    .from("profiles")
     .select("id, username, avatar_url, is_vip")
     .eq("id", user.id)
     .single();
 
   const userData = {
-    username: profile?.username || user.email?.split("@")[0] || "User",
+    username: profile?.username || user.email?.split("@")[0] || t("fallbackUser"),
     avatar_url: profile?.avatar_url ?? undefined,
     is_vip: profile?.is_vip || false,
   };
@@ -141,7 +153,8 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
   } else if (exam.unlock_type === "premium" && profile?.is_vip) {
     isUnlocked = true;
   } else {
-    const { data: unlock } = await (supabase.from("user_exam_unlocks") as any)
+    const { data: unlock } = await supabase
+      .from("user_exam_unlocks")
       .select("id")
       .eq("user_id", user.id)
       .eq("exam_id", exam.id)
@@ -165,19 +178,21 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
     )
     .eq("exam_id", exam.id);
 
-  const questions = (examQuestions || []).map((eq: any) => eq.question);
+  const questions = ((examQuestions as ExamQuestionRow[] | null) || [])
+    .map((eq) => eq.question)
+    .filter(Boolean);
   const totalQuestions = questions.length;
 
   // Calculate Stats
   const difficultyCounts = questions.reduce(
-    (acc: any, q: any) => {
+    (acc: Record<string, number>, q) => {
       acc[q.difficulty] = (acc[q.difficulty] || 0) + 1;
       return acc;
     },
     { easy: 0, medium: 0, hard: 0 }
   );
 
-  const topicCounts = questions.reduce((acc: any, q: any) => {
+  const topicCounts = questions.reduce((acc: Record<string, number>, q) => {
     const topicValue = Array.isArray(q.topic) ? q.topic[0] : q.topic;
     const topicName = topicValue?.name || "General";
     acc[topicName] = (acc[topicName] || 0) + 1;
@@ -196,7 +211,7 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
       }}
       user={userData}
       difficultyCounts={difficultyCounts}
-      sortedTopics={sortedTopics as any}
+      sortedTopics={sortedTopics}
       totalQuestions={totalQuestions}
       isUnlocked={isUnlocked}
       libraryContext={{

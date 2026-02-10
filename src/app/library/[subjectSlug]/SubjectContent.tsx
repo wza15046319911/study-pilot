@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { UserWeeklyPracticeClient } from "@/app/profile/weekly-practice/UserWeeklyPracticeClient";
 import { encodeId } from "@/lib/ids";
+import { useTranslations } from "next-intl";
 
 interface SubjectContentProps {
   subject: {
@@ -27,13 +28,17 @@ interface SubjectContentProps {
     slug: string;
     icon?: string;
   };
-  exams: any[];
-  banks: any[];
+  exams: AccessItem[];
+  banks: AccessItem[];
   isVip: boolean;
   unlockedBankIds: Set<number>;
   unlockedExamIds: Set<number>;
   questionCount: number;
-  examDates: any[];
+  examDates: {
+    id: number;
+    exam_type: "midterm" | "final" | string;
+    exam_date: string;
+  }[];
   weeklyPractices?: WeeklyPracticeItem[];
   pastExams?: PastExamListItem[];
 }
@@ -67,6 +72,13 @@ type PastExamListItem = {
 };
 
 type AccessTier = "invite" | "public" | "premium" | "paid";
+type AccessItem = {
+  id: number;
+  slug: string | null;
+  unlock_type: "free" | "premium" | "referral" | "paid" | null;
+  is_premium: boolean | null;
+  items?: { count: number }[] | null;
+};
 
 const ACCESS_TIER_ORDER: AccessTier[] = [
   "invite",
@@ -75,34 +87,22 @@ const ACCESS_TIER_ORDER: AccessTier[] = [
   "paid",
 ];
 
-const ACCESS_TIER_LABELS: Record<AccessTier, string> = {
-  invite: "Invite to Unlock",
-  public: "Public",
-  premium: "Premium",
-  paid: "Paid Only",
-};
-
-const getAccessTier = (item: any): AccessTier => {
+const getAccessTier = (item: AccessItem): AccessTier => {
   if (item.unlock_type === "referral") return "invite";
   if (item.unlock_type === "paid") return "paid";
   if (item.is_premium) return "premium";
   return "public";
 };
 
-const groupByAccessTier = (items: any[]) =>
+const groupByAccessTier = (items: AccessItem[]) =>
   ACCESS_TIER_ORDER.map((tier) => ({
     tier,
     items: items.filter((item) => getAccessTier(item) === tier),
   })).filter((group) => group.items.length > 0);
 
-const getSemesterLabel = (semester: number) =>
-  semester === 1 ? "Semester 1" : "Semester 2";
-
 const studyToolCards = [
   {
     key: "weekly",
-    title: "Weekly Practice",
-    body: "Scheduled sets for steady momentum across the semester.",
     accent:
       "border-sky-200/70 bg-[radial-gradient(circle_at_top_right,_rgba(56,189,248,0.25),_transparent_55%),linear-gradient(135deg,rgba(240,249,255,0.85),rgba(255,255,255,0.95))] dark:border-sky-900/60 dark:bg-[radial-gradient(circle_at_top_right,_rgba(14,116,144,0.35),_transparent_55%),linear-gradient(135deg,rgba(2,6,23,0.75),rgba(15,23,42,0.9))]",
     pill: "text-sky-700 bg-sky-100/70 dark:text-sky-200 dark:bg-sky-900/35",
@@ -111,8 +111,6 @@ const studyToolCards = [
   },
   {
     key: "bank",
-    title: "Question Banks",
-    body: "Topic-focused drills to target weak spots with flexible practice modes.",
     accent:
       "border-violet-200/70 bg-[radial-gradient(circle_at_top_right,_rgba(167,139,250,0.25),_transparent_55%),linear-gradient(135deg,rgba(245,243,255,0.88),rgba(255,255,255,0.95))] dark:border-violet-900/60 dark:bg-[radial-gradient(circle_at_top_right,_rgba(109,40,217,0.35),_transparent_55%),linear-gradient(135deg,rgba(15,23,42,0.85),rgba(30,27,75,0.75))]",
     pill: "text-violet-700 bg-violet-100/70 dark:text-violet-200 dark:bg-violet-900/35",
@@ -121,8 +119,6 @@ const studyToolCards = [
   },
   {
     key: "mock",
-    title: "Mock Exams",
-    body: "Timed simulations that mirror real exam pressure and pacing.",
     accent:
       "border-amber-200/70 bg-[radial-gradient(circle_at_top_right,_rgba(251,191,36,0.25),_transparent_55%),linear-gradient(135deg,rgba(255,251,235,0.88),rgba(255,255,255,0.95))] dark:border-amber-900/60 dark:bg-[radial-gradient(circle_at_top_right,_rgba(146,64,14,0.35),_transparent_55%),linear-gradient(135deg,rgba(23,23,23,0.75),rgba(30,41,59,0.85))]",
     pill: "text-amber-700 bg-amber-100/70 dark:text-amber-200 dark:bg-amber-900/35",
@@ -138,12 +134,20 @@ export function SubjectContent({
   isVip,
   unlockedBankIds,
   unlockedExamIds,
-  questionCount,
   examDates,
   weeklyPractices,
   pastExams,
 }: SubjectContentProps) {
+  const t = useTranslations("subjectContent");
   const [showPremiumModal, setShowPremiumModal] = useState(false);
+  const accessTierLabels: Record<AccessTier, string> = {
+    invite: t("access.invite"),
+    public: t("access.public"),
+    premium: t("access.premium"),
+    paid: t("access.paid"),
+  };
+  const getSemesterLabel = (semester: number) =>
+    semester === 1 ? t("semester.one") : t("semester.two");
 
   // Find nearest upcoming exam
   const upcomingExam = examDates
@@ -173,8 +177,8 @@ export function SubjectContent({
       <PremiumModal
         isOpen={showPremiumModal}
         onClose={() => setShowPremiumModal(false)}
-        title="Unlock Custom Practice"
-        description="Configure your perfect practice session by choosing specific topics, difficulties, and question counts with StudyPilot Premium."
+        title={t("premiumModal.title")}
+        description={t("premiumModal.description")}
       />
 
       {/* Hero Section */}
@@ -185,8 +189,7 @@ export function SubjectContent({
               {subject.name}
             </h1>
             <p className="text-xl text-slate-500 dark:text-slate-400 font-light max-w-2xl">
-              Explore practice materials, mock exams, and curated question
-              banks.
+              {t("hero.description")}
             </p>
 
             {upcomingExam && (
@@ -194,8 +197,10 @@ export function SubjectContent({
                 <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold animate-pulse">
                   <Clock className="size-5" />
                   <span>
-                    {upcomingExam.exam_type === "midterm" ? "Midterm" : "Final"}{" "}
-                    Exam Countdown:
+                    {upcomingExam.exam_type === "midterm"
+                      ? t("hero.midterm")
+                      : t("hero.final")}{" "}
+                    {t("hero.examCountdown")}
                   </span>
                 </div>
                 <CountdownTimer
@@ -216,14 +221,14 @@ export function SubjectContent({
             <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
               <div className="flex items-center gap-3">
                 <p className="text-base md:text-lg font-semibold text-slate-900 dark:text-white">
-                  Your Study Toolkit
+                  {t("toolkit.title")}
                 </p>
               </div>
               <Link
                 href="/profile/homework"
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 hover:text-blue-800 dark:text-blue-300 dark:hover:text-blue-200 transition-colors"
               >
-                Homework in Profile
+                {t("toolkit.homeworkInProfile")}
                 <ArrowUpRight className="size-4" />
               </Link>
             </div>
@@ -237,17 +242,17 @@ export function SubjectContent({
                   <div className="flex items-center justify-between gap-3 mb-2.5">
                     <span className={`text-sm font-semibold ${card.iconClass}`}>
                       {card.key === "weekly"
-                        ? "Weekly"
+                        ? t("toolkit.cards.weekly.pill")
                         : card.key === "bank"
-                          ? "Drill"
-                          : "Timed"}
+                          ? t("toolkit.cards.bank.pill")
+                          : t("toolkit.cards.mock.pill")}
                     </span>
                   </div>
                   <h3 className="text-base font-bold text-slate-900 dark:text-white mb-1.5">
-                    {card.title}
+                    {t(`toolkit.cards.${card.key}.title`)}
                   </h3>
                   <p className="text-sm leading-relaxed text-slate-700 dark:text-slate-300">
-                    {card.body}
+                    {t(`toolkit.cards.${card.key}.body`)}
                   </p>
                 </article>
               ))}
@@ -265,7 +270,7 @@ export function SubjectContent({
               className="data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 dark:data-[state=active]:text-blue-400 dark:data-[state=active]:border-blue-400 bg-transparent text-slate-500 dark:text-slate-400 border-b-2 border-transparent px-4 py-3 rounded-none font-semibold text-base hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
             >
               <CalendarCheck className="size-5 mr-2" />
-              Weekly Practice
+              {t("tabs.weeklyPractice")}
               {weeklyPractices && weeklyPractices.length > 0 && (
                 <span className="ml-2 text-xs opacity-70 bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full">
                   {weeklyPractices.length}
@@ -277,7 +282,7 @@ export function SubjectContent({
               className="data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 dark:data-[state=active]:text-blue-400 dark:data-[state=active]:border-blue-400 bg-transparent text-slate-500 dark:text-slate-400 border-b-2 border-transparent px-4 py-3 rounded-none font-semibold text-base hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
             >
               <BookOpen className="size-5 mr-2" />
-              Question Banks
+              {t("tabs.questionBanks")}
               {banks.length > 0 && (
                 <span className="ml-2 text-xs opacity-70 bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full">
                   {banks.length}
@@ -289,7 +294,7 @@ export function SubjectContent({
               className="data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 dark:data-[state=active]:text-blue-400 dark:data-[state=active]:border-blue-400 bg-transparent text-slate-500 dark:text-slate-400 border-b-2 border-transparent px-4 py-3 rounded-none font-semibold text-base hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
             >
               <GraduationCap className="size-5 mr-2" />
-              Mock Exams
+              {t("tabs.mockExams")}
               {exams.length > 0 && (
                 <span className="ml-2 text-xs opacity-70 bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full">
                   {exams.length}
@@ -301,7 +306,7 @@ export function SubjectContent({
               className="data-[state=active]:bg-transparent data-[state=active]:text-blue-600 data-[state=active]:border-b-2 data-[state=active]:border-blue-600 dark:data-[state=active]:text-blue-400 dark:data-[state=active]:border-blue-400 bg-transparent text-slate-500 dark:text-slate-400 border-b-2 border-transparent px-4 py-3 rounded-none font-semibold text-base hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
             >
               <Archive className="size-5 mr-2" />
-              Past Exam Answers
+              {t("tabs.pastExamAnswers")}
               {pastExams && pastExams.length > 0 && (
                 <span className="ml-2 text-xs opacity-70 bg-slate-200 dark:bg-slate-700 px-2 py-0.5 rounded-full">
                   {pastExams.length}
@@ -317,10 +322,10 @@ export function SubjectContent({
                 <div className="flex items-center justify-between mb-8">
                   <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
                     <CalendarCheck className="size-6 text-blue-600 dark:text-blue-400" />
-                    Weekly Practice
+                    {t("weeklyPractice.title")}
                   </h2>
                   <span className="hidden md:inline-block text-sm text-slate-500">
-                    Stay on track with curated weekly sets.
+                    {t("weeklyPractice.subtitle")}
                   </span>
                 </div>
 
@@ -333,11 +338,10 @@ export function SubjectContent({
               <div className="max-w-md mx-auto text-center py-20 px-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
                 <CalendarCheck className="size-12 text-slate-300 mx-auto mb-4" />
                 <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                  No Weekly Practice Yet
+                  {t("empty.weekly.title")}
                 </h3>
                 <p className="text-slate-500">
-                  Weekly practice sets for this subject have not been published
-                  yet.
+                  {t("empty.weekly.description")}
                 </p>
               </div>
             )}
@@ -351,7 +355,7 @@ export function SubjectContent({
                   <div className="flex items-end justify-between mb-8">
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
                       <BookOpen className="size-6 text-amber-600 dark:text-amber-400" />
-                      Curated Collections
+                      {t("questionBanks.curatedCollections")}
                     </h2>
                   </div>
                   <div className="space-y-10">
@@ -359,14 +363,14 @@ export function SubjectContent({
                       <section key={`bank-${group.tier}`} className="space-y-4">
                         <div className="flex items-center justify-between">
                           <h3 className="text-sm md:text-base font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-300">
-                            {ACCESS_TIER_LABELS[group.tier]}
+                            {accessTierLabels[group.tier]}
                           </h3>
                           <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
                             {group.items.length}
                           </span>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                          {group.items.map((bank: any) => (
+                          {group.items.map((bank) => (
                             <QuestionBankItem
                               key={bank.id}
                               bank={bank}
@@ -385,11 +389,10 @@ export function SubjectContent({
                 <div className="max-w-md mx-auto text-center py-20 px-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
                   <BookOpen className="size-12 text-slate-300 mx-auto mb-4" />
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                    No Question Banks Yet
+                    {t("empty.banks.title")}
                   </h3>
                   <p className="text-slate-500">
-                    We're still adding question banks for this subject. Check
-                    back soon!
+                    {t("empty.banks.description")}
                   </p>
                 </div>
               )}
@@ -404,7 +407,7 @@ export function SubjectContent({
                   <div className="flex items-end justify-between mb-8">
                     <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
                       <GraduationCap className="size-6 text-indigo-600 dark:text-indigo-400" />
-                      Mock Exams
+                      {t("mockExams.title")}
                     </h2>
                   </div>
                   <div className="space-y-10">
@@ -412,14 +415,14 @@ export function SubjectContent({
                       <section key={`exam-${group.tier}`} className="space-y-4">
                         <div className="flex items-center justify-between">
                           <h3 className="text-sm md:text-base font-semibold uppercase tracking-[0.14em] text-slate-500 dark:text-slate-300">
-                            {ACCESS_TIER_LABELS[group.tier]}
+                            {accessTierLabels[group.tier]}
                           </h3>
                           <span className="text-xs font-medium text-slate-400 dark:text-slate-500">
                             {group.items.length}
                           </span>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                          {group.items.map((exam: any) => (
+                          {group.items.map((exam) => (
                             <QuestionBankItem
                               key={exam.id}
                               bank={exam}
@@ -439,11 +442,10 @@ export function SubjectContent({
                 <div className="max-w-md mx-auto text-center py-20 px-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
                   <GraduationCap className="size-12 text-slate-300 mx-auto mb-4" />
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                    No Mock Exams Yet
+                    {t("empty.mockExams.title")}
                   </h3>
                   <p className="text-slate-500">
-                    We're still adding mock exams for this subject. Check back
-                    soon!
+                    {t("empty.mockExams.description")}
                   </p>
                 </div>
               )}
@@ -469,14 +471,14 @@ export function SubjectContent({
                         <div className="flex items-start justify-between gap-4 mb-6">
                           <div>
                             <div className="text-xs uppercase tracking-[0.3em] text-amber-500 font-semibold">
-                              Archive
+                              {t("pastExams.archive")}
                             </div>
                             <div className="text-3xl font-black text-slate-900 dark:text-white mt-2">
                               {year}
                             </div>
                           </div>
                           <div className="text-xs font-medium text-slate-500 bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-full">
-                            Answer Key
+                            {t("pastExams.answerKey")}
                           </div>
                         </div>
 
@@ -508,7 +510,9 @@ export function SubjectContent({
                                       title={exam.title || undefined}
                                     >
                                       {exam.title?.trim() ||
-                                        `Paper ${index + 1}`}
+                                        t("pastExams.paper", {
+                                          number: index + 1,
+                                        })}
                                       <ChevronRight className="size-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                                     </Link>
                                   ))}
@@ -525,10 +529,10 @@ export function SubjectContent({
                 <div className="max-w-md mx-auto text-center py-20 px-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-300 dark:border-slate-700">
                   <Archive className="size-12 text-slate-300 mx-auto mb-4" />
                   <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                    No Past Exams Yet
+                    {t("empty.pastExams.title")}
                   </h3>
                   <p className="text-slate-500">
-                    Past exam answer keys will appear here once published.
+                    {t("empty.pastExams.description")}
                   </p>
                 </div>
               )}
@@ -537,13 +541,5 @@ export function SubjectContent({
         </Tabs>
       </section>
     </div>
-  );
-}
-
-function InfoBadge() {
-  return (
-    <span className="inline-flex items-center rounded-full border border-blue-200/80 bg-blue-50/80 dark:border-blue-800/80 dark:bg-blue-900/25 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-blue-700 dark:text-blue-300">
-      Study Map
-    </span>
   );
 }

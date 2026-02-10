@@ -2,6 +2,7 @@
 
 import { BookOpen } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 interface Subject {
   id: number;
@@ -16,6 +17,8 @@ interface SubjectGridProps {
 }
 
 export function SubjectGrid({ subjects }: SubjectGridProps) {
+  const t = useTranslations("library.subjectGrid");
+
   if (subjects.length === 0) {
     return (
       <div className="text-center py-20">
@@ -23,10 +26,10 @@ export function SubjectGrid({ subjects }: SubjectGridProps) {
           <BookOpen className="size-8 text-slate-400" />
         </div>
         <h3 className="text-xl font-serif font-bold text-slate-900 dark:text-white mb-2">
-          Library Empty
+          {t("emptyTitle")}
         </h3>
         <p className="text-slate-500 dark:text-slate-400">
-          No subjects found at the moment.
+          {t("emptyDescription")}
         </p>
       </div>
     );
@@ -56,11 +59,11 @@ export function SubjectGrid({ subjects }: SubjectGridProps) {
 
               <p className="text-slate-500 dark:text-slate-400 text-sm line-clamp-2 mb-4 flex-grow">
                 {subject.description ||
-                  "Access practice questions and mock exams."}
+                  t("defaultDescription")}
               </p>
 
               <div className="flex items-center text-sm font-semibold text-blue-600 dark:text-blue-400 group-hover:translate-x-1 transition-transform">
-                Browse Resources <span className="ml-1">→</span>
+                {t("browseResources")} <span className="ml-1">→</span>
               </div>
             </div>
           </Link>

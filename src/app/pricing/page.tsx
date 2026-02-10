@@ -1,6 +1,16 @@
 import { Header } from "@/components/layout/Header";
 import { PricingContent } from "./PricingContent";
 import { getHeaderUser } from "@/lib/auth/getHeaderUser";
+import { getTranslations } from "next-intl/server";
+import { Metadata } from "next";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("marketingMeta.pricing");
+  return {
+    title: t("title"),
+    description: t("description"),
+  };
+}
 
 export default async function PricingPage() {
   const headerUser = await getHeaderUser();

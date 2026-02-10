@@ -4,8 +4,19 @@ import { Header } from "@/components/layout/Header";
 // import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { ProgressClient, SubjectWithTopics, TagStat } from "./ProgressClient";
 import { Subject, Topic } from "@/types/database";
+import { Metadata } from "next";
+import { getTranslations } from "next-intl/server";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("profileProgress.pageMeta");
+  return {
+    title: t("title"),
+    description: t("description"),
+  };
+}
 
 export default async function ProgressPage() {
+  const t = await getTranslations("profileProgress.page");
   const supabase = await createClient();
 
   // 1. Auth Check
@@ -66,7 +77,8 @@ export default async function ProgressPage() {
 
   const profile = profileResult.data;
   const userForHeader = {
-    username: (profile as any)?.username || user.user_metadata?.name || "User",
+    username:
+      (profile as any)?.username || user.user_metadata?.name || t("fallbackUser"),
     avatar_url:
       (profile as any)?.avatar_url ||
       user.user_metadata?.avatar_url ||

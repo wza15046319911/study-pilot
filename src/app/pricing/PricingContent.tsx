@@ -7,6 +7,7 @@ import { isPromotionActive } from "@/components/ui/CountdownTimer";
 import { CheckoutButton } from "@/components/payment/CheckoutButton";
 import { FAQSection } from "@/components/common/FAQSection";
 import { Footer } from "@/components/layout/Footer";
+import { useTranslations } from "next-intl";
 
 // Beta Promotion Config
 const BETA_END_DATE = new Date("2026-02-06T23:59:59+11:00"); // Feb 6, 2026 AEST
@@ -14,49 +15,52 @@ const BETA_PRICE = "$19.9";
 const NORMAL_PRICE = "$49.9";
 
 export function PricingContent() {
+  const t = useTranslations("pricing");
   const isPromoActive = isPromotionActive(BETA_END_DATE);
 
   const tiers = [
     {
-      name: "Free",
+      id: "free",
+      name: t("tiers.free.name"),
       price: "$0",
-      description: "Perfect for getting started",
+      description: t("tiers.free.description"),
       features: [
-        "Access to public question banks",
-        "Access to public mock exams",
-        "Standard practice mode",
-        "Progress tracking",
-        "Mistake tracking",
-        "Weekly Practice",
+        t("tiers.free.features.publicQuestionBanks"),
+        t("tiers.free.features.publicMockExams"),
+        t("tiers.free.features.standardPractice"),
+        t("tiers.free.features.progressTracking"),
+        t("tiers.free.features.mistakeTracking"),
+        t("tiers.free.features.weeklyPractice"),
       ],
       notIncluded: [
-        "Premium question banks",
-        "Premium Mock exams",
-        "Homework",
-        "PDF exam export",
+        t("tiers.free.notIncluded.premiumQuestionBanks"),
+        t("tiers.free.notIncluded.premiumMockExams"),
+        t("tiers.free.notIncluded.homework"),
+        t("tiers.free.notIncluded.pdfExport"),
       ],
-      cta: "Get Started",
+      cta: t("tiers.free.cta"),
       variant: "default",
       popular: false,
     },
     {
-      name: "Beta Access",
+      id: "beta",
+      name: t("tiers.beta.name"),
       price: BETA_PRICE,
       originalPrice: NORMAL_PRICE,
-      period: "one-time",
+      period: t("tiers.beta.period"),
       popular: true,
-      description: "Limited time offer. Unlock everything!",
+      description: t("tiers.beta.description"),
       features: [
-        "Unlock ALL subjects forever",
-        "Unlimited mock exams",
-        "Immersive study mode",
-        "Flashcard study mode",
-        "Homework",
-        "Mistake analysis",
-        "PDF exam export",
-        "Early access to new features",
+        t("tiers.beta.features.unlockAllSubjects"),
+        t("tiers.beta.features.unlimitedMockExams"),
+        t("tiers.beta.features.immersiveMode"),
+        t("tiers.beta.features.flashcardMode"),
+        t("tiers.beta.features.homework"),
+        t("tiers.beta.features.mistakeAnalysis"),
+        t("tiers.beta.features.pdfExport"),
+        t("tiers.beta.features.earlyAccess"),
       ],
-      cta: "Join Beta",
+      cta: t("tiers.beta.cta"),
       variant: "primary",
     },
   ];
@@ -66,10 +70,10 @@ export function PricingContent() {
       <main className="flex-grow w-full pt-20 pb-20 px-4">
         <section className="max-w-7xl mx-auto text-center mb-16">
           <h1 className="text-4xl md:text-6xl font-black mb-6 dark:text-white tracking-tight">
-            Simple, Transparent Pricing
+            {t("hero.title")}
           </h1>
           <p className="text-xl text-slate-500 dark:text-slate-400 max-w-2xl mx-auto">
-            Choose the plan that fits your study needs. No hidden fees.
+            {t("hero.subtitle")}
           </p>
         </section>
 
@@ -87,7 +91,7 @@ export function PricingContent() {
               {tier.popular ? (
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-6 py-1.5 rounded-full text-sm font-bold shadow-lg shadow-blue-600/20 flex items-center gap-2">
                   <ShieldCheck className="size-4" />
-                  Best Value
+                  {t("badges.bestValue")}
                 </div>
               ) : null}
               <div className="mb-8 text-center">
@@ -122,7 +126,7 @@ export function PricingContent() {
                 {tier.popular && isPromoActive ? (
                   <div className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 text-sm font-bold mt-2 ring-1 ring-amber-300/60 dark:ring-amber-500/40">
                     <Zap className="size-3" />
-                    Save 60%!
+                    {t("badges.save60")}
                   </div>
                 ) : null}
                 <p className="text-sm text-slate-500 dark:text-slate-400 mt-3">
@@ -162,12 +166,12 @@ export function PricingContent() {
                 <CheckoutButton className="w-full py-4 rounded-xl font-bold transition-[background-color,box-shadow,transform] duration-200 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 hover:shadow-xl hover:-translate-y-0.5">
                   {tier.cta}
                 </CheckoutButton>
-              ) : tier.name === "Standard" ? (
+              ) : tier.id === "standard" ? (
                 <button
                   disabled
                   className="w-full py-4 rounded-xl font-bold transition-all duration-200 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-700"
                 >
-                  Coming Soon
+                  {t("common.comingSoon")}
                 </button>
               ) : (
                 <Link
@@ -180,7 +184,7 @@ export function PricingContent() {
 
               {tier.popular ? (
                 <p className="text-xs text-center text-gray-400 mt-4">
-                  One-time payment. 30-day money-back guarantee.
+                  {t("badges.guarantee")}
                 </p>
               ) : null}
             </GlassPanel>
@@ -190,7 +194,7 @@ export function PricingContent() {
         {/* Comparison Table */}
         <section className="max-w-4xl mx-auto px-4 mt-24 mb-16">
           <h2 className="text-3xl font-bold text-center mb-12 dark:text-white">
-            Compare Features
+            {t("comparison.title")}
           </h2>
           <GlassPanel className="overflow-hidden rounded-3xl border border-gray-200 dark:border-gray-800">
             <div className="overflow-x-auto">
@@ -198,79 +202,79 @@ export function PricingContent() {
                 <thead>
                   <tr className="bg-gray-50/50 dark:bg-white/5 border-b border-gray-200 dark:border-gray-800">
                     <th className="p-6 text-sm font-semibold text-slate-500 dark:text-slate-400 w-1/3">
-                      Features
+                      {t("comparison.headers.features")}
                     </th>
                     <th className="p-6 text-lg font-bold text-slate-900 dark:text-white w-1/3 text-center">
-                      Free
+                      {t("tiers.free.name")}
                     </th>
                     <th className="p-6 text-lg font-bold text-blue-600 dark:text-blue-400 w-1/3 text-center">
-                      Beta Access
+                      {t("tiers.beta.name")}
                     </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
                   <tr>
                     <td className="p-6 font-medium dark:text-gray-200">
-                      Question Bank Access
+                      {t("comparison.rows.questionBankAccess.label")}
                     </td>
                     <td className="p-6 text-center text-gray-600 dark:text-gray-400">
-                      Public Banks Only
+                      {t("comparison.rows.questionBankAccess.free")}
                     </td>
                     <td className="p-6 text-center font-bold text-blue-600 dark:text-blue-400">
-                      All Subjects & Premium
+                      {t("comparison.rows.questionBankAccess.beta")}
                     </td>
                   </tr>
                   <tr>
                     <td className="p-6 font-medium dark:text-gray-200">
-                      Homework
+                      {t("comparison.rows.homework.label")}
                     </td>
                     <td className="p-6 text-center text-gray-600 dark:text-gray-400">
-                      <span className="sr-only">Not Included</span>
+                      <span className="sr-only">{t("comparison.notIncludedSrOnly")}</span>
                       &minus;
                     </td>
                     <td className="p-6 text-center font-bold text-blue-600 dark:text-blue-400">
-                      Included
+                      {t("comparison.rows.homework.beta")}
                     </td>
                   </tr>
                   <tr>
                     <td className="p-6 font-medium dark:text-gray-200">
-                      Practice Modes
+                      {t("comparison.rows.practiceModes.label")}
                     </td>
                     <td className="p-6 text-center text-gray-600 dark:text-gray-400">
-                      Standard Only
+                      {t("comparison.rows.practiceModes.free")}
                     </td>
                     <td className="p-6 text-center font-bold text-blue-600 dark:text-blue-400">
-                      Standard, Immersive & Flashcard
+                      {t("comparison.rows.practiceModes.beta")}
                     </td>
                   </tr>
                   <tr>
                     <td className="p-6 font-medium dark:text-gray-200">
-                      Mock Exams
+                      {t("comparison.rows.mockExams.label")}
                     </td>
                     <td className="p-6 text-center text-gray-600 dark:text-gray-400">
-                      Public Exams Only
+                      {t("comparison.rows.mockExams.free")}
                     </td>
                     <td className="p-6 text-center font-bold text-blue-600 dark:text-blue-400">
-                      All Exams
+                      {t("comparison.rows.mockExams.beta")}
                     </td>
                   </tr>
                   <tr>
                     <td className="p-6 font-medium dark:text-gray-200">
-                      Mistake Analysis
+                      {t("comparison.rows.mistakeAnalysis.label")}
                     </td>
                     <td className="p-6 text-center text-gray-600 dark:text-gray-400">
-                      Basic Tracking
+                      {t("comparison.rows.mistakeAnalysis.free")}
                     </td>
                     <td className="p-6 text-center font-bold text-blue-600 dark:text-blue-400">
-                      Advanced Analytics
+                      {t("comparison.rows.mistakeAnalysis.beta")}
                     </td>
                   </tr>
                   <tr className="bg-gray-50/30 dark:bg-white/5">
                     <td className="p-6 font-medium dark:text-gray-200">
-                      PDF Exam Export
+                      {t("comparison.rows.pdfExport.label")}
                     </td>
                     <td className="p-6 text-center text-gray-400 text-2xl">
-                      <span className="sr-only">Not Included</span>
+                      <span className="sr-only">{t("comparison.notIncludedSrOnly")}</span>
                       &minus;
                     </td>
                     <td className="p-6 text-center text-blue-600 dark:text-blue-400 text-2xl">
@@ -281,14 +285,14 @@ export function PricingContent() {
                   </tr>
                   <tr className="bg-gray-50/30 dark:bg-white/5">
                     <td className="p-6 font-medium dark:text-gray-200">
-                      New Features
+                      {t("comparison.rows.newFeatures.label")}
                     </td>
                     <td className="p-6 text-center text-gray-400 text-2xl">
-                      <span className="sr-only">Not Included</span>
+                      <span className="sr-only">{t("comparison.notIncludedSrOnly")}</span>
                       &minus;
                     </td>
                     <td className="p-6 text-center font-medium text-blue-600 dark:text-blue-400">
-                      Early Access
+                      {t("comparison.rows.newFeatures.beta")}
                     </td>
                   </tr>
                 </tbody>

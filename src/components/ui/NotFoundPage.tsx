@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import { FileQuestion, Home, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 
 interface NotFoundPageProps {
   title?: string;
@@ -14,12 +15,16 @@ interface NotFoundPageProps {
 }
 
 export function NotFoundPage({
-  title = "Page Not Found",
-  description = "Sorry, we couldn't find the page you're looking for. It might have been moved, deleted, or feels shy today.",
+  title,
+  description,
   backLink,
-  backText = "Go Home",
+  backText,
 }: NotFoundPageProps) {
+  const t = useTranslations("notFound");
   const router = useRouter();
+  const resolvedTitle = title || t("title");
+  const resolvedDescription = description || t("description");
+  const resolvedBackText = backText || t("goHome");
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-6 relative overflow-hidden">
@@ -49,11 +54,11 @@ export function NotFoundPage({
         </motion.div>
 
         <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">
-          {title}
+          {resolvedTitle}
         </h1>
 
         <p className="text-lg text-gray-500 dark:text-gray-400 mb-10 leading-relaxed">
-          {description}
+          {resolvedDescription}
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -63,13 +68,13 @@ export function NotFoundPage({
             onClick={() => (backLink ? router.push(backLink) : router.back())}
           >
             <ArrowLeft className="size-4" />
-            {backLink ? backText : "Go Back"}
+            {backLink ? resolvedBackText : t("goBack")}
           </Button>
 
           <Link href="/" className="w-full sm:w-auto">
             <Button className="w-full sm:w-auto min-w-[140px] h-12 gap-2 bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-lg shadow-blue-500/25">
               <Home className="size-4" />
-              Return Home
+              {t("returnHome")}
             </Button>
           </Link>
         </div>

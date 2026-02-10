@@ -4,6 +4,7 @@ import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { PracticeSession } from "@/app/practice/[subjectSlug]/PracticeSession";
 import { Profile } from "@/types/database";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
+import { getTranslations } from "next-intl/server";
 
 interface PageProps {
   params: Promise<{
@@ -12,9 +13,12 @@ interface PageProps {
   }>;
 }
 
+type QuestionBankItemRow = { question: Record<string, unknown> | null };
+
 export default async function LibraryQuestionBankPracticePage(
   props: PageProps,
 ) {
+  const t = await getTranslations("libraryErrors");
   const params = await props.params;
   const { subjectSlug, questionBankSlug } = params;
   const supabase = await createClient();
@@ -48,7 +52,8 @@ export default async function LibraryQuestionBankPracticePage(
   }
 
   // Fetch bank
-  const { data: bank } = await (supabase.from("question_banks") as any)
+  const { data: bank } = await supabase
+    .from("question_banks")
     .select("id, slug, title, subject_id, unlock_type, is_premium")
     .eq("slug", questionBankSlug)
     .eq("subject_id", subject.id)
@@ -60,10 +65,10 @@ export default async function LibraryQuestionBankPracticePage(
         <AmbientBackground />
         <div className="flex-grow flex items-center justify-center">
           <NotFoundPage
-            title="Question Bank Not Found"
-            description="The question bank you're looking for doesn't exist."
+            title={t("questionBankNotFound.title")}
+            description={t("questionBankNotFound.description")}
             backLink={`/library/${subjectSlug}`}
-            backText="Back to Subject"
+            backText={t("questionBankNotFound.backToSubject")}
           />
         </div>
       </div>
@@ -100,7 +105,8 @@ export default async function LibraryQuestionBankPracticePage(
   } else if (bank.unlock_type === "premium" && profile?.is_vip) {
     isUnlocked = true;
   } else {
-    const { data: unlock } = await (supabase.from("user_bank_unlocks") as any)
+    const { data: unlock } = await supabase
+      .from("user_bank_unlocks")
       .select("id")
       .eq("user_id", user.id)
       .eq("bank_id", bank.id)
@@ -136,7 +142,9 @@ export default async function LibraryQuestionBankPracticePage(
     .eq("bank_id", bank.id)
     .order("order_index");
 
-  const questions = (items || []).map((item: any) => item.question);
+  const questions = ((items as QuestionBankItemRow[] | null) || [])
+    .map((item) => item.question)
+    .filter(Boolean);
 
   if (questions.length === 0) {
     return (
@@ -144,10 +152,10 @@ export default async function LibraryQuestionBankPracticePage(
         <AmbientBackground />
         <div className="flex-grow flex items-center justify-center">
           <NotFoundPage
-            title="No Questions"
-            description="This question bank doesn't have any questions yet."
+            title={t("questionBankNoQuestions.title")}
+            description={t("questionBankNoQuestions.description")}
             backLink={`/library/${subjectSlug}/question-banks/${questionBankSlug}`}
-            backText="Back to Question Bank"
+            backText={t("questionBankNoQuestions.backToQuestionBank")}
           />
         </div>
       </div>
@@ -156,7 +164,7 @@ export default async function LibraryQuestionBankPracticePage(
 
   const sessionUser = profile || {
     id: user.id,
-    username: user.email?.split("@")[0] || "User",
+    username: user.email?.split("@")[0] || t("fallbackUser"),
     level: 1,
     streak_days: 0,
     avatar_url: null,

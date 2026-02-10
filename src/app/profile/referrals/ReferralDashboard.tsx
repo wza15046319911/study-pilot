@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { UnlockBankModal } from "./UnlockBankModal";
 import { InviteCard } from "@/components/referral/InviteCard";
 import { Users, LockOpen, Trophy, Info } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface ReferralDashboardProps {
   referralCode: string;
@@ -15,15 +16,14 @@ interface ReferralDashboardProps {
     unlockedBanks: number;
   };
   banks: any[]; // Available banks to unlock
-  userId: string;
 }
 
 export function ReferralDashboard({
   referralCode,
   stats,
   banks,
-  userId,
 }: ReferralDashboardProps) {
+  const t = useTranslations("profileReferrals.dashboard");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
@@ -36,7 +36,7 @@ export function ReferralDashboard({
           </div>
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Friends Invited
+              {t("stats.friendsInvited")}
             </p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">
               {stats.totalReferrals}
@@ -50,7 +50,7 @@ export function ReferralDashboard({
           </div>
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Unlock Chances
+              {t("stats.unlockChances")}
             </p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">
               {stats.unusedReferrals}
@@ -64,7 +64,7 @@ export function ReferralDashboard({
           </div>
           <div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Banks Unlocked
+              {t("stats.banksUnlocked")}
             </p>
             <p className="text-2xl font-bold text-gray-900 dark:text-white">
               {stats.unlockedBanks}
@@ -78,7 +78,7 @@ export function ReferralDashboard({
         <div className="lg:col-span-2 space-y-8">
           <div className="space-y-4">
             <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              Your Invite Link
+              {t("invite.title")}
             </h2>
             <InviteCard code={referralCode} />
           </div>
@@ -88,12 +88,10 @@ export function ReferralDashboard({
               <div className="space-y-2">
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
                   <LockOpen className="size-5 text-[#135bec]" />
-                  Unlock a Premium Bank
+                  {t("unlock.title")}
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300 max-w-md text-sm">
-                  You have <strong>{stats.unusedReferrals}</strong> unlock
-                  credits available. Choose a premium question bank to unlock
-                  permanently.
+                  {t("unlock.description", { count: stats.unusedReferrals })}
                 </p>
               </div>
               <Button
@@ -101,13 +99,13 @@ export function ReferralDashboard({
                 disabled={stats.unusedReferrals === 0}
                 className="whitespace-nowrap bg-[#135bec] hover:bg-blue-600 text-white shadow-lg shadow-blue-500/20"
               >
-                Use Credit to Unlock
+                {t("unlock.cta")}
               </Button>
             </div>
             {stats.unusedReferrals === 0 && (
               <div className="mt-4 flex items-center gap-2 text-xs text-amber-600 dark:text-amber-500 bg-amber-50 dark:bg-amber-900/20 p-2 rounded-lg">
                 <Info className="size-4" />
-                Invite more friends to earn unlock credits!
+                {t("unlock.noCreditsHint")}
               </div>
             )}
           </div>
@@ -115,22 +113,20 @@ export function ReferralDashboard({
           {/* Rules Section */}
           <GlassPanel className="p-6 space-y-4">
             <h3 className="font-bold text-gray-900 dark:text-white">
-              How it works
+              {t("rules.title")}
             </h3>
             <ul className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
               <li className="flex items-start gap-2">
                 <div className="mt-1 size-1.5 rounded-full bg-blue-500 shrink-0" />
-                Share your unique invite link with friends.
+                {t("rules.item1")}
               </li>
               <li className="flex items-start gap-2">
                 <div className="mt-1 size-1.5 rounded-full bg-blue-500 shrink-0" />
-                When a friend signs up using your link, you both get{" "}
-                <strong>1 unlock credit</strong>.
+                {t("rules.item2")}
               </li>
               <li className="flex items-start gap-2">
                 <div className="mt-1 size-1.5 rounded-full bg-blue-500 shrink-0" />
-                Use your credit to unlock any "Referral Exclusive" question bank
-                permanently.
+                {t("rules.item3")}
               </li>
             </ul>
           </GlassPanel>
