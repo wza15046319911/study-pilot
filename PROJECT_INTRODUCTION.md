@@ -83,7 +83,7 @@
 - **表单验证**: Zod
 - **图表**: Recharts
 - **日历**: React Big Calendar
-- **代码编辑**: Monaco Editor
+- **代码展示**: react-syntax-highlighter (CodeBlock)
 - **数学渲染**: KaTeX (LaTeX支持)
 - **PDF导出**: @react-pdf/renderer, jsPDF
 

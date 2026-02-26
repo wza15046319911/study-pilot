@@ -1,13 +1,12 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import EditQuestionModal from "./EditQuestionModal";
-import QuestionPreviewModal from "./QuestionPreviewModal";
 import {
   updateQuestion,
   deleteQuestion,
@@ -16,6 +15,16 @@ import {
   duplicateQuestion,
   batchDeleteQuestions,
 } from "./actions";
+
+// Lazy-load modals (EditQuestionModal is heavy, defer until needed)
+const EditQuestionModal = dynamic(() => import("./EditQuestionModal"), {
+  ssr: false,
+});
+const QuestionPreviewModal = dynamic(
+  () => import("./QuestionPreviewModal"),
+  { ssr: false },
+);
+
 import {
   Search,
   Filter,
@@ -207,7 +216,10 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
 
     let query = supabase
       .from("questions")
-      .select("*, subjects(name), topics(name)", { count: "exact" });
+      .select(
+        "id, subject_id, title, content, type, difficulty, options, topic_id, tags, created_at, subjects(name), topics(name)",
+        { count: "exact" },
+      );
 
     if (subjectFilter) {
       query = query.eq("subject_id", parseInt(subjectFilter));
@@ -274,9 +286,23 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
 
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
-  const handleEdit = (question: Question) => {
-    setEditingQuestion(question);
-    setIsModalOpen(true);
+  const [editLoadingId, setEditLoadingId] = useState<number | null>(null);
+
+  const handleEdit = async (question: Question) => {
+    setEditLoadingId(question.id);
+    try {
+      const { data: full } = await supabase
+        .from("questions")
+        .select("*")
+        .eq("id", question.id)
+        .single();
+      if (full) {
+        setEditingQuestion(full as Question);
+        setIsModalOpen(true);
+      }
+    } finally {
+      setEditLoadingId(null);
+    }
   };
 
   const handleSave = async (updatedQuestion: Partial<Question>) => {
@@ -805,10 +831,15 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
                               e.stopPropagation();
                               handleEdit(q);
                             }}
-                            className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors"
+                            disabled={editLoadingId === q.id}
+                            className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors disabled:opacity-50"
                             title="Edit"
                           >
-                            <Edit2 className="size-4" />
+                            {editLoadingId === q.id ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              <Edit2 className="size-4" />
+                            )}
                           </button>
                           <button
                             onClick={(e) => {

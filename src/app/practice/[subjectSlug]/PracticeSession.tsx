@@ -12,7 +12,6 @@ import { CodeBlock } from "@/components/ui/CodeBlock";
 import { LatexContent } from "@/components/ui/LatexContent";
 import { ResultsModal } from "@/components/ui/ResultsModal";
 import { PenCircle } from "@/components/ui/PenCircle";
-import { TestCasesConfig } from "@/lib/pyodide";
 import {
   TrendingUp,
   Timer,
@@ -33,16 +32,6 @@ import {
   ChevronRight,
   Layout,
 } from "lucide-react";
-
-const CodeRunner = dynamic(
-  () => import("@/components/ui/CodeRunner").then((m) => m.CodeRunner),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-[280px] rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 animate-pulse" />
-    ),
-  },
-);
 
 const HandwriteCanvas = dynamic(
   () =>
@@ -165,33 +154,9 @@ export function PracticeSession({
   const isQuestionCorrect = (question: Question, userAnswer?: string) => {
     if (!userAnswer) return false;
     if (question.type === "coding_challenge") {
-      return userAnswer === "all_tests_passed";
+      return userAnswer.trim().length > 0;
     }
     return userAnswer === question.answer;
-  };
-
-  const getCodingConfig = (question: Question): TestCasesConfig => {
-    const raw = question.test_cases as
-      | {
-          function_name?: unknown;
-          test_cases?: Array<{ input?: unknown; expected?: unknown }>;
-        }
-      | null
-      | undefined;
-
-    const function_name =
-      typeof raw?.function_name === "string" && raw.function_name.trim()
-        ? raw.function_name.trim()
-        : "solution";
-
-    const test_cases = Array.isArray(raw?.test_cases)
-      ? raw.test_cases.map((tc) => ({
-          input: Array.isArray(tc?.input) ? tc.input : [],
-          expected: tc?.expected ?? null,
-        }))
-      : [];
-
-    return { function_name, test_cases };
   };
 
   const getAnswerStats = (answerMap: Record<number, string>) => {
@@ -1048,26 +1013,22 @@ export function PracticeSession({
                       )}
                     </div>
                   ) : currentQuestion.type === "coding_challenge" ? (
-                    /* Coding Challenge with CodeRunner */
-                    (() => {
-                      const codingConfig = getCodingConfig(currentQuestion);
-                      return (
-                        <CodeRunner
-                          key={`coding-${currentQuestion.id}`}
-                          initialCode={
-                            currentQuestion.code_snippet ||
-                            `def ${codingConfig.function_name}(*args):\n    # Write your code here\n    pass`
-                          }
-                          testCasesConfig={codingConfig}
-                          onSubmit={(_code, _results, allPassed) => {
-                            handleAnswer(
-                              allPassed ? "all_tests_passed" : "tests_failed",
-                            );
-                          }}
-                          readOnly={isChecked}
-                        />
-                      );
-                    })()
+                    /* Coding Challenge - 静态代码展示，文本输入作答 */
+                    <div className="relative">
+                      <div className="absolute -left-6 top-8 bottom-8 w-0.5 bg-red-300/30 hidden lg:block" />
+                      <textarea
+                        value={answers[currentQuestion.id] || ""}
+                        onChange={(e) => handleAnswer(e.target.value)}
+                        disabled={isChecked}
+                        placeholder="在此输入你的答案..."
+                        className="w-full min-h-[200px] p-0 bg-[repeating-linear-gradient(transparent,transparent_31px,#000000_32px)] text-lg leading-8 font-serif text-black dark:text-gray-100 border-none focus:ring-0 resize-y placeholder:text-gray-300 dark:placeholder:text-gray-700 bg-transparent translate-y-[6px]"
+                        style={{
+                          lineHeight: "32px",
+                          backgroundAttachment: "local",
+                          backgroundSize: "100% 32px",
+                        }}
+                      />
+                    </div>
                   ) : currentQuestion.type === "handwrite" ? (
                     /* Handwriting Canvas */
                     <div className="w-full h-[500px] border-2 border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-canvas-dark relative">
@@ -1136,7 +1097,7 @@ export function PracticeSession({
                           <p className="font-serif text-lg leading-relaxed opacity-90">
                             {currentQuestion.explanation ||
                               (currentQuestion.type === "coding_challenge"
-                                ? "Review your solution and try again."
+                                ? "请完成作答后提交。"
                                 : "No explanation provided.")}
                           </p>
                         </div>

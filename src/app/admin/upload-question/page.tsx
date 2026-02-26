@@ -8,8 +8,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { LatexContent } from "@/components/ui/LatexContent";
-import { X, Tag, Plus, Code2, Type, FileUp, Loader2 } from "lucide-react";
-import Editor from "@monaco-editor/react";
+import { X, Tag, Plus, FileUp, Loader2 } from "lucide-react";
 import {
   TestCaseEditor,
   TestCasesConfig,
@@ -295,12 +294,6 @@ export default function UploadQuestionPage() {
   const [parsedQuestions, setParsedQuestions] = useState<ParsedQuestion[]>([]);
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState("");
-  const [codeViewModes, setCodeViewModes] = useState<
-    Record<number, "code" | "text">
-  >({});
-  const [answerViewModes, setAnswerViewModes] = useState<
-    Record<number, "code" | "text">
-  >({});
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfFileName, setPdfFileName] = useState<string | null>(null);
   const [draftStatus, setDraftStatus] = useState<"saved" | "saving" | null>(
@@ -896,47 +889,6 @@ export default function UploadQuestionPage() {
                           <span className="text-xs text-[#4c669a]">
                             Answer:
                           </span>
-                          {/* Toggle for non-choice types */}
-                          {!isChoiceType &&
-                            questionType !== "true_false" &&
-                            questionType !== "coding_challenge" && (
-                            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 scale-90">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setAnswerViewModes((prev) => ({
-                                    ...prev,
-                                    [idx]: "code",
-                                  }))
-                                }
-                                className={`p-1 rounded-md transition-[color,background-color,box-shadow] ${
-                                  (answerViewModes[idx] || "text") === "code"
-                                    ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
-                                    : "text-gray-400 hover:text-gray-600"
-                                }`}
-                                title="Code View"
-                              >
-                                <Code2 className="size-3" />
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setAnswerViewModes((prev) => ({
-                                    ...prev,
-                                    [idx]: "text",
-                                  }))
-                                }
-                                className={`p-1 rounded-md transition-[color,background-color,box-shadow] ${
-                                  (answerViewModes[idx] || "text") === "text"
-                                    ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
-                                    : "text-gray-400 hover:text-gray-600"
-                                }`}
-                                title="Text View"
-                              >
-                                <Type className="size-3" />
-                              </button>
-                            </div>
-                            )}
                         </div>
 
                         {isChoiceType ? (
@@ -976,27 +928,6 @@ export default function UploadQuestionPage() {
                             disabled
                             className="w-full h-8 px-2 bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-gray-700 rounded text-xs font-mono text-gray-500"
                           />
-                        ) : (answerViewModes[idx] || "text") === "code" ? (
-                          <div className="h-[120px] w-full border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden relative">
-                            <Editor
-                              height="100%"
-                              defaultLanguage="python"
-                              theme="vs-dark"
-                              value={q.answer || ""}
-                              onChange={(value) =>
-                                updateAnswer(idx, value || "")
-                              }
-                              options={{
-                                minimap: { enabled: false },
-                                fontSize: 12,
-                                lineNumbers: "off",
-                                scrollBeyondLastLine: false,
-                                automaticLayout: true,
-                                padding: { top: 8, bottom: 8 },
-                                readOnly: false,
-                              }}
-                            />
-                          </div>
                         ) : (
                           <input
                             type="text"
@@ -1013,84 +944,17 @@ export default function UploadQuestionPage() {
                     <div className="grid gap-6 lg:grid-cols-2">
                       {/* Left Column: Code/Context - NOW EDITABLE */}
                       <div className="max-h-[400px] flex flex-col gap-2">
-                        <div className="flex items-center justify-between">
-                          <div className="text-xs text-slate-400 font-mono uppercase tracking-wider">
-                            Context / Code
-                          </div>
-                          <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1 scale-75 origin-right">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setCodeViewModes((prev) => ({
-                                  ...prev,
-                                  [idx]: "code",
-                                }))
-                              }
-                              className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-[color,background-color,box-shadow] ${
-                                (codeViewModes[idx] || "code") === "code"
-                                  ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
-                                  : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                              }`}
-                            >
-                              <Code2 className="size-3.5" />
-                              Code
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setCodeViewModes((prev) => ({
-                                  ...prev,
-                                  [idx]: "text",
-                                }))
-                              }
-                              className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-[color,background-color,box-shadow] ${
-                                codeViewModes[idx] === "text"
-                                  ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
-                                  : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                              }`}
-                            >
-                              <Type className="size-3.5" />
-                              Text
-                            </button>
-                          </div>
+                        <div className="text-xs text-slate-400 font-mono uppercase tracking-wider">
+                          Context / Code
                         </div>
-
-                        {(codeViewModes[idx] || "code") === "code" ? (
-                          <div className="h-[200px] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden relative group">
-                            <Editor
-                              height="100%"
-                              defaultLanguage="python"
-                              theme="vs-dark"
-                              value={q.codeSnippet || ""}
-                              onChange={(value) =>
-                                updateCodeSnippet(idx, value || "")
-                              }
-                              options={{
-                                minimap: { enabled: false },
-                                fontSize: 13,
-                                lineNumbers: "on",
-                                scrollBeyondLastLine: false,
-                                automaticLayout: true,
-                                padding: { top: 10, bottom: 10 },
-                                readOnly: false,
-                              }}
-                            />
-                            {!q.codeSnippet && (
-                              <div className="absolute inset-0 flex items-center justify-center pointer-events-none text-gray-400 text-xs">
-                                No code snippet
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <Textarea
-                            value={q.codeSnippet || ""}
-                            onChange={(e) =>
-                              updateCodeSnippet(idx, e.target.value)
-                            }
-                            placeholder="Edit code snippet..."
-                            className="min-h-[200px] font-mono text-sm"
-                          />
-                        )}
+                        <Textarea
+                          value={q.codeSnippet || ""}
+                          onChange={(e) =>
+                            updateCodeSnippet(idx, e.target.value)
+                          }
+                          placeholder="Edit code snippet..."
+                          className="min-h-[200px] font-mono text-sm"
+                        />
                       </div>
 
                       {/* Right Column: Question + Options */}

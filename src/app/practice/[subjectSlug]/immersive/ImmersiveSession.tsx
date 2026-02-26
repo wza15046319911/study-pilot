@@ -2,13 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import dynamic from "next/dynamic";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { CodeBlock } from "@/components/ui/CodeBlock";
 import { createClient } from "@/lib/supabase/client";
 import { Question, Profile, QuestionOption } from "@/types/database";
-import { TestCasesConfig } from "@/lib/pyodide";
 import {
   Bookmark,
   AlertTriangle,
@@ -22,16 +20,6 @@ import {
   Minimize2,
   Sparkles,
 } from "lucide-react";
-
-const CodeRunner = dynamic(
-  () => import("@/components/ui/CodeRunner").then((m) => m.CodeRunner),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="h-[280px] rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 animate-pulse" />
-    ),
-  },
-);
 
 interface ImmersiveSessionProps {
   initialQuestion: Question | null;
@@ -141,33 +129,9 @@ export default function ImmersiveSession({
   const isQuestionCorrect = (question: Question, answer?: string) => {
     if (!answer) return false;
     if (question.type === "coding_challenge") {
-      return answer === "all_tests_passed";
+      return answer.trim().length > 0;
     }
     return answer === question.answer;
-  };
-
-  const getCodingConfig = (question: Question): TestCasesConfig => {
-    const raw = question.test_cases as
-      | {
-          function_name?: unknown;
-          test_cases?: Array<{ input?: unknown; expected?: unknown }>;
-        }
-      | null
-      | undefined;
-
-    const function_name =
-      typeof raw?.function_name === "string" && raw.function_name.trim()
-        ? raw.function_name.trim()
-        : "solution";
-
-    const test_cases = Array.isArray(raw?.test_cases)
-      ? raw.test_cases.map((tc) => ({
-          input: Array.isArray(tc?.input) ? tc.input : [],
-          expected: tc?.expected ?? null,
-        }))
-      : [];
-
-    return { function_name, test_cases };
   };
 
   const handleCheck = async () => {
@@ -418,25 +382,25 @@ export default function ImmersiveSession({
                   );
                 })
               ) : currentQuestion.type === "coding_challenge" ? (
-                (() => {
-                  const codingConfig = getCodingConfig(currentQuestion);
-                  return (
-                    <CodeRunner
-                      key={`coding-${currentQuestion.id}`}
-                      initialCode={
-                        currentQuestion.code_snippet ||
-                        `def ${codingConfig.function_name}(*args):\n    # Write your code here\n    pass`
-                      }
-                      testCasesConfig={codingConfig}
-                      onSubmit={(_code, _results, allPassed) => {
-                        setUserAnswer(
-                          allPassed ? "all_tests_passed" : "tests_failed",
-                        );
-                      }}
-                      readOnly={isChecked}
-                    />
-                  );
-                })()
+                <input
+                  type="text"
+                  value={userAnswer}
+                  onChange={(e) => setUserAnswer(e.target.value)}
+                  disabled={isChecked}
+                  placeholder="输入你的答案或完成标记..."
+                  className={`w-full p-4 rounded-xl border bg-gray-50 text-gray-900 text-lg font-medium outline-none transition-[background-color,border-color] placeholder:text-gray-400 ${
+                    isChecked
+                      ? isCorrect
+                        ? "border-green-500 bg-green-50"
+                        : "border-red-500 bg-red-50"
+                      : "border-gray-200 focus:border-purple-500 focus:bg-white"
+                  }`}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && userAnswer && !isChecked) {
+                      handleCheck();
+                    }
+                  }}
+                />
               ) : (
                 <input
                   type="text"
@@ -475,7 +439,7 @@ export default function ImmersiveSession({
                 {!isCorrect && (
                   <p className="text-sm opacity-80">
                     {currentQuestion.type === "coding_challenge"
-                      ? "Your solution did not pass all test cases."
+                      ? "请完成作答后提交。"
                       : (
                         <>
                           The correct answer is:{" "}

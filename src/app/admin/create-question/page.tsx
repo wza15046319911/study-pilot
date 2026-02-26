@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
@@ -12,16 +11,7 @@ import {
   TestCaseEditor,
   TestCasesConfig,
 } from "@/components/admin/TestCaseEditor";
-import { Plus, Trash2, Tag, Save, Sparkles, Loader2 } from "lucide-react";
-
-const CodeEditor = dynamic(() => import("@monaco-editor/react"), {
-  ssr: false,
-  loading: () => (
-    <div className="h-[240px] rounded-lg bg-slate-900 flex items-center justify-center">
-      <Loader2 className="size-6 animate-spin text-slate-300" />
-    </div>
-  ),
-});
+import { Plus, Trash2, Tag, Save, Sparkles } from "lucide-react";
 
 interface Subject {
   id: number;
@@ -52,7 +42,7 @@ const questionTypeOptions = [
   { value: "true_false", label: "True / False" },
   { value: "fill_blank", label: "Fill in the Blank" },
   { value: "code_output", label: "Code Output / Short Answer" },
-  { value: "coding_challenge", label: "Coding Challenge (Run Code)" },
+  { value: "coding_challenge", label: "Coding Challenge" },
 ];
 
 const difficultyOptions = [
@@ -384,32 +374,12 @@ export default function CreateQuestionPage() {
               <label className="block text-sm font-medium text-[#4c669a] mb-2">
                 Starter Code / Code Snippet
               </label>
-              {isCodingChallenge ? (
-                <div className="h-[240px] rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700">
-                  <CodeEditor
-                    height="100%"
-                    defaultLanguage="python"
-                    theme="vs-dark"
-                    value={codeSnippet}
-                    onChange={(value) => setCodeSnippet(value || "")}
-                    options={{
-                      minimap: { enabled: false },
-                      fontSize: 14,
-                      lineNumbers: "on",
-                      scrollBeyondLastLine: false,
-                      automaticLayout: true,
-                      padding: { top: 12, bottom: 12 },
-                    }}
-                  />
-                </div>
-              ) : (
-                <Textarea
-                  value={codeSnippet}
-                  onChange={(e) => setCodeSnippet(e.target.value)}
-                  placeholder="Optional code snippet shown to students..."
-                  className="min-h-[180px] font-mono"
-                />
-              )}
+              <Textarea
+                value={codeSnippet}
+                onChange={(e) => setCodeSnippet(e.target.value)}
+                placeholder="Optional code snippet shown to students..."
+                className="min-h-[180px] font-mono"
+              />
             </div>
           )}
 

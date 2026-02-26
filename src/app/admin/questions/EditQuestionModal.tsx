@@ -16,14 +16,11 @@ import {
   Trash2,
   ChevronUp,
   ChevronDown,
-  Code2,
-  Type,
   CloudOff,
   Check,
   Download,
   Bookmark,
 } from "lucide-react";
-import Editor from "@monaco-editor/react";
 import TemplatesModal from "./TemplatesModal";
 
 interface Question {
@@ -109,7 +106,6 @@ export default function EditQuestionModal({
     function_name: "solution",
     test_cases: [],
   });
-  const [codeEditorMode, setCodeEditorMode] = useState<"code" | "text">("code");
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [draftStatus, setDraftStatus] = useState<"saved" | "saving" | null>(
@@ -605,64 +601,15 @@ export default function EditQuestionModal({
                 <div className="space-y-6">
                   {/* Code Snippet */}
                   <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <label className="text-sm font-medium text-[#4c669a] dark:text-gray-400">
-                        Code Snippet
-                      </label>
-                      <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-                        <button
-                          type="button"
-                          onClick={() => setCodeEditorMode("code")}
-                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-[color,background-color,box-shadow] ${
-                            codeEditorMode === "code"
-                              ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
-                              : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                          }`}
-                        >
-                          <Code2 className="size-3.5" />
-                          Code
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setCodeEditorMode("text")}
-                          className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium transition-[color,background-color,box-shadow] ${
-                            codeEditorMode === "text"
-                              ? "bg-white dark:bg-slate-700 text-blue-600 shadow-sm"
-                              : "text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                          }`}
-                        >
-                          <Type className="size-3.5" />
-                          Text
-                        </button>
-                      </div>
-                    </div>
-
-                    {codeEditorMode === "code" ? (
-                      <div className="h-[200px] border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
-                        <Editor
-                          height="100%"
-                          defaultLanguage="python"
-                          theme="vs-dark"
-                          value={codeSnippet}
-                          onChange={(value) => setCodeSnippet(value || "")}
-                          options={{
-                            minimap: { enabled: false },
-                            fontSize: 13,
-                            lineNumbers: "on",
-                            scrollBeyondLastLine: false,
-                            automaticLayout: true,
-                            padding: { top: 10, bottom: 10 },
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <Textarea
-                        value={codeSnippet}
-                        onChange={(e) => setCodeSnippet(e.target.value)}
-                        placeholder="Code snippet (if any)..."
-                        className="min-h-[200px] font-mono text-sm"
-                      />
-                    )}
+                    <label className="block text-sm font-medium text-[#4c669a] dark:text-gray-400 mb-2">
+                      Code Snippet
+                    </label>
+                    <Textarea
+                      value={codeSnippet}
+                      onChange={(e) => setCodeSnippet(e.target.value)}
+                      placeholder="Code snippet (if any)..."
+                      className="min-h-[200px] font-mono text-sm"
+                    />
                   </div>
 
                   {/* Explanation */}
