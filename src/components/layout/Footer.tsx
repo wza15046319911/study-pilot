@@ -35,7 +35,7 @@ export function Footer() {
                   {t("links.library")}
                 </Link>
               </li>
-              <li>
+              <li className="hidden">
                 <Link href="/pricing" className="hover:text-primary">
                   {t("links.pricing")}
                 </Link>

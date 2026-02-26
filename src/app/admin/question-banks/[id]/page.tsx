@@ -49,10 +49,12 @@ export default async function EditQuestionBankPage(props: PageProps) {
     redirect("/admin/question-banks");
   }
 
-  // Fetch Bank Items (Questions)
+  // Fetch Bank Items (Questions) - only columns needed for editor, exclude code-run/test_cases
   const { data: items } = await supabase
     .from("question_bank_items")
-    .select("question:questions(*)")
+    .select(
+      "question:questions(id, subject_id, title, content, type, difficulty, options, code_snippet, topic_id)",
+    )
     .eq("bank_id", bank.id)
     .order("order_index");
 

@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { PracticeSession } from "@/app/practice/[subjectSlug]/PracticeSession";
-import { Profile } from "@/types/database";
+import { Profile, Question } from "@/types/database";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
 import { decodeId } from "@/lib/ids";
 import { getTranslations } from "next-intl/server";
@@ -113,7 +113,8 @@ export default async function LibraryPracticePage(props: PageProps) {
     }
   }
 
-  const { data: allQuestions } = await query;
+  const { data: questionsData } = await query;
+  const allQuestions = questionsData as Question[] | null;
 
   if (!allQuestions || allQuestions.length === 0) {
     return (

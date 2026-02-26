@@ -245,7 +245,7 @@ export default async function Home() {
           <nav aria-label="Quick Links">
             <Link href="/library">Browse Library</Link> |
             <Link href="/library">Question Banks</Link> |
-            <Link href="/faq">FAQ</Link> |<Link href="/pricing">Pricing</Link>
+            <Link href="/faq">FAQ</Link>
           </nav>
         </footer>
       </article>

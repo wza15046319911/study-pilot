@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { PracticeSession } from "./PracticeSession";
-import { Profile } from "@/types/database";
+import { Profile, Question } from "@/types/database";
 import { decodeId } from "@/lib/ids";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
 import { getTranslations } from "next-intl/server";
@@ -264,7 +264,7 @@ export default async function PracticePage(props: PageProps) {
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
       <AmbientBackground />
       <PracticeSession
-        questions={selectedQuestions}
+        questions={selectedQuestions as Question[]}
         user={sessionUser}
         subjectId={subject.id}
         enableTimer={searchParamsStr.timer !== "false"}

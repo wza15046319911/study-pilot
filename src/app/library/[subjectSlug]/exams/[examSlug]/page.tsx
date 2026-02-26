@@ -133,12 +133,31 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
     );
   }
 
+  type ExamRow = {
+    id: number;
+    slug: string;
+    title: string;
+    subject_id: number;
+    exam_type: string;
+    duration_minutes: number;
+    unlock_type: string;
+    is_premium: boolean;
+    price: number | null;
+  };
+  const examData = exam as ExamRow;
+
   // Fetch User Profile
-  const { data: profile } = await supabase
+  const { data: profileData } = await supabase
     .from("profiles")
     .select("id, username, avatar_url, is_vip")
     .eq("id", user.id)
     .single();
+
+  const profile = profileData as {
+    username: string | null;
+    avatar_url: string | null;
+    is_vip: boolean;
+  } | null;
 
   const userData = {
     username: profile?.username || user.email?.split("@")[0] || t("fallbackUser"),
@@ -148,16 +167,16 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
 
   let isUnlocked = false;
 
-  if (exam.unlock_type === "free") {
+  if (examData.unlock_type === "free") {
     isUnlocked = true;
-  } else if (exam.unlock_type === "premium" && profile?.is_vip) {
+  } else if (examData.unlock_type === "premium" && profile?.is_vip) {
     isUnlocked = true;
   } else {
     const { data: unlock } = await supabase
       .from("user_exam_unlocks")
       .select("id")
       .eq("user_id", user.id)
-      .eq("exam_id", exam.id)
+      .eq("exam_id", examData.id)
       .maybeSingle();
 
     if (unlock) {
@@ -176,11 +195,11 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
       )
     `
     )
-    .eq("exam_id", exam.id);
+    .eq("exam_id", examData.id);
 
   const questions = ((examQuestions as ExamQuestionRow[] | null) || [])
     .map((eq) => eq.question)
-    .filter(Boolean);
+    .filter((q): q is NonNullable<typeof q> => q != null);
   const totalQuestions = questions.length;
 
   // Calculate Stats
@@ -206,8 +225,8 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
   return (
     <ExamPreviewContent
       exam={{
-        ...exam,
-        routeId: slugOrEncodedId(exam.slug, exam.id),
+        ...examData,
+        routeId: slugOrEncodedId(examData.slug, examData.id),
       }}
       user={userData}
       difficultyCounts={difficultyCounts}

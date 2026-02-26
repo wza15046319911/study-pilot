@@ -297,7 +297,7 @@ export default async function SubjectPage(props: PageProps) {
     id: exam.id,
     year: exam.year,
     semester: exam.semester,
-    createdAt: exam.created_at,
+    createdAt: exam.created_at ?? undefined,
     title: exam.title,
     questionCount: exam.questions?.[0]?.count || 0,
   }));

@@ -73,6 +73,8 @@ export default async function LibraryQuestionBankImmersivePage(
     );
   }
 
+  const bankData = bank as { id: number; slug: string; title: string; subject_id: number };
+
   // Fetch first question from bank (ImmersiveSession fetches more dynamically)
   const { data: items } = await supabase
     .from("question_bank_items")
@@ -91,7 +93,7 @@ export default async function LibraryQuestionBankImmersivePage(
       )
     `,
     )
-    .eq("bank_id", bank.id)
+    .eq("bank_id", bankData.id)
     .order("order_index")
     .limit(1);
 
@@ -149,7 +151,7 @@ export default async function LibraryQuestionBankImmersivePage(
       <ImmersiveSession
         initialQuestion={firstQuestion}
         subjectId={subject.id}
-        subjectName={`${bank.title} - ${subject.name}`}
+        subjectName={`${bankData.title} - ${subject.name}`}
         user={sessionUser}
       />
     </div>

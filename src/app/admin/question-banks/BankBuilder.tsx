@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { GlassPanel } from "@/components/ui/GlassPanel";
@@ -26,8 +27,12 @@ import {
   GraduationCap,
 } from "lucide-react";
 import { LatexContent } from "@/components/ui/LatexContent";
-import { CodeBlock } from "@/components/ui/CodeBlock";
-import QuestionPreviewModal from "@/app/admin/questions/QuestionPreviewModal";
+
+// Lazy-load preview modal (avoids pulling in code-editing/CodeBlock until needed)
+const QuestionPreviewModal = dynamic(
+  () => import("@/app/admin/questions/QuestionPreviewModal"),
+  { ssr: false },
+);
 
 interface Subject {
   id: number;
@@ -90,6 +95,7 @@ export default function BankBuilder({
   );
 
   const [loading, setLoading] = useState(false);
+  const [loadingError, setLoadingError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   // Search and Filter
@@ -98,6 +104,7 @@ export default function BankBuilder({
   const [topicFilter, setTopicFilter] = useState("all");
 
   const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   const filteredQuestions = availableQuestions.filter((q) => {
     const matchesSearch =
@@ -113,37 +120,89 @@ export default function BankBuilder({
   useEffect(() => {
     if (!subjectId) {
       setAvailableQuestions([]);
+      setTopics([]);
+      return;
+    }
+
+    const sid = parseInt(subjectId, 10);
+    if (Number.isNaN(sid)) {
+      setAvailableQuestions([]);
+      setTopics([]);
       return;
     }
 
     const fetchQuestionsAndTopics = async () => {
       setLoading(true);
+      setLoadingError(null);
+      let timeoutId: ReturnType<typeof setTimeout> | null = null;
+      try {
+        const controller = new AbortController();
+        timeoutId = setTimeout(() => controller.abort(), 12000);
 
-      // Fetch questions
-      const { data: questionsData } = await supabase
-        .from("questions")
-        .select("*")
-        .eq("subject_id", parseInt(subjectId))
-        .order("type");
-      setAvailableQuestions((questionsData as Question[]) || []);
+        const [questionsRes, topicsRes] = await Promise.all([
+          supabase
+            .from("questions")
+            .select(
+              "id, subject_id, title, content, type, difficulty, topic_id",
+            )
+            .eq("subject_id", sid)
+            .order("type")
+            .limit(500)
+            .abortSignal(controller.signal),
+          supabase
+            .from("topics")
+            .select("*")
+            .eq("subject_id", sid)
+            .order("name")
+            .abortSignal(controller.signal),
+        ]);
 
-      // Fetch topics
-      const { data: topicsData } = await supabase
-        .from("topics")
-        .select("*")
-        .eq("subject_id", parseInt(subjectId))
-        .order("name");
-      setTopics((topicsData as Topic[]) || []);
+        if (questionsRes.error) {
+          console.error("Error fetching questions:", questionsRes.error);
+          setLoadingError("Failed to load available questions.");
+        }
+        if (topicsRes.error) {
+          console.error("Error fetching topics:", topicsRes.error);
+          setLoadingError("Failed to load topics.");
+        }
 
-      setLoading(false);
+        setAvailableQuestions((questionsRes.data as Question[]) || []);
+        setTopics((topicsRes.data as Topic[]) || []);
+      } catch (error) {
+        console.error("Error in fetchQuestionsAndTopics:", error);
+        setLoadingError(
+          "Loading questions timed out. Please refresh or narrow to another subject.",
+        );
+      } finally {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        setLoading(false);
+      }
     };
 
     fetchQuestionsAndTopics();
-  }, [subjectId]);
+  }, [subjectId, supabase]);
 
-  const addQuestion = (question: Question) => {
+  const [addingId, setAddingId] = useState<number | null>(null);
+
+  const addQuestion = async (question: Question) => {
     if (selectedQuestions.find((q) => q.id === question.id)) return;
-    setSelectedQuestions((prev) => [...prev, question]);
+    setAddingId(question.id);
+    try {
+      const { data: full } = await supabase
+        .from("questions")
+        .select(
+          "id, subject_id, title, content, type, difficulty, options, code_snippet, topic_id",
+        )
+        .eq("id", question.id)
+        .single();
+      if (full) {
+        setSelectedQuestions((prev) => [...prev, full as Question]);
+      }
+    } finally {
+      setAddingId(null);
+    }
   };
 
   const removeQuestion = (questionId: number) => {
@@ -533,6 +592,8 @@ export default function BankBuilder({
                 <p className="text-center py-10 text-gray-400">
                   Loading questions...
                 </p>
+              ) : loadingError ? (
+                <p className="text-center py-10 text-red-500">{loadingError}</p>
               ) : filteredQuestions.length === 0 ? (
                 <p className="text-center py-10 text-gray-400 italic">
                   No questions found
@@ -546,7 +607,21 @@ export default function BankBuilder({
                         ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
                         : "bg-white dark:bg-slate-800 border-gray-100 dark:border-gray-700 hover:border-gray-300"
                     }`}
-                    onClick={() => setPreviewQuestion(q)}
+                    onClick={async () => {
+                      setPreviewLoading(true);
+                      try {
+                        const { data: full } = await supabase
+                          .from("questions")
+                          .select(
+                            "id, subject_id, title, content, type, difficulty, options, answer, explanation, code_snippet, topic_id, tags, test_cases, subjects(name)",
+                          )
+                          .eq("id", q.id)
+                          .single();
+                        if (full) setPreviewQuestion(full as Question);
+                      } finally {
+                        setPreviewLoading(false);
+                      }
+                    }}
                   >
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium line-clamp-2 mb-1">
@@ -577,11 +652,16 @@ export default function BankBuilder({
                         addQuestion(q);
                       }}
                       disabled={
-                        !!selectedQuestions.find((sq) => sq.id === q.id)
+                        !!selectedQuestions.find((sq) => sq.id === q.id) ||
+                        addingId === q.id
                       }
                       className="shrink-0 p-1.5 rounded-md bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-30 disabled:cursor-not-allowed"
                     >
-                      <Plus className="size-4" />
+                      {addingId === q.id ? (
+                        <span className="size-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      ) : (
+                        <Plus className="size-4" />
+                      )}
                     </button>
                   </div>
                 ))
@@ -621,12 +701,9 @@ export default function BankBuilder({
                           <LatexContent>{q.content}</LatexContent>
                         </div>
                         {q.code_snippet && (
-                          <div className="text-xs mb-2">
-                            <CodeBlock
-                              code={q.code_snippet}
-                              language="python"
-                            />
-                          </div>
+                          <pre className="text-xs mb-2 overflow-x-auto rounded-lg bg-slate-900 text-slate-100 p-2 font-mono">
+                            {q.code_snippet.replace(/\\n/g, "\n")}
+                          </pre>
                         )}
                         <div className="flex flex-wrap gap-2 text-xs">
                           {q.options &&
@@ -677,6 +754,13 @@ export default function BankBuilder({
         </div>
       </div>
 
+      {previewLoading && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/20">
+          <span className="rounded-lg bg-white dark:bg-slate-800 px-4 py-2 text-sm shadow">
+            Loading preview...
+          </span>
+        </div>
+      )}
       <QuestionPreviewModal
         isOpen={!!previewQuestion}
         question={previewQuestion as any}

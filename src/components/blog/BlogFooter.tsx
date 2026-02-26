@@ -54,7 +54,7 @@ export function BlogFooter() {
                     Library
                   </Link>
                 </li>
-                <li>
+                <li className="hidden">
                   <Link
                     href="/pricing"
                     className="hover:text-blue-600 transition-colors"

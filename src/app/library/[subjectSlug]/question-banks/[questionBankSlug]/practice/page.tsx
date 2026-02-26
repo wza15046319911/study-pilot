@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { PracticeSession } from "@/app/practice/[subjectSlug]/PracticeSession";
-import { Profile } from "@/types/database";
+import { Profile, Question } from "@/types/database";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
 import { getTranslations } from "next-intl/server";
 
@@ -75,6 +75,8 @@ export default async function LibraryQuestionBankPracticePage(
     );
   }
 
+  const bankData = bank as { id: number; slug: string; title: string; subject_id: number; unlock_type: string; is_premium: boolean };
+
   // Fetch user profile for access check + session data
   const { data: profileData } = await supabase
     .from("profiles")
@@ -100,16 +102,16 @@ export default async function LibraryQuestionBankPracticePage(
 
   // Check access for non-public banks
   let isUnlocked = false;
-  if (bank.unlock_type === "free") {
+  if (bankData.unlock_type === "free") {
     isUnlocked = true;
-  } else if (bank.unlock_type === "premium" && profile?.is_vip) {
+  } else if (bankData.unlock_type === "premium" && profile?.is_vip) {
     isUnlocked = true;
   } else {
     const { data: unlock } = await supabase
       .from("user_bank_unlocks")
       .select("id")
       .eq("user_id", user.id)
-      .eq("bank_id", bank.id)
+      .eq("bank_id", bankData.id)
       .maybeSingle();
 
     if (unlock) {
@@ -139,12 +141,12 @@ export default async function LibraryQuestionBankPracticePage(
       )
     `,
     )
-    .eq("bank_id", bank.id)
+    .eq("bank_id", bankData.id)
     .order("order_index");
 
   const questions = ((items as QuestionBankItemRow[] | null) || [])
     .map((item) => item.question)
-    .filter(Boolean);
+    .filter((q): q is NonNullable<typeof q> => q != null) as Question[];
 
   if (questions.length === 0) {
     return (

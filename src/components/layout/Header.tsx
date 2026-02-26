@@ -79,22 +79,23 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
     <nav className="sticky top-0 z-50 w-full border-b border-white/20 dark:border-gray-800 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="flex items-center gap-3">
-            <Image
-              src="/study-pilot-icon.png"
-              alt="StudyPilot Logo"
-              width={40}
-              height={40}
-              className="rounded-xl shadow-lg shadow-blue-500/30"
-            />
-            <h2 className="text-slate-900 dark:text-white text-xl font-bold tracking-tight">
-              StudyPilot
-            </h2>
-          </Link>
+          <div className="flex items-center gap-8">
+            <Link href="/" className="flex items-center gap-3">
+              <Image
+                src="/study-pilot-icon.png"
+                alt="StudyPilot Logo"
+                width={40}
+                height={40}
+                className="rounded-xl shadow-lg shadow-blue-500/30"
+              />
+              <h2 className="text-slate-900 dark:text-white text-xl font-bold tracking-tight">
+                StudyPilot
+              </h2>
+            </Link>
 
-          {/* Desktop Navigation */}
-          {showNav && (
-            <div className="hidden md:flex items-center gap-8">
+            {/* Desktop Navigation - left-aligned next to logo */}
+            {showNav && (
+              <div className="hidden md:flex items-center gap-8">
               <Link
                 href="/library"
                 className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
@@ -109,7 +110,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
               </Link>
               <Link
                 href="/pricing"
-                className="text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
+                className="hidden text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-sm font-medium"
               >
                 {t("pricing")}
               </Link>
@@ -127,6 +128,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
               </Link>
             </div>
           )}
+          </div>
 
           <div className="flex items-center gap-3">
             {/* Mobile Menu Button */}
@@ -476,7 +478,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                 </Link>
                 <Link
                   href="/pricing"
-                  className="block px-3 py-2 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
+                  className="hidden block px-3 py-2 text-base font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {t("pricing")}

@@ -4,7 +4,7 @@ import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { Header } from "@/components/layout/Header";
 import FlashcardSession from "@/app/practice/[subjectSlug]/flashcards/FlashcardSession";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
-import { Profile } from "@/types/database";
+import { Profile, Question } from "@/types/database";
 import { getTranslations } from "next-intl/server";
 
 interface PageProps {
@@ -90,6 +90,8 @@ export default async function LibraryQuestionBankFlashcardsPage(
     );
   }
 
+  const bankData = bank as { id: number; slug: string; title: string; subject_id: number };
+
   // Fetch only fields needed by flashcard session
   const { data: items } = await supabase
     .from("question_bank_items")
@@ -110,16 +112,19 @@ export default async function LibraryQuestionBankFlashcardsPage(
       )
     `,
     )
-    .eq("bank_id", bank.id)
+    .eq("bank_id", bankData.id)
     .order("order_index");
 
   const questions = ((items as QuestionBankFlashcardItemRow[] | null) || [])
     .map((item) => item.question)
-    .filter(Boolean)
+    .filter((q): q is NonNullable<typeof q> => q != null)
     .map((question) => ({
-    ...question,
-    review: null,
-  }));
+      ...question,
+      review: null,
+      tags: null,
+      test_cases: null,
+      created_at: new Date().toISOString(),
+    })) as (Question & { review: null })[];
 
   // Fetch user profile
   const { data: profileData } = await supabase
@@ -171,7 +176,7 @@ export default async function LibraryQuestionBankFlashcardsPage(
         questions={questions}
         user={sessionUser}
         subjectId={subject.id}
-        subjectName={`${bank.title} - ${subject.name}`}
+        subjectName={`${bankData.title} - ${subject.name}`}
       />
     </div>
   );
