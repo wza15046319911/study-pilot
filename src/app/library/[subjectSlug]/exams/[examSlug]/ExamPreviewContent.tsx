@@ -17,7 +17,6 @@ import { Button } from "@/components/ui/Button";
 import { Header } from "@/components/layout/Header";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { GlassPanel } from "@/components/ui/GlassPanel";
-import { ExportExamButton } from "@/components/exam/ExportExamButton";
 
 interface ExamPreviewContentProps {
   exam: any;
@@ -159,15 +158,6 @@ export function ExamPreviewContent({
                         Start Mock Exam
                       </Button>
                     </Link>
-
-                    <div className="w-full sm:w-auto">
-                      <ExportExamButton
-                        examId={exam.id}
-                        examTitle={exam.title}
-                        examType={exam.exam_type}
-                        durationMinutes={exam.duration_minutes}
-                      />
-                    </div>
                   </div>
                 ) : (
                   <div className="bg-slate-100 dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
