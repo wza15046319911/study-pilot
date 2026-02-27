@@ -3,7 +3,6 @@
 import { randomBytes } from "crypto";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import { rateLimitPresets } from "@/lib/rateLimit";
 import { BankIdSchema, validateInput } from "@/lib/validation";
 
 // Generate a cryptographically secure random 6-character code
@@ -24,14 +23,6 @@ export async function getOrCreateReferralCode() {
   } = await supabase.auth.getUser();
 
   if (!user) return null;
-
-  // Rate limit: 5 requests per minute
-  const { success: allowed } = await rateLimitPresets.strict(
-    `referral:create:${user.id}`
-  );
-  if (!allowed) {
-    throw new Error("Too many requests. Please try again later.");
-  }
 
   // Check if exists
   const { data: existing } = await (supabase.from("referral_codes") as any)
@@ -182,14 +173,6 @@ export async function unlockBankWithReferral(bankId: number) {
   } = await supabase.auth.getUser();
 
   if (!user) throw new Error("Not authenticated");
-
-  // Rate limit: 5 requests per minute
-  const { success: allowed } = await rateLimitPresets.strict(
-    `referral:unlock:${user.id}`
-  );
-  if (!allowed) {
-    throw new Error("Too many requests. Please try again later.");
-  }
 
   // 1. Check if already unlocked (user can read their own unlocks via RLS)
   const { data: existing } = await (supabase.from("user_bank_unlocks") as any)

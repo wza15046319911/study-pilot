@@ -2,7 +2,6 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { RecordAnswerSchema } from "@/lib/validation";
-import { rateLimitPresets } from "@/lib/rateLimit";
 
 export type AnswerMode = "practice" | "flashcard" | "immersive" | "exam";
 
@@ -37,14 +36,6 @@ export async function recordAnswer(
 
   if (!user) {
     return { success: false, error: "Unauthorized" };
-  }
-
-  // Rate limit: 100 requests per minute (relaxed for answer submissions)
-  const { success: allowed } = await rateLimitPresets.relaxed(
-    `answer:${user.id}`
-  );
-  if (!allowed) {
-    return { success: false, error: "Too many requests" };
   }
 
   // Insert into user_answers

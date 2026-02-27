@@ -91,7 +91,6 @@
 - **数据库**: Supabase (PostgreSQL)
 - **认证**: Supabase Auth (邮箱OTP + Google OAuth)
 - **实时通信**: Supabase Realtime
-- **缓存/限流**: Redis (滑动窗口算法)
 - **支付**: Stripe (Checkout + Webhooks)
 - **AI**: 智谱AI (ZhipuAI API)
 - **安全**: 行级安全策略（RLS）
@@ -101,7 +100,6 @@
 - **Server Actions**: 替代传统API路由处理数据变更
 - **边缘计算就绪**: 支持Vercel Edge Runtime
 - **类型安全**: Supabase自动生成TypeScript类型
-- **速率限制**: Redis分布式限流（严格/标准/宽松预设）
 
 ## 数据库设计
 
@@ -182,7 +180,6 @@ study-pilot/
 │   │   ├── actions/           # Server Actions
 │   │   ├── ai/                # AI提供商抽象
 │   │   ├── srs.ts             # SM-2算法实现
-│   │   ├── rateLimit.ts       # Redis限流
 │   │   └── stripe.ts          # 支付逻辑
 │   ├── stores/                # Zustand状态管理
 │   ├── types/                 # TypeScript类型定义
@@ -200,21 +197,12 @@ study-pilot/
 1. **数据库层**: 全表RLS策略，用户只能访问自己的数据
 2. **中间件层**: 路由级别的认证检查
 3. **应用层**: Server Actions输入验证（Zod schemas）
-4. **网络层**: Redis分布式限流
 
 ### 会话管理
 - 30天Session Cookie（secure + sameSite）
 - 单设备登录强制（active_session_id）
 - Realtime订阅监控会话变化
 - 检测到异常立即退出登录
-
-### 速率限制
-```typescript
-严格模式: 5次/分钟   (支付、反馈提交)
-标准模式: 30次/分钟  (答题记录、进度更新)
-宽松模式: 100次/分钟 (内容获取)
-认证模式: 10次/15分钟 (登录、注册)
-```
 
 ### 支付安全
 - Stripe Webhook签名验证
@@ -254,7 +242,6 @@ study-pilot/
 - Node.js 18+
 - pnpm（推荐）或 npm
 - Supabase项目（数据库+认证）
-- Redis实例（限流）
 - Stripe账号（支付）
 - ZhipuAI API密钥（AI功能）
 
@@ -264,10 +251,6 @@ study-pilot/
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-
-# Redis (Upstash)
-UPSTASH_REDIS_REST_URL=
-UPSTASH_REDIS_REST_TOKEN=
 
 # Stripe
 STRIPE_SECRET_KEY=
@@ -315,7 +298,6 @@ npx supabase gen types typescript --project-id <project-id> > src/types/database
 ### 注意事项
 - 配置Stripe Webhook端点
 - 设置Supabase重定向URL
-- 启用Redis持久化（生产环境）
 
 ## 路线图
 
