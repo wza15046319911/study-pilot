@@ -7,7 +7,7 @@
 - **前端框架**: Next.js 15 (App Router)
 - **样式**: Tailwind CSS + Glassmorphism 设计
 - **数据库**: Supabase (PostgreSQL)
-- **认证**: Supabase Auth (邮箱验证码 + Google OAuth)
+- **认证**: Supabase Auth (Google + GitHub OAuth)
 - **状态管理**: Zustand
 - **部署**: Vercel
 
@@ -69,7 +69,7 @@ src/
 ## 功能特性
 
 - 落地页（营销展示）
-- 邮箱验证码登录 / Google OAuth
+- Google / GitHub 登录
 - 科目选择（筛选、搜索）
 - 题型选择（知识点、难度、数量）
 - 刷题界面（多题型支持）
