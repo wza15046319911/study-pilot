@@ -14,6 +14,7 @@ interface Exam {
   exam_type: string;
   duration_minutes: number;
   slug: string;
+  visibility: "public" | "assigned_only" | null;
 }
 
 interface PageProps {
@@ -58,14 +59,36 @@ export default async function ExamListPage(props: PageProps) {
   }
 
   // Fetch published exams for this subject
-  const { data: examsData } = await supabase
+  const examsPromise = supabase
     .from("exams")
-    .select("id, title, exam_type, duration_minutes, slug")
+    .select("id, title, exam_type, duration_minutes, slug, visibility")
     .eq("subject_id", subject.id)
     .eq("is_published", true)
     .order("created_at", { ascending: false });
 
-  const exams = examsData as Exam[] | null;
+  const assignedDistributionPromise = supabase
+    .from("distributions")
+    .select("target_id, distribution_users!inner(user_id)")
+    .eq("target_type", "exam")
+    .eq("visibility", "assigned_only")
+    .eq("distribution_users.user_id", user.id);
+
+  const [examsResult, assignedDistributionResult] = await Promise.all([
+    examsPromise,
+    assignedDistributionPromise,
+  ]);
+
+  const assignedExamIds = new Set(
+    (
+      (assignedDistributionResult.data as
+        | { target_id: number }[]
+        | null) || []
+    ).map((row) => row.target_id),
+  );
+  const exams = (((examsResult.data as Exam[] | null) || []).filter(
+    (exam) =>
+      exam.visibility !== "assigned_only" || assignedExamIds.has(exam.id),
+  ));
 
   // Fetch user profile
   const { data: profileData } = await supabase

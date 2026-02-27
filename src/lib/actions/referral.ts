@@ -87,25 +87,48 @@ export async function getReferralStats(userId?: string) {
     targetUserId = user.id;
   }
 
-  // Get total referrals
-  const [totalReferralsResult, unusedReferralsResult, unlockedBanksResult] =
-    await Promise.all([
-      (supabase.from("referrals") as any)
-        .select("*", { count: "exact", head: true })
-        .eq("referrer_id", targetUserId),
-      (supabase.from("referrals") as any)
-        .select("*", { count: "exact", head: true })
-        .eq("referrer_id", targetUserId)
-        .eq("used_for_unlock", false),
-      (supabase.from("user_bank_unlocks") as any)
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", targetUserId)
-        .eq("unlock_type", "referral"),
-    ]);
+  const [referralRowsResult, unlockedBanksResult] = await Promise.all([
+    (supabase.from("referrals") as any)
+      .select(
+        "referrer_id, referee_id, used_for_unlock, referrer_used_for_unlock, referee_used_for_unlock"
+      )
+      .or(`referrer_id.eq.${targetUserId},referee_id.eq.${targetUserId}`),
+    (supabase.from("user_bank_unlocks") as any)
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", targetUserId)
+      .eq("unlock_type", "referral"),
+  ]);
+
+  const referralRows =
+    (referralRowsResult.data as
+      | {
+          referrer_id: string;
+          referee_id: string;
+          used_for_unlock?: boolean | null;
+          referrer_used_for_unlock?: boolean | null;
+          referee_used_for_unlock?: boolean | null;
+        }[]
+      | null) || [];
+
+  const totalReferrals = referralRows.filter(
+    (row) => row.referrer_id === targetUserId
+  ).length;
+  const unusedAsReferrer = referralRows.filter((row) => {
+    if (row.referrer_id !== targetUserId) return false;
+    return !(
+      row.referrer_used_for_unlock ??
+      row.used_for_unlock ??
+      false
+    );
+  }).length;
+  const unusedAsReferee = referralRows.filter((row) => {
+    if (row.referee_id !== targetUserId) return false;
+    return !(row.referee_used_for_unlock ?? false);
+  }).length;
 
   return {
-    totalReferrals: totalReferralsResult.count || 0,
-    unusedReferrals: unusedReferralsResult.count || 0,
+    totalReferrals,
+    unusedReferrals: unusedAsReferrer + unusedAsReferee,
     unlockedBanks: unlockedBanksResult.count || 0,
   };
 }
@@ -177,27 +200,61 @@ export async function unlockBankWithReferral(bankId: number) {
 
   if (existing) return { success: true, message: "Already unlocked" };
 
-  // 2. Find an unused referral (user can read their own referrals via RLS)
-  const { data: referral } = await (supabase.from("referrals") as any)
-    .select("id, referee_id")
-    .eq("referrer_id", user.id)
-    .eq("used_for_unlock", false)
-    .limit(1)
-    .single();
+  // 2. Find an unused referral credit where current user is either referrer or referee.
+  const { data: referrals } = await (supabase.from("referrals") as any)
+    .select(
+      "id, referrer_id, referee_id, used_for_unlock, referrer_used_for_unlock, referee_used_for_unlock"
+    )
+    .or(`referrer_id.eq.${user.id},referee_id.eq.${user.id}`)
+    .order("created_at", { ascending: true });
+
+  const referralList =
+    (referrals as
+      | {
+          id: number;
+          referrer_id: string;
+          referee_id: string;
+          used_for_unlock?: boolean | null;
+          referrer_used_for_unlock?: boolean | null;
+          referee_used_for_unlock?: boolean | null;
+        }[]
+      | null) || [];
+
+  const referral = referralList.find((row) => {
+    if (row.referrer_id === user.id) {
+      return !(
+        row.referrer_used_for_unlock ??
+        row.used_for_unlock ??
+        false
+      );
+    }
+    if (row.referee_id === user.id) {
+      return !(row.referee_used_for_unlock ?? false);
+    }
+    return false;
+  });
 
   if (!referral) {
     throw new Error("No unlock chances available");
   }
 
-  // 3. Perform Unlock Transaction using ADMIN CLIENT to bypass RLS restrictions
-  // (Specifically, there is no public RLS policy for updating referrals)
+  const isReferrerCredit = referral.referrer_id === user.id;
 
-  // A. Mark referral as used
+  // 3. Consume one credit for current user.
+  const updatePayload = isReferrerCredit
+    ? {
+        referrer_used_for_unlock: true,
+        referrer_unlocked_bank_id: bankId,
+        // Keep legacy fields aligned for historical/admin views.
+        used_for_unlock: true,
+        unlocked_bank_id: bankId,
+      }
+    : {
+        referee_used_for_unlock: true,
+        referee_unlocked_bank_id: bankId,
+      };
   const { error: updateError } = await (adminClient.from("referrals") as any)
-    .update({
-      used_for_unlock: true,
-      unlocked_bank_id: bankId,
-    })
+    .update(updatePayload)
     .eq("id", referral.id);
 
   if (updateError) {
@@ -205,8 +262,8 @@ export async function unlockBankWithReferral(bankId: number) {
     throw new Error("Failed to consume referral");
   }
 
-  // B. Unlock for Referrer (User A)
-  const { error: unlockAError } = await (
+  // 4. Unlock selected bank for current user only.
+  const { error: unlockError } = await (
     adminClient.from("user_bank_unlocks") as any
   ).insert({
     user_id: user.id,
@@ -215,29 +272,24 @@ export async function unlockBankWithReferral(bankId: number) {
     referral_id: referral.id,
   });
 
-  if (unlockAError) {
-    console.error("Failed to unlock for referrer:", unlockAError);
+  if (unlockError) {
+    console.error("Failed to unlock with referral credit:", unlockError);
     // Rollback referral usage (best effort)
+    const rollbackPayload = isReferrerCredit
+      ? {
+          referrer_used_for_unlock: false,
+          referrer_unlocked_bank_id: null,
+          used_for_unlock: false,
+          unlocked_bank_id: null,
+        }
+      : {
+          referee_used_for_unlock: false,
+          referee_unlocked_bank_id: null,
+        };
     await (adminClient.from("referrals") as any)
-      .update({ used_for_unlock: false, unlocked_bank_id: null })
+      .update(rollbackPayload)
       .eq("id", referral.id);
     throw new Error("Failed to unlock for you");
-  }
-
-  // C. Unlock for Referee (User B - the friend)
-  // They get the same bank unlocked for free!
-  const { error: unlockBError } = await (
-    adminClient.from("user_bank_unlocks") as any
-  ).insert({
-    user_id: referral.referee_id,
-    bank_id: bankId,
-    unlock_type: "referral",
-    referral_id: referral.id, // Link to same referral
-  });
-
-  // Note: If C fails, A still has it unlocked. We might just log this error.
-  if (unlockBError) {
-    console.error("Failed to unlock for referee:", unlockBError);
   }
 
   revalidatePath("/profile/referrals");

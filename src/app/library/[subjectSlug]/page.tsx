@@ -60,6 +60,36 @@ type PastExamRow = {
   questions?: { count: number }[] | null;
 };
 
+type AssignedDistributionRow = {
+  target_type: "question_bank" | "exam";
+  target_id: number;
+};
+
+type ExamListRow = {
+  id: number;
+  title: string;
+  slug: string | null;
+  exam_type: string;
+  duration_minutes: number;
+  is_premium: boolean;
+  unlock_type: "free" | "premium" | "referral" | "paid";
+  price: number | null;
+  visibility: "public" | "assigned_only" | null;
+};
+
+type BankListRow = {
+  id: number;
+  title: string;
+  slug: string | null;
+  description: string | null;
+  unlock_type: "free" | "premium" | "referral" | "paid";
+  is_premium: boolean;
+  price: number | null;
+  subject_id: number;
+  visibility: "public" | "assigned_only" | null;
+  items?: { count: number }[] | null;
+};
+
 export async function generateMetadata(props: PageProps) {
   const params = await props.params;
   const supabase = await createClient();
@@ -137,7 +167,7 @@ export default async function SubjectPage(props: PageProps) {
   const examsPromise = supabase
     .from("exams")
     .select(
-      "id, title, slug, exam_type, duration_minutes, is_premium, unlock_type, price",
+      "id, title, slug, exam_type, duration_minutes, is_premium, unlock_type, price, visibility",
     )
     .eq("subject_id", subject.id)
     .eq("is_published", true)
@@ -155,6 +185,7 @@ export default async function SubjectPage(props: PageProps) {
       is_premium,
       price,
       subject_id,
+      visibility,
       items:question_bank_items(count)
     `,
     )
@@ -220,6 +251,12 @@ export default async function SubjectPage(props: PageProps) {
     .order("semester", { ascending: false })
     .order("created_at", { ascending: false });
 
+  const assignedDistributionPromise = supabase
+    .from("distributions")
+    .select("target_type, target_id, distribution_users!inner(user_id)")
+    .eq("visibility", "assigned_only")
+    .eq("distribution_users.user_id", user.id);
+
   const [
     profileResult,
     examsResult,
@@ -230,6 +267,7 @@ export default async function SubjectPage(props: PageProps) {
     examDatesResult,
     weeklyPracticesResult,
     pastExamsResult,
+    assignedDistributionResult,
   ] = await Promise.all([
     profilePromise,
     examsPromise,
@@ -240,6 +278,7 @@ export default async function SubjectPage(props: PageProps) {
     examDatesPromise,
     weeklyPracticesPromise,
     pastExamsPromise,
+    assignedDistributionPromise,
   ]);
 
   const profile = profileResult.data as ProfileSummary | null;
@@ -258,8 +297,37 @@ export default async function SubjectPage(props: PageProps) {
     ((examUnlocksResult.data as ExamUnlockRow[] | null) || []).map((u) => u.exam_id),
   );
 
-  const exams = examsResult.data || [];
-  const banks = banksResult.data || [];
+  const assignedRows =
+    (assignedDistributionResult.data as AssignedDistributionRow[] | null) || [];
+  const assignedBankIds = new Set(
+    assignedRows
+      .filter((row) => row.target_type === "question_bank")
+      .map((row) => row.target_id),
+  );
+  const assignedExamIds = new Set(
+    assignedRows
+      .filter((row) => row.target_type === "exam")
+      .map((row) => row.target_id),
+  );
+
+  const exams = (((examsResult.data as ExamListRow[] | null) || [])
+    .filter(
+      (exam) =>
+        exam.visibility !== "assigned_only" || assignedExamIds.has(exam.id),
+    )
+    .map((exam) => ({
+      ...exam,
+      visibility: exam.visibility ?? undefined,
+    })));
+  const banks = (((banksResult.data as BankListRow[] | null) || [])
+    .filter(
+      (bank) =>
+        bank.visibility !== "assigned_only" || assignedBankIds.has(bank.id),
+    )
+    .map((bank) => ({
+      ...bank,
+      visibility: bank.visibility ?? undefined,
+    })));
   const questionCount = questionCountResult.count || 0;
   const examDates = examDatesResult.data || [];
 

@@ -25,55 +25,96 @@ export default async function MockExamsPage() {
     redirect("/login");
   }
 
-  // Fetch user's exam collections
-  let userExams: any[] = [];
-  try {
-    const { data } = await supabase
-      .from("user_exam_collections")
-      .select(
-        `
+  const collectionsPromise = supabase
+    .from("user_exam_collections")
+    .select(
+      `
+      id,
+      exam_id,
+      added_at,
+      completion_count,
+      best_score,
+      best_time_seconds,
+      last_attempted_at,
+      exams (
         id,
-        exam_id,
-        added_at,
-        completion_count,
-        best_score,
-        best_time_seconds,
-        last_attempted_at,
-        exams (
+        subject_id,
+        title,
+        slug,
+        duration_minutes,
+        unlock_type,
+        is_premium,
+        visibility,
+        subjects (
           id,
-          subject_id,
-          title,
-          slug,
-          duration_minutes,
-          subjects (
-            id,
-            name,
-            slug
-          )
+          name,
+          slug
         )
-      `,
       )
-      .eq("user_id", user.id)
-      .order("added_at", { ascending: false });
+    `,
+    )
+    .eq("user_id", user.id)
+    .order("added_at", { ascending: false });
 
-    userExams = data || [];
-  } catch (error) {
-    console.error("Error fetching exams:", error);
-    userExams = [];
-  }
-
-  // Get user profile for header
-  const { data: profileData } = await supabase
+  const profilePromise = supabase
     .from("profiles")
     .select("username, avatar_url, is_vip")
     .eq("id", user.id)
     .single();
 
-  const profile = profileData as {
+  const unlocksPromise = supabase
+    .from("user_exam_unlocks")
+    .select("exam_id")
+    .eq("user_id", user.id);
+
+  const assignedDistributionPromise = supabase
+    .from("distributions")
+    .select("target_id, distribution_users!inner(user_id)")
+    .eq("target_type", "exam")
+    .eq("visibility", "assigned_only")
+    .eq("distribution_users.user_id", user.id);
+
+  const [collectionsResult, profileResult, unlocksResult, assignedResult] =
+    await Promise.all([
+      collectionsPromise,
+      profilePromise,
+      unlocksPromise,
+      assignedDistributionPromise,
+    ]);
+
+  const unlockedExamIds = new Set(
+    (((unlocksResult.data as { exam_id: number }[] | null) || []).map(
+      (row) => row.exam_id,
+    )),
+  );
+  const assignedExamIds = new Set(
+    (((assignedResult.data as { target_id: number }[] | null) || []).map(
+      (row) => row.target_id,
+    )),
+  );
+
+  const profile = profileResult.data as {
     username: string | null;
     avatar_url: string | null;
     is_vip: boolean;
   } | null;
+  const userExams = ((collectionsResult.data as any[] | null) || []).filter(
+    (item) => {
+      const exam = item.exams;
+      if (!exam) return false;
+
+      if (
+        exam.visibility === "assigned_only" &&
+        !assignedExamIds.has(exam.id)
+      ) {
+        return false;
+      }
+
+      if (exam.unlock_type === "free") return true;
+      if (exam.unlock_type === "premium") return !!profile?.is_vip;
+      return unlockedExamIds.has(exam.id);
+    },
+  );
 
   const headerUser = {
     username: profile?.username || user.user_metadata?.name || t("fallbackUser"),

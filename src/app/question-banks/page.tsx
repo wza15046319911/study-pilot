@@ -10,6 +10,10 @@ export const metadata = {
   description: "Curated question sets for focused practice.",
 };
 
+type AssignedDistributionRow = {
+  target_id: number;
+};
+
 export default async function QuestionBanksPage() {
   const supabase = await createClient();
 
@@ -41,16 +45,32 @@ export default async function QuestionBanksPage() {
     .eq("is_published", true)
     .order("created_at", { ascending: false });
 
+  const { data: assignedDistributionRows } = await supabase
+    .from("distributions")
+    .select("target_id, distribution_users!inner(user_id)")
+    .eq("target_type", "question_bank")
+    .eq("visibility", "assigned_only")
+    .eq("distribution_users.user_id", user.id);
+
   // Fetch User Unlocks
   const { data: unlocks } = await supabase
     .from("user_bank_unlocks")
     .select("bank_id")
     .eq("user_id", user.id);
 
+  const assignedBankIds = new Set(
+    ((assignedDistributionRows as AssignedDistributionRow[] | null) || []).map(
+      (row) => row.target_id,
+    ),
+  );
+  const visibleBanks = ((banks as any[]) || []).filter(
+    (bank) =>
+      bank.visibility !== "assigned_only" || assignedBankIds.has(bank.id),
+  );
   const unlockedBankIds = new Set((unlocks || []).map((u: any) => u.bank_id));
 
   // Group by Subject
-  const groupedBanks = (banks || []).reduce((acc: any, bank: any) => {
+  const groupedBanks = visibleBanks.reduce((acc: any, bank: any) => {
     const subjectName = bank.subject?.name || "Other";
     if (!acc[subjectName]) {
       acc[subjectName] = [];
@@ -113,7 +133,7 @@ export default async function QuestionBanksPage() {
             )
           )}
 
-          {(!banks || banks.length === 0) && (
+          {visibleBanks.length === 0 && (
             <div className="text-center py-20">
               <BookOpen className="size-16 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-500 text-lg">

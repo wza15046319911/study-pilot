@@ -30,14 +30,16 @@ export default async function QuestionBankPracticePage(props: PageProps) {
   let { data: bank, error: bankError } = await (
     supabase.from("question_banks") as any
   )
-    .select("id, slug, subject_id, is_premium, unlock_type")
+    .select("id, slug, subject_id, is_premium, unlock_type, visibility")
     .eq("slug", slug)
+    .eq("is_published", true)
     .maybeSingle();
 
   if (!bank && decodedBankId !== null) {
     const fallbackResult = await (supabase.from("question_banks") as any)
-      .select("id, slug, subject_id, is_premium, unlock_type")
+      .select("id, slug, subject_id, is_premium, unlock_type, visibility")
       .eq("id", decodedBankId)
+      .eq("is_published", true)
       .maybeSingle();
     bank = fallbackResult.data;
     bankError = fallbackResult.error;
@@ -81,10 +83,26 @@ export default async function QuestionBankPracticePage(props: PageProps) {
     .single();
 
   const profile = profileData as any;
+  const bankRouteId = slugOrEncodedId(bank.slug, bank.id);
 
   // Check Access (Strict Check)
   let isUnlocked = false;
-  if (!bank.is_premium && bank.unlock_type === "free") {
+
+  const { data: distributionResult } = await supabase
+    .from("distributions")
+    .select("id, distribution_users!inner(user_id)")
+    .eq("target_type", "question_bank")
+    .eq("target_id", bank.id)
+    .eq("distribution_users.user_id", user.id)
+    .maybeSingle();
+
+  if (bank.visibility === "assigned_only" && !distributionResult) {
+    redirect(`/question-banks/${bankRouteId}`);
+  }
+
+  if (distributionResult) {
+    isUnlocked = true;
+  } else if (!bank.is_premium && bank.unlock_type === "free") {
     isUnlocked = true;
   } else {
     if (bank.is_premium && profile?.is_vip) {
@@ -103,8 +121,6 @@ export default async function QuestionBankPracticePage(props: PageProps) {
       }
     }
   }
-
-  const bankRouteId = slugOrEncodedId(bank.slug, bank.id);
 
   if (!isUnlocked) {
     redirect(`/question-banks/${bankRouteId}`);

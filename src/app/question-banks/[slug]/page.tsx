@@ -41,10 +41,12 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
       unlock_type,
       is_premium,
       price,
-      allowed_modes
+      allowed_modes,
+      visibility
     `,
     )
     .eq("slug", slug)
+    .eq("is_published", true)
     .maybeSingle();
 
   if (!bank && decodedBankId !== null) {
@@ -59,10 +61,12 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
       unlock_type,
       is_premium,
       price,
-      allowed_modes
+      allowed_modes,
+      visibility
     `,
       )
       .eq("id", decodedBankId)
+      .eq("is_published", true)
       .maybeSingle();
     bank = fallbackResult.data;
     bankError = fallbackResult.error;
@@ -96,6 +100,7 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
       `
       question:questions(
         difficulty,
+        tags,
         topic:topics(name)
       )
     `,
@@ -115,21 +120,50 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
     .eq("bank_id", bank.id)
     .maybeSingle();
 
-  const [profileResult, itemsResult, collectionResult, unlockResult] =
+  const distributionCheckPromise = supabase
+    .from("distributions")
+    .select("id, distribution_users!inner(user_id)")
+    .eq("target_type", "question_bank")
+    .eq("target_id", bank.id)
+    .eq("distribution_users.user_id", user.id)
+    .maybeSingle();
+
+  const [profileResult, itemsResult, collectionResult, unlockResult, distributionResult] =
     await Promise.all([
       profilePromise,
       itemsPromise,
       collectionPromise,
       unlockPromise,
+      distributionCheckPromise,
     ]);
 
   const profile = profileResult.data as any;
+
+  if (bank.visibility === "assigned_only" && !distributionResult.data) {
+    return (
+      <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc]">
+        <AmbientBackground />
+        <Header user={{ username: "User" }} />
+        <div className="flex-grow flex items-center justify-center">
+          <NotFoundPage
+            title="Question Bank Not Found"
+            description="The question bank you are trying to access does not exist."
+            backLink="/question-banks"
+            backText="Back to Question Banks"
+          />
+        </div>
+      </div>
+    );
+  }
 
   // Check Unlock Status
   let isUnlocked = false;
   let unlockReason = "";
 
-  if (bank.unlock_type === "free") {
+  if (distributionResult.data) {
+    isUnlocked = true;
+    unlockReason = "Assigned";
+  } else if (bank.unlock_type === "free") {
     // Free banks are always accessible
     isUnlocked = true;
     unlockReason = "Free";
@@ -170,10 +204,34 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
     acc[topicName] = (acc[topicName] || 0) + 1;
     return acc;
   }, {});
+  const tagCounts = questions.reduce((acc: Record<string, number>, q: any) => {
+    if (!Array.isArray(q.tags)) return acc;
+
+    const normalizedTags: string[] = q.tags
+      .map((tag: unknown) => (typeof tag === "string" ? tag.trim() : ""))
+      .filter((tag: string) => tag.length > 0);
+    const uniqueTags: string[] = Array.from(new Set<string>(normalizedTags));
+
+    uniqueTags.forEach((tag) => {
+      acc[tag] = (acc[tag] || 0) + 1;
+    });
+    return acc;
+  }, {});
 
   const sortedTopics = Object.entries(topicCounts)
-    .sort(([, a], [, b]) => (b as number) - (a as number))
-    .slice(0, 5);
+    .sort(([topicA, countA], [topicB, countB]) => {
+      const countDiff = (countB as number) - (countA as number);
+      if (countDiff !== 0) return countDiff;
+      return topicA.localeCompare(topicB);
+    })
+    .slice(0, 5) as [string, number][];
+  const sortedTags = Object.entries(tagCounts)
+    .sort(([tagA, countA], [tagB, countB]) => {
+      const countDiff = (countB as number) - (countA as number);
+      if (countDiff !== 0) return countDiff;
+      return tagA.localeCompare(tagB);
+    })
+    .slice(0, 5) as [string, number][];
 
   const userData = {
     username: profile?.username || user.email?.split("@")[0] || "User",
@@ -189,7 +247,8 @@ export default async function QuestionBankPreviewPage(props: PageProps) {
       }}
       user={userData}
       difficultyCounts={difficultyCounts}
-      sortedTopics={sortedTopics as any}
+      sortedTopics={sortedTopics}
+      sortedTags={sortedTags}
       totalQuestions={totalQuestions}
       isUnlocked={isUnlocked}
       unlockReason={unlockReason}

@@ -39,10 +39,12 @@ export default async function ExamPreviewPage(props: PageProps) {
       unlock_type,
       is_premium,
       price,
+      visibility,
       subject:subjects(id, name, slug, icon)
     `,
     )
     .eq("slug", slug)
+    .eq("is_published", true)
     .maybeSingle();
 
   if (!exam || examError) {
@@ -74,9 +76,18 @@ export default async function ExamPreviewPage(props: PageProps) {
     .eq("exam_id", exam.id)
     .maybeSingle();
 
-  const [profileResult, collectionResult] = await Promise.all([
+  const distributionPromise = supabase
+    .from("distributions")
+    .select("id, distribution_users!inner(user_id)")
+    .eq("target_type", "exam")
+    .eq("target_id", exam.id)
+    .eq("distribution_users.user_id", user.id)
+    .maybeSingle();
+
+  const [profileResult, collectionResult, distributionResult] = await Promise.all([
     profilePromise,
     collectionPromise,
+    distributionPromise,
   ]);
 
   const profile = profileResult.data as
@@ -91,7 +102,26 @@ export default async function ExamPreviewPage(props: PageProps) {
 
   let isUnlocked = false;
 
-  if (exam.unlock_type === "free") {
+  if (exam.visibility === "assigned_only" && !distributionResult.data) {
+    return (
+      <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc]">
+        <AmbientBackground />
+        <Header user={{ username: "User" }} />
+        <div className="flex-grow flex items-center justify-center">
+          <NotFoundPage
+            title="Exam Not Found"
+            description="The exam you are trying to access does not exist."
+            backLink="/library"
+            backText="Back to Library"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (distributionResult.data) {
+    isUnlocked = true;
+  } else if (exam.unlock_type === "free") {
     isUnlocked = true;
   } else if (exam.unlock_type === "premium" && profile?.is_vip) {
     isUnlocked = true;

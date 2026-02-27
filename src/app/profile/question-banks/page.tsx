@@ -25,51 +25,92 @@ export default async function QuestionBanksPage() {
     redirect("/login");
   }
 
-  // Fetch user's question bank collections
-  let userQuestionBanks: any[] = [];
-  try {
-    const { data } = await supabase
-      .from("user_question_bank_collections")
-      .select(
-        `
+  const collectionsPromise = supabase
+    .from("user_question_bank_collections")
+    .select(
+      `
+      id,
+      bank_id,
+      added_at,
+      completion_count,
+      last_completed_at,
+      question_banks (
         id,
-        bank_id,
-        added_at,
-        completion_count,
-        last_completed_at,
-        question_banks (
+        title,
+        slug,
+        unlock_type,
+        is_premium,
+        visibility,
+        subjects (
           id,
-          title,
-          slug,
-          subjects (
-            id,
-            name,
-            slug
-          )
+          name,
+          slug
         )
-      `,
       )
-      .eq("user_id", user.id)
-      .order("added_at", { ascending: false });
+    `,
+    )
+    .eq("user_id", user.id)
+    .order("added_at", { ascending: false });
 
-    userQuestionBanks = data || [];
-  } catch (error) {
-    console.error("Error fetching question banks:", error);
-    userQuestionBanks = [];
-  }
-
-  // Get user profile for header
-  const { data: profileData } = await supabase
+  const profilePromise = supabase
     .from("profiles")
     .select("username, avatar_url, is_vip")
     .eq("id", user.id)
     .single();
 
-  const profile = profileData as {
+  const unlocksPromise = supabase
+    .from("user_bank_unlocks")
+    .select("bank_id")
+    .eq("user_id", user.id);
+
+  const assignedDistributionPromise = supabase
+    .from("distributions")
+    .select("target_id, distribution_users!inner(user_id)")
+    .eq("target_type", "question_bank")
+    .eq("visibility", "assigned_only")
+    .eq("distribution_users.user_id", user.id);
+
+  const [collectionsResult, profileResult, unlocksResult, assignedResult] =
+    await Promise.all([
+      collectionsPromise,
+      profilePromise,
+      unlocksPromise,
+      assignedDistributionPromise,
+    ]);
+
+  const unlockedBankIds = new Set(
+    (((unlocksResult.data as { bank_id: number }[] | null) || []).map(
+      (row) => row.bank_id,
+    )),
+  );
+  const assignedBankIds = new Set(
+    (((assignedResult.data as { target_id: number }[] | null) || []).map(
+      (row) => row.target_id,
+    )),
+  );
+
+  const profile = profileResult.data as {
     username: string | null;
     avatar_url: string | null;
     is_vip: boolean;
   } | null;
+  const userQuestionBanks = ((collectionsResult.data as any[] | null) || []).filter(
+    (item) => {
+      const bank = item.question_banks;
+      if (!bank) return false;
+
+      if (
+        bank.visibility === "assigned_only" &&
+        !assignedBankIds.has(bank.id)
+      ) {
+        return false;
+      }
+
+      if (bank.unlock_type === "free") return true;
+      if (bank.unlock_type === "premium") return !!profile?.is_vip;
+      return unlockedBankIds.has(bank.id);
+    },
+  );
 
   const headerUser = {
     username: profile?.username || user.user_metadata?.name || t("fallbackUser"),

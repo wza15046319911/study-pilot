@@ -68,6 +68,7 @@ export default async function ExamPage(props: PageProps) {
         "unlock_type",
         "is_premium",
         "price",
+        "visibility",
       ].join(", "),
     )
     .eq("slug", examSlug)
@@ -89,6 +90,7 @@ export default async function ExamPage(props: PageProps) {
           "unlock_type",
           "is_premium",
           "price",
+          "visibility",
         ].join(", "),
       )
       .eq("id", decodedExamId)
@@ -129,7 +131,25 @@ export default async function ExamPage(props: PageProps) {
   const isVip = profile?.is_vip || false;
 
   let isUnlocked = false;
-  if (resolvedExam.unlock_type === "free") {
+
+  const { data: distributionResult } = await supabase
+    .from("distributions")
+    .select("id, distribution_users!inner(user_id)")
+    .eq("target_type", "exam")
+    .eq("target_id", resolvedExam.id)
+    .eq("distribution_users.user_id", user.id)
+    .maybeSingle();
+
+  if (distributionResult) {
+    isUnlocked = true;
+  } else if (resolvedExam.visibility === "assigned_only") {
+    redirect(
+      `/library/${subject.slug}/exams/${slugOrEncodedId(
+        resolvedExam.slug,
+        resolvedExam.id,
+      )}`,
+    );
+  } else if (resolvedExam.unlock_type === "free") {
     isUnlocked = true;
   } else if (resolvedExam.unlock_type === "premium" && isVip) {
     isUnlocked = true;
@@ -195,6 +215,7 @@ export default async function ExamPage(props: PageProps) {
     vip_expires_at: null,
     active_session_id: null,
     is_admin: false,
+    email_notifications_enabled: true,
   };
 
   return (

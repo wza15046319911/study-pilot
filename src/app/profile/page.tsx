@@ -414,6 +414,7 @@ export default async function ProfilePage() {
     vip_expires_at: null,
     active_session_id: null,
     is_admin: false,
+    email_notifications_enabled: true,
   };
 
   const userData = {

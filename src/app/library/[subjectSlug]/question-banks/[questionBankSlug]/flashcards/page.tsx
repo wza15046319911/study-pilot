@@ -166,6 +166,7 @@ export default async function LibraryQuestionBankFlashcardsPage(
     vip_expires_at: null,
     active_session_id: null,
     is_admin: false,
+    email_notifications_enabled: true,
   };
 
   return (

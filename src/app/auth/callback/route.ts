@@ -81,7 +81,7 @@ export async function GET(request: Request) {
                 await (supabase.from("referrals") as any).insert({
                   referrer_id: referral.user_id,
                   referee_id: user.id,
-                  referral_code: referralCode,
+                  referral_code: referralCode.toUpperCase(),
                 });
               }
             }
