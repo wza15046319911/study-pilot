@@ -31,6 +31,8 @@ import {
   ChevronDown,
   ChevronRight,
   Layout,
+  RotateCcw,
+  RefreshCw,
 } from "lucide-react";
 
 const HandwriteCanvas = dynamic(
@@ -223,6 +225,35 @@ export function PracticeSession({
   const handleExitSession = async () => {
     await flushProgressSave();
     router.push(exitLink);
+  };
+
+  const handleResetSession = () => {
+    if (
+      window.confirm(
+        "Are you sure you want to start over? Your progress in this session will be reset, but your answer history will be kept in the database.",
+      )
+    ) {
+      sessionStorage.removeItem(sessionStorageKey);
+      setCurrentIndex(0);
+      setAnswers({});
+      setCheckedAnswers({});
+      setElapsedTime(0);
+      setFinalScore(0);
+    }
+  };
+
+  const handleRedoQuestion = () => {
+    const questionId = currentQuestion.id;
+    setAnswers((prev) => {
+      const next = { ...prev };
+      delete next[questionId];
+      return next;
+    });
+    setCheckedAnswers((prev) => {
+      const next = { ...prev };
+      delete next[questionId];
+      return next;
+    });
   };
 
   useEffect(() => {
@@ -751,7 +782,15 @@ export function PracticeSession({
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-slate-900">
+            <div className="p-4 border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-slate-900 space-y-2">
+              <Button
+                variant="ghost"
+                className="w-full justify-center text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white font-serif font-bold rounded-sm border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                onClick={handleResetSession}
+              >
+                <RotateCcw className="mr-2 size-4" />
+                Reset
+              </Button>
               <Button
                 variant="ghost"
                 className="w-full justify-center text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 font-serif font-bold rounded-sm border border-transparent hover:border-red-200"
@@ -1143,17 +1182,27 @@ export function PracticeSession({
                 </span>
               </Button>
             ) : (
-              <Button
-                onClick={handleNext}
-                className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-[background-color,box-shadow,transform,color] active:scale-95 group gap-2"
-              >
-                {currentIndex === questions.length - 1
-                  ? "Finish Exam"
-                  : "Next Question"}
-                <span className="text-xs px-1.5 py-0.5 rounded border border-white/20 bg-white/10 text-white/80 group-hover:text-white transition-colors">
-                  ↓
-                </span>
-              </Button>
+              <>
+                <Button
+                  onClick={handleRedoQuestion}
+                  variant="outline"
+                  className="px-6 rounded-full border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
+                >
+                  <RefreshCw className="mr-2 size-4" />
+                  Redo
+                </Button>
+                <Button
+                  onClick={handleNext}
+                  className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-[background-color,box-shadow,transform,color] active:scale-95 group gap-2"
+                >
+                  {currentIndex === questions.length - 1
+                    ? "Finish Exam"
+                    : "Next Question"}
+                  <span className="text-xs px-1.5 py-0.5 rounded border border-white/20 bg-white/10 text-white/80 group-hover:text-white transition-colors">
+                    ↓
+                  </span>
+                </Button>
+              </>
             )}
           </div>
         </div>

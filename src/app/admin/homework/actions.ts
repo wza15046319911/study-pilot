@@ -76,6 +76,31 @@ const getUserEmailMap = async () => {
   return emailMap;
 };
 
+const getEmailNotificationPreferenceMap = async (userIds: string[]) => {
+  if (userIds.length === 0) {
+    return new Map<string, boolean>();
+  }
+
+  const admin = createAdminClient();
+  const { data: profiles, error } = await admin
+    .from("profiles")
+    .select("id, email_notifications_enabled")
+    .in("id", userIds);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const preferenceMap = new Map<string, boolean>();
+  (profiles || []).forEach(
+    (profile: { id: string; email_notifications_enabled: boolean | null }) => {
+      preferenceMap.set(profile.id, profile.email_notifications_enabled !== false);
+    },
+  );
+
+  return preferenceMap;
+};
+
 const upsertHomework = async (data: HomeworkPayload) => {
   const supabase = await createClient();
   const payload = {
@@ -218,8 +243,16 @@ export async function pushHomework(
         errors: ["EMAIL_NOT_CONFIGURED"],
       };
     } else if (assignmentResult.userIds?.length) {
+      const notificationPreferenceMap = await getEmailNotificationPreferenceMap(
+        assignmentResult.userIds,
+      );
+      const optedInUserIds = assignmentResult.userIds.filter(
+        (userId) => notificationPreferenceMap.get(userId) !== false,
+      );
+      const optedOutCount = assignmentResult.userIds.length - optedInUserIds.length;
+
       const emailMap = await getUserEmailMap();
-      const recipients = assignmentResult.userIds
+      const recipients = optedInUserIds
         .map((userId) => ({
           id: userId,
           email: emailMap.get(userId),
@@ -228,11 +261,16 @@ export async function pushHomework(
           Boolean(recipient.email)
         );
 
-      emailResult = await sendHomeworkPushEmails({
+      const sendResult = await sendHomeworkPushEmails({
         recipients,
         homeworkTitle: data.title,
         dueAt: data.dueAt,
       });
+
+      emailResult = {
+        ...sendResult,
+        skipped: sendResult.skipped + optedOutCount,
+      };
     }
   } catch (error) {
     emailResult = {

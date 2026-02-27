@@ -43,6 +43,7 @@ export function QuestionBankItem({
 
   const isReferralType = bank.unlock_type === "referral";
   const isPaidType = bank.unlock_type === "paid";
+  const isPrivate = bank.visibility === "assigned_only";
   const isPremiumLocked = bank.is_premium && !isVip;
   const isReferralLocked = isReferralType && !isUnlocked;
   const isPaidLocked = isPaidType && !isUnlocked;
@@ -90,7 +91,20 @@ export function QuestionBankItem({
     accentGradient: "from-slate-500/10 to-slate-500/0",
   };
 
-  if (isPaidType) {
+  if (isPrivate) {
+    badgeIcon = <Lock className="size-3.5" />;
+    badgeText = "Private Assigned";
+    colorScheme = {
+      border: "border-slate-200 dark:border-slate-700",
+      bg: "bg-slate-50/30 dark:bg-slate-900/10",
+      badgeBg: "bg-slate-100 dark:bg-slate-800",
+      badgeText: "text-slate-700 dark:text-slate-300",
+      icon: "text-slate-500",
+      hoverBorder:
+        "group-hover:border-slate-300 dark:group-hover:border-slate-600",
+      accentGradient: "from-slate-500/10 to-slate-500/0",
+    };
+  } else if (isPaidType) {
     badgeIcon = <DollarSign className="size-3.5" />;
     badgeText = bank.price ? `Paid Only · $${bank.price}` : "Paid Only";
     colorScheme = {

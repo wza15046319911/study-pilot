@@ -12,6 +12,7 @@ import {
   MessageSquareWarning,
   Gift,
   KeyRound,
+  Share2,
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -115,6 +116,13 @@ export default function AdminDashboard() {
           href: "/admin/referrals",
           icon: <Gift className="size-8 text-fuchsia-500" />,
           color: "bg-fuchsia-100 dark:bg-fuchsia-900/30",
+        },
+        {
+          title: "Distributions",
+          description: "Manage targeted content distribution.",
+          href: "/admin/distributions",
+          icon: <Share2 className="size-8 text-teal-500" />,
+          color: "bg-teal-100 dark:bg-teal-900/30",
         },
       ],
     },

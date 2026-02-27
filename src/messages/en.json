@@ -632,6 +632,7 @@
       "logout": "Logout",
       "mistakes": "Mistakes",
       "referrals": "Referrals",
+      "settings": "Settings",
       "weeklyPractice": "Weekly Practice"
     },
     "time": {
@@ -761,6 +762,29 @@
   },
   "profilePageMeta": {
     "fallbackUser": "User"
+  },
+  "profileSettings": {
+    "page": {
+      "fallbackUser": "User",
+      "subtitle": "Manage how StudyPilot contacts you about new assignments and updates.",
+      "title": "Settings"
+    },
+    "pageMeta": {
+      "description": "Manage your profile notification preferences",
+      "title": "Settings | Profile"
+    },
+    "emailNotification": {
+      "description": "Receive email updates when new homework is assigned to you.",
+      "hint": "You can change this any time.",
+      "title": "Email notification"
+    },
+    "status": {
+      "off": "Off",
+      "on": "On"
+    },
+    "errors": {
+      "saveFailed": "Failed to save settings. Please try again."
+    }
   },
   "profileProgress": {
     "breadcrumb": {

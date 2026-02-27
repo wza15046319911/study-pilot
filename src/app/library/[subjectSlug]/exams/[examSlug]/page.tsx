@@ -87,6 +87,7 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
         "unlock_type",
         "is_premium",
         "price",
+        "visibility",
       ].join(", "),
     )
     .eq("slug", examSlug)
@@ -107,6 +108,7 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
           "unlock_type",
           "is_premium",
           "price",
+          "visibility",
         ].join(", "),
       )
       .eq("id", decodedExamId)
@@ -143,6 +145,7 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
     unlock_type: string;
     is_premium: boolean;
     price: number | null;
+    visibility: "public" | "assigned_only" | null;
   };
   const examData = exam as ExamRow;
 
@@ -167,7 +170,33 @@ export default async function LibraryExamPreviewPage(props: PageProps) {
 
   let isUnlocked = false;
 
-  if (examData.unlock_type === "free") {
+  // Check distribution status
+  const { data: distributionResult } = await supabase
+    .from("distributions")
+    .select("id, distribution_users!inner(user_id)")
+    .eq("target_type", "exam")
+    .eq("target_id", examData.id)
+    .eq("distribution_users.user_id", user.id)
+    .maybeSingle();
+
+  if (distributionResult) {
+    isUnlocked = true;
+  } else if (examData.visibility === "assigned_only") {
+    return (
+      <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc]">
+        <AmbientBackground />
+        <Header user={{ username: t("fallbackUser") }} />
+        <div className="flex-grow flex items-center justify-center">
+          <NotFoundPage
+            title={t("examNotFound.title")}
+            description={t("examNotFound.description")}
+            backLink={`/library/${subjectSlug}`}
+            backText={t("examNotFound.backToSubject")}
+          />
+        </div>
+      </div>
+    );
+  } else if (examData.unlock_type === "free") {
     isUnlocked = true;
   } else if (examData.unlock_type === "premium" && profile?.is_vip) {
     isUnlocked = true;

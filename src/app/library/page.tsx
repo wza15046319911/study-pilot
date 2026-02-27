@@ -10,6 +10,11 @@ type SubjectStats = {
   mockExamCount: number;
 };
 
+type AssignedDistributionRow = {
+  target_type: "question_bank" | "exam";
+  target_id: number;
+};
+
 export const metadata = {
   title: "Library | StudyPilot",
   description: "Your complete learning resource library.",
@@ -46,30 +51,65 @@ export default async function LibraryPage() {
   const subjectsPromise = supabase.from("subjects").select("*").order("id");
   const questionBanksPromise = supabase
     .from("question_banks")
-    .select("subject_id")
+    .select("id, subject_id, visibility")
     .eq("is_published", true);
   const mockExamsPromise = supabase
     .from("exams")
-    .select("subject_id")
+    .select("id, subject_id, visibility")
     .eq("is_published", true);
   const weeklyPracticesPromise = supabase
     .from("weekly_practices")
     .select("subject_id")
     .eq("is_published", true);
+  const assignedDistributionPromise = supabase
+    .from("distributions")
+    .select("target_type, target_id, distribution_users!inner(user_id)")
+    .eq("visibility", "assigned_only")
+    .eq("distribution_users.user_id", user.id);
 
-  const [subjectsResult, questionBanksResult, mockExamsResult, weeklyResult] =
+  const [
+    subjectsResult,
+    questionBanksResult,
+    mockExamsResult,
+    weeklyResult,
+    assignedDistributionResult,
+  ] =
     await Promise.all([
       subjectsPromise,
       questionBanksPromise,
       mockExamsPromise,
       weeklyPracticesPromise,
+      assignedDistributionPromise,
     ]);
 
   const subjects = subjectsResult.data || [];
+  const assignedRows =
+    (assignedDistributionResult.data as AssignedDistributionRow[] | null) || [];
+  const assignedBankIds = new Set(
+    assignedRows
+      .filter((row) => row.target_type === "question_bank")
+      .map((row) => row.target_id),
+  );
+  const assignedExamIds = new Set(
+    assignedRows
+      .filter((row) => row.target_type === "exam")
+      .map((row) => row.target_id),
+  );
+
   const questionBankRows =
-    (questionBanksResult.data as { subject_id: number }[] | null) || [];
+    ((questionBanksResult.data as
+      | { id: number; subject_id: number; visibility: "public" | "assigned_only" | null }[]
+      | null) || []).filter(
+      (row) =>
+        row.visibility !== "assigned_only" || assignedBankIds.has(row.id),
+    );
   const mockExamRows =
-    (mockExamsResult.data as { subject_id: number }[] | null) || [];
+    ((mockExamsResult.data as
+      | { id: number; subject_id: number; visibility: "public" | "assigned_only" | null }[]
+      | null) || []).filter(
+      (row) =>
+        row.visibility !== "assigned_only" || assignedExamIds.has(row.id),
+    );
   const weeklyRows =
     (weeklyResult.data as { subject_id: number }[] | null) || [];
 

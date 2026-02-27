@@ -632,6 +632,7 @@
       "logout": "退出登录",
       "mistakes": "错题",
       "referrals": "邀请奖励",
+      "settings": "设置",
       "weeklyPractice": "每周练习"
     },
     "time": {
@@ -761,6 +762,29 @@
   },
   "profilePageMeta": {
     "fallbackUser": "用户"
+  },
+  "profileSettings": {
+    "page": {
+      "fallbackUser": "用户",
+      "subtitle": "管理 StudyPilot 通过邮件联系你的方式。",
+      "title": "设置"
+    },
+    "pageMeta": {
+      "description": "管理你的个人通知偏好",
+      "title": "设置 | 个人中心"
+    },
+    "emailNotification": {
+      "description": "当有新作业分配给你时，接收邮件提醒。",
+      "hint": "你可以随时在这里修改。",
+      "title": "邮件通知"
+    },
+    "status": {
+      "off": "关闭",
+      "on": "开启"
+    },
+    "errors": {
+      "saveFailed": "保存设置失败，请稍后重试。"
+    }
   },
   "profileProgress": {
     "breadcrumb": {

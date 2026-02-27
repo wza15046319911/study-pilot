@@ -24,6 +24,7 @@ import {
   CalendarCheck,
   CheckCircle2,
   Upload,
+  Settings,
 } from "lucide-react";
 
 import { Sidebar, SidebarBody, SidebarLink } from "@/components/ui/sidebar";
@@ -275,6 +276,13 @@ export function ProfileContent({
       href: "/profile/referrals",
       icon: (
         <Users className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
+      ),
+    },
+    {
+      label: t("sidebar.settings"),
+      href: "/profile/settings",
+      icon: (
+        <Settings className="text-neutral-700 dark:text-neutral-200 size-5 flex-shrink-0" />
       ),
     },
   ];

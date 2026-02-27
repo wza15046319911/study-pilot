@@ -205,3 +205,124 @@ export async function batchDeleteQuestions(ids: number[]) {
   revalidatePath("/admin/questions");
   return { success: true, count: ids.length };
 }
+
+// --- Usage Tracking ---
+
+export interface QuestionUsage {
+  questionBanks: { id: number; title: string; slug: string }[];
+  exams: { id: number; title: string; slug: string }[];
+  homeworks: { id: number; title: string; slug: string }[];
+  weeklyPractices: { id: number; title: string; slug: string }[];
+  isOrphan: boolean;
+}
+
+export async function getQuestionUsage(questionId: number): Promise<{ success: boolean; data?: QuestionUsage; error?: string }> {
+  const userSupabase = await createClient();
+  const { data: { user } } = await userSupabase.auth.getUser();
+  
+  // Basic admin check (optional for reading usage, but consistent with file)
+  if (!user || user.email !== process.env.ADMIN_EMAIL) {
+    // We could allow non-admins to read this if needed, but for now stick to admin-only
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const supabase = createAdminClient();
+
+  try {
+    const [banksRes, examsRes, homeworksRes, weeklyRes] = await Promise.all([
+      supabase.from("question_bank_items").select("bank_id, question_banks(id, title, slug)").eq("question_id", questionId),
+      supabase.from("exam_questions").select("exam_id, exams(id, title, slug)").eq("question_id", questionId),
+      supabase.from("homework_items").select("homework_id, homeworks(id, title, slug)").eq("question_id", questionId),
+      supabase.from("weekly_practice_items").select("weekly_practice_id, weekly_practices(id, title, slug)").eq("question_id", questionId),
+    ]);
+
+    const questionBanks = (banksRes.data || [])
+      .map((item: any) => item.question_banks)
+      .filter(Boolean)
+      .map((b: any) => ({ id: b.id, title: b.title, slug: b.slug }));
+
+    const exams = (examsRes.data || [])
+      .map((item: any) => item.exams)
+      .filter(Boolean)
+      .map((e: any) => ({ id: e.id, title: e.title, slug: e.slug }));
+
+    const homeworks = (homeworksRes.data || [])
+      .map((item: any) => item.homeworks)
+      .filter(Boolean)
+      .map((h: any) => ({ id: h.id, title: h.title, slug: h.slug }));
+    
+    const weeklyPractices = (weeklyRes.data || [])
+      .map((item: any) => item.weekly_practices)
+      .filter(Boolean)
+      .map((w: any) => ({ id: w.id, title: w.title, slug: w.slug }));
+
+    const isOrphan = 
+      questionBanks.length === 0 && 
+      exams.length === 0 && 
+      homeworks.length === 0 && 
+      weeklyPractices.length === 0;
+
+    return {
+      success: true,
+      data: {
+        questionBanks,
+        exams,
+        homeworks,
+        weeklyPractices,
+        isOrphan
+      }
+    };
+
+  } catch (err: any) {
+    console.error("Error fetching question usage:", err);
+    return { success: false, error: err.message };
+  }
+}
+
+export async function batchGetQuestionUsageStatus(questionIds: number[]): Promise<{ success: boolean; data?: Record<number, boolean>; error?: string }> {
+  const userSupabase = await createClient();
+  const { data: { user } } = await userSupabase.auth.getUser();
+  
+  if (!user || user.email !== process.env.ADMIN_EMAIL) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const supabase = createAdminClient();
+
+  if (questionIds.length === 0) {
+    return { success: true, data: {} };
+  }
+
+  try {
+    // We want to know if a question is USED. 
+    // It is used if it appears in any of the 4 tables.
+    // It is an orphan if it does NOT appear in ANY of the 4 tables.
+    
+    // We can fetch all distinct question_ids from the 4 tables that are in our list.
+    const [banksRes, examsRes, homeworksRes, weeklyRes] = await Promise.all([
+      supabase.from("question_bank_items").select("question_id").in("question_id", questionIds),
+      supabase.from("exam_questions").select("question_id").in("question_id", questionIds),
+      supabase.from("homework_items").select("question_id").in("question_id", questionIds),
+      supabase.from("weekly_practice_items").select("question_id").in("question_id", questionIds),
+    ]);
+
+    const usedIds = new Set<number>();
+    
+    (banksRes.data || []).forEach((item: any) => usedIds.add(item.question_id));
+    (examsRes.data || []).forEach((item: any) => usedIds.add(item.question_id));
+    (homeworksRes.data || []).forEach((item: any) => usedIds.add(item.question_id));
+    (weeklyRes.data || []).forEach((item: any) => usedIds.add(item.question_id));
+
+    // Map each input ID to whether it is an orphan (NOT in usedIds)
+    const result: Record<number, boolean> = {};
+    questionIds.forEach(id => {
+      result[id] = !usedIds.has(id);
+    });
+
+    return { success: true, data: result };
+
+  } catch (err: any) {
+    console.error("Error fetching usage status:", err);
+    return { success: false, error: err.message };
+  }
+}

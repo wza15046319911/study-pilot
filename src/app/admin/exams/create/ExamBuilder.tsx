@@ -22,6 +22,8 @@ import {
   Brain,
   GraduationCap,
   Timer,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { LatexContent } from "@/components/ui/LatexContent";
 import { CodeBlock } from "@/components/ui/CodeBlock";
@@ -69,6 +71,9 @@ export default function ExamBuilder({
   );
   const [allowedModes, setAllowedModes] = useState<string[]>(
     initialData?.allowed_modes || ["exam"]
+  );
+  const [visibility, setVisibility] = useState<"public" | "assigned_only">(
+    initialData?.visibility || "public"
   );
 
   // Toggle helper for practice modes
@@ -225,6 +230,7 @@ export default function ExamBuilder({
         unlockType,
         price: unlockType === "paid" ? price : null,
         allowedModes,
+        visibility,
       };
 
       if (initialData) {
@@ -485,6 +491,62 @@ export default function ExamBuilder({
                     At least one mode is required
                   </p>
                 )}
+              </div>
+
+              {/* Visibility */}
+              <div className="pt-2">
+                <label className="block text-sm font-medium text-slate-500 mb-3">
+                  Visibility
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <label
+                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition-[background-color,border-color,color] ${
+                      visibility === "public"
+                        ? "border-blue-300 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20"
+                        : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="visibility"
+                      checked={visibility === "public"}
+                      onChange={() => setVisibility("public")}
+                      className="size-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <Eye className="size-5 text-blue-500" />
+                    <div className="flex-1">
+                      <span className="font-medium text-sm block">Public</span>
+                      <span className="text-xs text-slate-400">
+                        Visible in library
+                      </span>
+                    </div>
+                  </label>
+
+                  <label
+                    className={`flex items-center gap-3 cursor-pointer p-3 rounded-lg border transition-[background-color,border-color,color] ${
+                      visibility === "assigned_only"
+                        ? "border-blue-300 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20"
+                        : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-slate-800"
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="visibility"
+                      checked={visibility === "assigned_only"}
+                      onChange={() => setVisibility("assigned_only")}
+                      className="size-4 text-blue-600 focus:ring-blue-500"
+                    />
+                    <EyeOff className="size-5 text-blue-500" />
+                    <div className="flex-1">
+                      <span className="font-medium text-sm block">
+                        Assigned Only
+                      </span>
+                      <span className="text-xs text-slate-400">
+                        Only for specific users
+                      </span>
+                    </div>
+                  </label>
+                </div>
               </div>
             </div>
           </GlassPanel>

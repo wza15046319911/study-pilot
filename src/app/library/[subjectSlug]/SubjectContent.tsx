@@ -71,16 +71,18 @@ type PastExamListItem = {
   questionCount: number;
 };
 
-type AccessTier = "invite" | "public" | "premium" | "paid";
+type AccessTier = "invite" | "public" | "premium" | "paid" | "private";
 type AccessItem = {
   id: number;
   slug: string | null;
   unlock_type: "free" | "premium" | "referral" | "paid" | null;
   is_premium: boolean | null;
+  visibility?: "public" | "assigned_only";
   items?: { count: number }[] | null;
 };
 
 const ACCESS_TIER_ORDER: AccessTier[] = [
+  "private",
   "invite",
   "public",
   "premium",
@@ -88,6 +90,7 @@ const ACCESS_TIER_ORDER: AccessTier[] = [
 ];
 
 const getAccessTier = (item: AccessItem): AccessTier => {
+  if (item.visibility === "assigned_only") return "private";
   if (item.unlock_type === "referral") return "invite";
   if (item.unlock_type === "paid") return "paid";
   if (item.is_premium) return "premium";
@@ -145,6 +148,7 @@ export function SubjectContent({
     public: t("access.public"),
     premium: t("access.premium"),
     paid: t("access.paid"),
+    private: "Private Assigned", // Fallback or add to translation
   };
   const getSemesterLabel = (semester: number) =>
     semester === 1 ? t("semester.one") : t("semester.two");

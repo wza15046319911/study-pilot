@@ -33,7 +33,8 @@ interface QuestionBankPreviewContentProps {
   bank: any;
   user: any;
   difficultyCounts: any;
-  sortedTopics: [string, unknown][];
+  sortedTopics: [string, number][];
+  sortedTags: [string, number][];
   totalQuestions: number;
   isUnlocked: boolean;
   unlockReason: string;
@@ -87,6 +88,7 @@ export function QuestionBankPreviewContent({
   user,
   difficultyCounts,
   sortedTopics,
+  sortedTags,
   totalQuestions,
   isUnlocked,
   unlockReason,
@@ -273,147 +275,55 @@ export function QuestionBankPreviewContent({
                     </Button>
                   </div>
                 </div>
-              ) : (
+              ) : !isUnlocked ? (
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                  {isUnlocked ? (
-                    <div>
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">
-                          Select Practice Mode
-                        </h3>
-                        <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm font-medium bg-green-50 dark:bg-green-900/20 px-3 py-1 rounded-full">
-                          <Check className="size-3.5" /> Enrolled
-                        </div>
-                      </div>
+                  <div className="bg-slate-100 dark:bg-slate-800/50 rounded-2xl p-10 border border-slate-200 dark:border-slate-700">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
+                      <Lock className="size-5 text-slate-500" />
+                      Locked Content
+                    </h3>
+                    <p className="text-slate-600 dark:text-slate-400 mb-6">
+                      {bank.unlock_type === "paid"
+                        ? `This is a paid Question Bank. Purchase for ${
+                            bank.price ? `$${bank.price}` : "one-time access"
+                          } to unlock.`
+                        : bank.unlock_type === "referral"
+                          ? "This is a special reward bank. Invite friends to StudyPilot to unlock it for free."
+                          : "This is a premium Question Bank. Upgrade your account or purchase separately to access."}
+                    </p>
 
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
-                        {modes.map((m) => {
-                          const Icon = m.icon;
-                          const isSelected = selectedMode === m.id;
-                          return (
-                            <button
-                              key={m.id}
-                              onClick={() => setSelectedMode(m.id)}
-                              className={cn(
-                                "group relative p-4 text-left rounded-xl transition-all duration-300 border-2",
-                                isSelected
-                                  ? `bg-white dark:bg-slate-800 ${m.borderColor} ${m.ringColor} ring-1 shadow-lg`
-                                  : "bg-white/50 dark:bg-slate-900/50 border-transparent hover:border-slate-200 dark:hover:border-slate-700",
-                              )}
-                            >
-                              <div className="flex items-center gap-3 mb-2">
-                                <div
-                                  className={cn(
-                                    "p-2 rounded-lg",
-                                    isSelected
-                                      ? m.bgColor
-                                      : "bg-slate-100 dark:bg-slate-800",
-                                  )}
-                                >
-                                  <Icon
-                                    className={cn(
-                                      "size-4",
-                                      isSelected ? m.color : "text-slate-500",
-                                    )}
-                                  />
-                                </div>
-                                <span
-                                  className={cn(
-                                    "font-bold text-sm",
-                                    isSelected
-                                      ? "text-slate-900 dark:text-white"
-                                      : "text-slate-600",
-                                  )}
-                                >
-                                  {m.name}
-                                </span>
-                              </div>
-                              <p className="text-xs text-slate-500 leading-tight">
-                                {m.description}
-                              </p>
-                            </button>
-                          );
-                        })}
-                      </div>
-
-                      <div className="flex flex-wrap gap-4">
-                        <Link
-                          href={getStartLink()}
-                          className="flex-1 sm:flex-none"
-                        >
-                          <Button
-                            size="lg"
-                            className="w-full sm:w-auto min-w-[200px] text-lg rounded-xl shadow-xl shadow-blue-500/20"
-                          >
-                            <Play className="size-5 mr-2 fill-current" />
-                            Start{" "}
-                            {modes.find((m) => m.id === selectedMode)?.name}
-                          </Button>
-                        </Link>
-
+                    {bank.unlock_type === "paid" ? (
+                      <button
+                        className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition-colors"
+                        onClick={() => alert("Payment integration coming soon!")}
+                      >
+                        <DollarSign className="size-5" />
+                        Purchase for {bank.price ? `$${bank.price}` : "Access"}
+                      </button>
+                    ) : bank.unlock_type === "referral" ? (
+                      <Link href="/profile/referrals">
                         <Button
-                          variant="outline"
-                          onClick={handleToggleCollection}
-                          disabled={isPending}
-                          className="w-full sm:w-auto border-slate-200 dark:border-slate-700 hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 transition-colors"
+                          size="lg"
+                          className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-lg shadow-purple-500/25"
                         >
-                          <BookmarkCheck className="size-4 mr-2" />
-                          Unenroll
+                          <Gift className="size-5 mr-2" />
+                          Invite Friends to Unlock
                         </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="bg-slate-100 dark:bg-slate-800/50 rounded-2xl p-10 border border-slate-200 dark:border-slate-700">
-                      <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2 flex items-center gap-2">
-                        <Lock className="size-5 text-slate-500" />
-                        Locked Content
-                      </h3>
-                      <p className="text-slate-600 dark:text-slate-400 mb-6">
-                        {bank.unlock_type === "paid"
-                          ? `This is a paid Question Bank. Purchase for ${
-                              bank.price ? `$${bank.price}` : "one-time access"
-                            } to unlock.`
-                          : bank.unlock_type === "referral"
-                            ? "This is a special reward bank. Invite friends to StudyPilot to unlock it for free."
-                            : "This is a premium Question Bank. Upgrade your account or purchase separately to access."}
-                      </p>
-
-                      {bank.unlock_type === "paid" ? (
-                        <button
-                          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-xl shadow-lg shadow-blue-500/25 flex items-center justify-center gap-2 transition-colors"
-                          onClick={() =>
-                            alert("Payment integration coming soon!")
-                          }
+                      </Link>
+                    ) : (
+                      <Link href="/pricing">
+                        <Button
+                          size="lg"
+                          className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-lg shadow-amber-500/25"
                         >
-                          <DollarSign className="size-5" />
-                          Purchase for{" "}
-                          {bank.price ? `$${bank.price}` : "Access"}
-                        </button>
-                      ) : bank.unlock_type === "referral" ? (
-                        <Link href="/profile/referrals">
-                          <Button
-                            size="lg"
-                            className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white rounded-xl shadow-lg shadow-purple-500/25"
-                          >
-                            <Gift className="size-5 mr-2" />
-                            Invite Friends to Unlock
-                          </Button>
-                        </Link>
-                      ) : (
-                        <Link href="/pricing">
-                          <Button
-                            size="lg"
-                            className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white rounded-xl shadow-lg shadow-amber-500/25"
-                          >
-                            <Crown className="size-5 mr-2" />
-                            Upgrade to Premium
-                          </Button>
-                        </Link>
-                      )}
-                    </div>
-                  )}
+                          <Crown className="size-5 mr-2" />
+                          Upgrade to Premium
+                        </Button>
+                      </Link>
+                    )}
+                  </div>
                 </div>
-              )}
+              ) : null}
             </div>
 
             {/* Stats Grid */}
@@ -480,7 +390,7 @@ export function QuestionBankPreviewContent({
                         </span>
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-full">
-                            {count as number}
+                            {count}
                           </span>
                         </div>
                       </div>
@@ -492,7 +402,114 @@ export function QuestionBankPreviewContent({
                   )}
                 </div>
               </div>
+
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <Info className="size-5 text-purple-500" />
+                  <h3 className="font-bold text-slate-900 dark:text-white">
+                    Top Tags
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  {sortedTags.length > 0 ? (
+                    sortedTags.map(([tag]) => (
+                      <div key={tag} className="flex items-center">
+                        <span className="text-sm text-slate-600 dark:text-slate-400 truncate max-w-[70%]">
+                          {tag}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-500 italic">
+                      No tags found
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
+
+            {collected && isUnlocked ? (
+              <div className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-bold text-slate-400 uppercase tracking-widest">
+                    Select Practice Mode
+                  </h3>
+                  <div className="flex items-center gap-2 text-green-600 dark:text-green-400 text-sm font-medium bg-green-50 dark:bg-green-900/20 px-3 py-1 rounded-full">
+                    <Check className="size-3.5" /> Enrolled
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                  {modes.map((m) => {
+                    const Icon = m.icon;
+                    const isSelected = selectedMode === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        onClick={() => setSelectedMode(m.id)}
+                        className={cn(
+                          "group relative p-4 text-left rounded-xl transition-all duration-300 border-2",
+                          isSelected
+                            ? `bg-white dark:bg-slate-800 ${m.borderColor} ${m.ringColor} ring-1 shadow-lg`
+                            : "bg-white/50 dark:bg-slate-900/50 border-transparent hover:border-slate-200 dark:hover:border-slate-700",
+                        )}
+                      >
+                        <div className="flex items-center gap-3 mb-2">
+                          <div
+                            className={cn(
+                              "p-2 rounded-lg",
+                              isSelected ? m.bgColor : "bg-slate-100 dark:bg-slate-800",
+                            )}
+                          >
+                            <Icon
+                              className={cn(
+                                "size-4",
+                                isSelected ? m.color : "text-slate-500",
+                              )}
+                            />
+                          </div>
+                          <span
+                            className={cn(
+                              "font-bold text-sm",
+                              isSelected
+                                ? "text-slate-900 dark:text-white"
+                                : "text-slate-600",
+                            )}
+                          >
+                            {m.name}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-500 leading-tight">
+                          {m.description}
+                        </p>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="flex flex-wrap gap-4">
+                  <Link href={getStartLink()} className="flex-1 sm:flex-none">
+                    <Button
+                      size="lg"
+                      className="w-full sm:w-auto min-w-[200px] text-lg rounded-xl shadow-xl shadow-blue-500/20"
+                    >
+                      <Play className="size-5 mr-2 fill-current" />
+                      Start {modes.find((m) => m.id === selectedMode)?.name}
+                    </Button>
+                  </Link>
+
+                  <Button
+                    variant="outline"
+                    onClick={handleToggleCollection}
+                    disabled={isPending}
+                    className="w-full sm:w-auto border-slate-200 dark:border-slate-700 hover:bg-red-50 hover:text-red-600 hover:border-red-200 dark:hover:bg-red-900/20 transition-colors"
+                  >
+                    <BookmarkCheck className="size-4 mr-2" />
+                    Unenroll
+                  </Button>
+                </div>
+              </div>
+            ) : null}
           </div>
         </div>
       </main>

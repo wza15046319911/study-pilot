@@ -22,6 +22,7 @@ export interface Database {
           created_at: string;
           active_session_id: string | null;
           is_admin: boolean;
+          email_notifications_enabled: boolean;
         };
         Insert: {
           id: string;
@@ -35,6 +36,7 @@ export interface Database {
           created_at?: string;
           active_session_id?: string | null;
           is_admin?: boolean;
+          email_notifications_enabled?: boolean;
         };
         Update: {
           id?: string;
@@ -48,6 +50,7 @@ export interface Database {
           created_at?: string;
           active_session_id?: string | null;
           is_admin?: boolean;
+          email_notifications_enabled?: boolean;
         };
       };
       topics: {
@@ -360,6 +363,7 @@ export interface Database {
           unlock_type: "free" | "premium" | "referral" | "paid";
           price: number | null;
           is_published: boolean;
+          visibility: "public" | "assigned_only";
           created_at: string;
           updated_at: string;
         };
@@ -376,6 +380,7 @@ export interface Database {
           unlock_type?: "free" | "premium" | "referral" | "paid";
           price?: number | null;
           is_published?: boolean;
+          visibility?: "public" | "assigned_only";
           created_at?: string;
           updated_at?: string;
         };
@@ -392,6 +397,7 @@ export interface Database {
           unlock_type?: "free" | "premium" | "referral" | "paid";
           price?: number | null;
           is_published?: boolean;
+          visibility?: "public" | "assigned_only";
           created_at?: string;
           updated_at?: string;
         };
@@ -557,6 +563,7 @@ export interface Database {
           unlock_type: "free" | "premium" | "referral" | "paid";
           price: number | null;
           allowed_modes: string[];
+          visibility: "public" | "assigned_only";
           created_at: string;
           updated_at: string;
         };
@@ -572,6 +579,7 @@ export interface Database {
           unlock_type?: "free" | "premium" | "referral" | "paid";
           price?: number | null;
           allowed_modes?: string[];
+          visibility?: "public" | "assigned_only";
           created_at?: string;
           updated_at?: string;
         };
@@ -587,6 +595,7 @@ export interface Database {
           unlock_type?: "free" | "premium" | "referral" | "paid";
           price?: number | null;
           allowed_modes?: string[];
+          visibility?: "public" | "assigned_only";
           created_at?: string;
           updated_at?: string;
         };
@@ -1000,6 +1009,87 @@ export interface Database {
           created_at?: string;
         };
       };
+      distributions: {
+        Row: {
+          id: number;
+          target_type: "question_bank" | "exam";
+          target_id: number;
+          visibility: "public" | "assigned_only";
+          note: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          target_type: "question_bank" | "exam";
+          target_id: number;
+          visibility?: "public" | "assigned_only";
+          note?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          target_type?: "question_bank" | "exam";
+          target_id?: number;
+          visibility?: "public" | "assigned_only";
+          note?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+        };
+      };
+      distribution_users: {
+        Row: {
+          id: number;
+          distribution_id: number;
+          user_id: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          distribution_id: number;
+          user_id: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          distribution_id?: number;
+          user_id?: string;
+          created_at?: string;
+        };
+      };
+      notifications: {
+        Row: {
+          id: number;
+          user_id: string;
+          type: string;
+          title: string;
+          message: string | null;
+          link: string | null;
+          is_read: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          user_id: string;
+          type: string;
+          title: string;
+          message?: string | null;
+          link?: string | null;
+          is_read?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          user_id?: string;
+          type?: string;
+          title?: string;
+          message?: string | null;
+          link?: string | null;
+          is_read?: boolean;
+          created_at?: string;
+        };
+      };
       payments: {
         Row: {
           id: number;
@@ -1089,6 +1179,10 @@ export type Referral = Database["public"]["Tables"]["referrals"]["Row"];
 export type UserBankUnlock =
   Database["public"]["Tables"]["user_bank_unlocks"]["Row"];
 export type Payment = Database["public"]["Tables"]["payments"]["Row"];
+export type Distribution = Database["public"]["Tables"]["distributions"]["Row"];
+export type DistributionUser =
+  Database["public"]["Tables"]["distribution_users"]["Row"];
+export type Notification = Database["public"]["Tables"]["notifications"]["Row"];
 
 export interface QuestionOption {
   label: string;

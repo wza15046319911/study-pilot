@@ -18,6 +18,7 @@ import {
   LogOut,
   Maximize2,
   Minimize2,
+  RotateCcw,
 } from "lucide-react";
 import { encodeId } from "@/lib/ids";
 
@@ -64,7 +65,7 @@ export default function ExamSession({
   const [isFinished, setIsFinished] = useState(false);
   const [score, setScore] = useState(0);
   const [isFocusMode, setIsFocusMode] = useState(false);
-  const [initialTime] = useState(Date.now());
+  const [initialTime, setInitialTime] = useState(Date.now());
   const [timeTaken, setTimeTaken] = useState(0);
 
   // Timer countdown
@@ -195,6 +196,21 @@ export default function ExamSession({
     setIsSubmitting(false);
   };
 
+  const handleRetakeExam = () => {
+    if (
+      window.confirm(
+        "Are you sure you want to retake the exam? A new attempt will be started.",
+      )
+    ) {
+      setAnswers({});
+      setTimeLeft(exam.duration_minutes * 60);
+      setInitialTime(Date.now());
+      setScore(0);
+      setIsFinished(false);
+      setIsSubmitting(false);
+    }
+  };
+
   const handleExit = () => {
     router.push(exitLink);
   };
@@ -256,9 +272,17 @@ export default function ExamSession({
               </div>
             </div>
 
-            <div className="flex gap-4">
+            <div className="flex flex-col sm:flex-row gap-4">
               <Button onClick={handleExit} className="flex-1">
                 Back to Exams
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleRetakeExam}
+                className="flex-1 bg-white dark:bg-slate-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-700 border-gray-200 dark:border-slate-700"
+              >
+                <RotateCcw className="mr-2 size-4" />
+                Retake Exam
               </Button>
               {wrongQuestionIds.length > 0 && (
                 <Button

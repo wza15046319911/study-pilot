@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import dynamic from "next/dynamic";
 import { createClient } from "@/lib/supabase/client";
 import { GlassPanel } from "@/components/ui/GlassPanel";
@@ -14,6 +14,9 @@ import {
   batchAddTags,
   duplicateQuestion,
   batchDeleteQuestions,
+  getQuestionUsage,
+  batchGetQuestionUsageStatus,
+  type QuestionUsage,
 } from "./actions";
 
 // Lazy-load modals (EditQuestionModal is heavy, defer until needed)
@@ -43,6 +46,7 @@ import {
   Plus,
   Copy,
   FileText,
+  AlertCircle,
 } from "lucide-react";
 
 interface Subject {
@@ -104,9 +108,11 @@ const difficultyOptions = [
 ];
 
 export default function QuestionsClient({ subjects }: QuestionsClientProps) {
+  const supabaseRef = useRef(createClient());
+  const supabase = supabaseRef.current;
+
   // We need topics for the batch edit dropdown
   const [topics, setTopics] = useState<Topic[]>([]);
-  const supabase = createClient();
 
   useEffect(() => {
     async function fetchTopics() {
@@ -140,6 +146,12 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
 
   // Preview modal
   const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
+  const [previewUsage, setPreviewUsage] = useState<QuestionUsage | undefined>(
+    undefined,
+  );
+
+  // Orphan status map
+  const [orphanStatus, setOrphanStatus] = useState<Record<number, boolean>>({});
 
   // Batch Operations
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
@@ -149,12 +161,12 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
 
   // const supabase = createClient(); // Moved up
 
-  // Debounce search
+  // Debounce search (500ms to reduce rapid requests; title-only search is fast with index)
   useEffect(() => {
     const timer = setTimeout(() => {
-      setDebouncedSearch(searchQuery);
+      setDebouncedSearch(searchQuery.trim());
       setCurrentPage(1);
-    }, 300);
+    }, 500);
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
@@ -218,7 +230,7 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
       .from("questions")
       .select(
         "id, subject_id, title, content, type, difficulty, options, topic_id, tags, created_at, subjects(name), topics(name)",
-        { count: "exact" },
+        { count: "estimated" },
       );
 
     if (subjectFilter) {
@@ -233,10 +245,9 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
     if (topicFilter) {
       query = query.eq("topic_id", parseInt(topicFilter));
     }
+    // Search title only - content.ilike on large text causes full table scan and freezes
     if (debouncedSearch) {
-      query = query.or(
-        `title.ilike.%${debouncedSearch}%,content.ilike.%${debouncedSearch}%`,
-      );
+      query = query.ilike("title", `%${debouncedSearch}%`);
     }
 
     const from = (currentPage - 1) * itemsPerPage;
@@ -260,13 +271,27 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
     currentPage,
     sortColumn,
     sortDirection,
-    supabase,
-    itemsPerPage, // Add dependency
+    itemsPerPage,
   ]);
 
   useEffect(() => {
     fetchQuestions();
   }, [fetchQuestions]);
+
+  // Fetch orphan status whenever questions change
+  useEffect(() => {
+    if (questions.length === 0) {
+      setOrphanStatus({});
+      return;
+    }
+
+    const ids = questions.map((q) => q.id);
+    batchGetQuestionUsageStatus(ids).then((res) => {
+      if (res.success && res.data) {
+        setOrphanStatus(res.data);
+      }
+    });
+  }, [questions]);
 
   // Handle sort click
   const handleSort = (column: string) => {
@@ -287,6 +312,30 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
   const [editLoadingId, setEditLoadingId] = useState<number | null>(null);
+  const [previewLoadingId, setPreviewLoadingId] = useState<number | null>(
+    null,
+  );
+
+  const handlePreview = async (question: Question) => {
+    setPreviewLoadingId(question.id);
+    setPreviewUsage(undefined);
+    try {
+      const [fullRes, usageRes] = await Promise.all([
+        supabase.from("questions").select("*").eq("id", question.id).single(),
+        getQuestionUsage(question.id),
+      ]);
+
+      const { data: full } = fullRes;
+      if (full) {
+        setPreviewQuestion(full as Question);
+      }
+      if (usageRes.success && usageRes.data) {
+        setPreviewUsage(usageRes.data);
+      }
+    } finally {
+      setPreviewLoadingId(null);
+    }
+  };
 
   const handleEdit = async (question: Question) => {
     setEditLoadingId(question.id);
@@ -610,7 +659,7 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
             <Input
               type="text"
-              placeholder="Search title or content..."
+              placeholder="Search title..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -741,10 +790,24 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
                         </button>
                       </td>
                       <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400 font-mono">
-                        #{q.id}
+                        <div className="flex items-center gap-1.5">
+                          #{q.id}
+                          {orphanStatus[q.id] && (
+                            <div title="Orphan: Not referenced anywhere">
+                              <AlertCircle className="size-3.5 text-amber-500" />
+                            </div>
+                          )}
+                        </div>
                       </td>
-                      <td className="px-4 py-4">
-                        <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-slate-900/60 p-3 space-y-2">
+                      <td
+                        className="px-4 py-4 cursor-pointer group/cell"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handlePreview(q);
+                        }}
+                        title="Click to preview"
+                      >
+                        <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-slate-900/60 p-3 space-y-2 group-hover/cell:border-blue-300 dark:group-hover/cell:border-blue-700 group-hover/cell:ring-1 group-hover/cell:ring-blue-200 dark:group-hover/cell:ring-blue-800 transition-colors">
                           <p className="text-sm text-[#0d121b] dark:text-white whitespace-pre-line">
                             {contentPreview || "No content"}
                           </p>
@@ -819,12 +882,17 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
-                              setPreviewQuestion(q);
+                              handlePreview(q);
                             }}
-                            className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors"
+                            disabled={previewLoadingId === q.id}
+                            className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors disabled:opacity-50"
                             title="Preview"
                           >
-                            <FileText className="size-4" />
+                            {previewLoadingId === q.id ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              <FileText className="size-4" />
+                            )}
                           </button>
                           <button
                             onClick={(e) => {
@@ -939,6 +1007,7 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
         isOpen={!!previewQuestion}
         question={previewQuestion}
         onClose={() => setPreviewQuestion(null)}
+        usage={previewUsage}
       />
     </div>
   );

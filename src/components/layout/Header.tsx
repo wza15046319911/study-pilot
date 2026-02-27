@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { NotificationBell } from "./NotificationBell";
 import { useTranslations } from "next-intl";
 import { useEffect, useState, useRef } from "react";
 import { Button } from "@/components/ui/Button";
@@ -33,6 +34,7 @@ interface HeaderProps {
 
 export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
   const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
   const t = useTranslations("nav");
   const tHeader = useTranslations("header");
   const tTheme = useTranslations("theme");
@@ -42,6 +44,9 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
   const authIsAdmin = useAuthStore((state) => state.isAdmin);
   const effectiveUser = user ?? authUser;
   const effectiveIsAdmin = isAdmin ?? authIsAdmin;
+
+  // Avoid hydration mismatch: theme from useTheme() is undefined on server
+  useEffect(() => setMounted(true), []);
 
   // Close mobile menu when clicking outside
   useEffect(() => {
@@ -149,6 +154,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
 
             {/* Desktop Actions */}
             <div className="hidden md:flex items-center gap-3">
+              {effectiveUser && <NotificationBell />}
               <LanguageSwitcher />
 
               {/* Theme Toggle Dropdown */}
@@ -157,7 +163,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                   className="p-2 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
                   aria-label={tTheme("toggle")}
                 >
-                  {resolvedTheme === "dark" ? (
+                  {mounted && resolvedTheme === "dark" ? (
                     <Moon className="size-5" />
                   ) : (
                     <Sun className="size-5" />
@@ -170,7 +176,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                     <button
                       onClick={() => setTheme("light")}
                       className={`flex items-center gap-2 w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                        theme === "light"
+                        mounted && theme === "light"
                           ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                           : "text-slate-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
                       }`}
@@ -181,7 +187,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                     <button
                       onClick={() => setTheme("dark")}
                       className={`flex items-center gap-2 w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                        theme === "dark"
+                        mounted && theme === "dark"
                           ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                           : "text-slate-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
                       }`}
@@ -192,7 +198,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                     <button
                       onClick={() => setTheme("system")}
                       className={`flex items-center gap-2 w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                        theme === "system"
+                        mounted && theme === "system"
                           ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
                           : "text-slate-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-800"
                       }`}
@@ -521,7 +527,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                     <button
                       onClick={() => setTheme("light")}
                       className={`p-1.5 rounded-md ${
-                        theme === "light"
+                        mounted && theme === "light"
                           ? "bg-white dark:bg-slate-700 shadow-sm text-blue-600"
                           : "text-slate-500"
                       }`}
@@ -531,7 +537,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                     <button
                       onClick={() => setTheme("dark")}
                       className={`p-1.5 rounded-md ${
-                        theme === "dark"
+                        mounted && theme === "dark"
                           ? "bg-white dark:bg-slate-700 shadow-sm text-blue-600"
                           : "text-slate-500"
                       }`}
@@ -541,7 +547,7 @@ export function Header({ showNav = true, isAdmin, user }: HeaderProps) {
                     <button
                       onClick={() => setTheme("system")}
                       className={`p-1.5 rounded-md ${
-                        theme === "system"
+                        mounted && theme === "system"
                           ? "bg-white dark:bg-slate-700 shadow-sm text-blue-600"
                           : "text-slate-500"
                       }`}

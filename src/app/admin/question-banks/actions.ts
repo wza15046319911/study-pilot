@@ -13,6 +13,7 @@ export async function createQuestionBank(data: {
   price?: number | null;
   allowedModes: string[];
   isPublished: boolean;
+  visibility: "public" | "assigned_only";
   questionIds: number[];
 }) {
   const supabase = await createClient();
@@ -34,6 +35,7 @@ export async function createQuestionBank(data: {
       price: data.unlockType === "paid" ? data.price : null,
       allowed_modes: data.allowedModes,
       is_published: data.isPublished,
+      visibility: data.visibility,
     } as any)
     .select()
     .single();
@@ -80,6 +82,7 @@ export async function updateQuestionBank(data: {
   price?: number | null;
   allowedModes: string[];
   isPublished: boolean;
+  visibility: "public" | "assigned_only";
   questionIds: number[];
 }) {
   const supabase = await createClient();
@@ -99,6 +102,7 @@ export async function updateQuestionBank(data: {
       price: data.unlockType === "paid" ? data.price : null,
       allowed_modes: data.allowedModes,
       is_published: data.isPublished,
+      visibility: data.visibility,
     } as any)
     .eq("id", data.bankId);
 

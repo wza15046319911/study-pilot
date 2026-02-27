@@ -23,6 +23,7 @@ type BankPreviewRow = {
   unlock_type: "free" | "premium" | "referral" | "paid";
   is_premium: boolean;
   price: number | null;
+  visibility: "public" | "assigned_only" | null;
   allowed_modes: string[] | null;
   subject: {
     name: string;
@@ -46,6 +47,7 @@ type UnlockRow = {
 type BankItemStatsRow = {
   question: {
     difficulty: "easy" | "medium" | "hard" | string;
+    tags: string[] | null;
     topic: { name: string } | { name: string }[] | null;
   } | null;
 };
@@ -97,6 +99,7 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
       unlock_type,
       is_premium,
       price,
+      visibility,
       allowed_modes,
       subject:subjects(name, slug, icon)
     `,
@@ -136,6 +139,13 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
     .eq("user_id", user.id)
     .eq("bank_id", bank.id)
     .maybeSingle();
+  const distributionPromise = supabase
+    .from("distributions")
+    .select("id, distribution_users!inner(user_id)")
+    .eq("target_type", "question_bank")
+    .eq("target_id", bank.id)
+    .eq("distribution_users.user_id", user.id)
+    .maybeSingle();
 
   const collectionPromise = supabase
     .from("user_question_bank_collections")
@@ -150,28 +160,57 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
       `
       question:questions(
         difficulty,
+        tags,
         topic:topics(name)
       )
     `,
     )
     .eq("bank_id", bank.id);
 
-  const [profileResult, unlockResult, collectionResult, itemsResult] =
+  const [
+    profileResult,
+    unlockResult,
+    collectionResult,
+    itemsResult,
+    distributionResult,
+  ] =
     await Promise.all([
       profilePromise,
       unlockPromise,
       collectionPromise,
       itemsPromise,
+      distributionPromise,
     ]);
 
   const profile = profileResult.data as ProfileRow | null;
   const unlock = unlockResult.data as UnlockRow | null;
+  const distribution = distributionResult.data;
+
+  if (bank.visibility === "assigned_only" && !distribution) {
+    return (
+      <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc]">
+        <AmbientBackground />
+        <Header user={{ username: t("fallbackUser") }} />
+        <div className="flex-grow flex items-center justify-center">
+          <NotFoundPage
+            title={t("questionBankNotFound.title")}
+            description={t("questionBankNotFound.description")}
+            backLink={`/library/${subjectSlug}`}
+            backText={t("questionBankNotFound.backToSubject")}
+          />
+        </div>
+      </div>
+    );
+  }
 
   // Check Unlock Status
   let isUnlocked = false;
   let unlockReason = "";
 
-  if (bank.unlock_type === "free") {
+  if (distribution) {
+    isUnlocked = true;
+    unlockReason = "Assigned";
+  } else if (bank.unlock_type === "free") {
     isUnlocked = true;
     unlockReason = "Free";
   } else if (bank.unlock_type === "premium" && profile?.is_vip) {
@@ -185,6 +224,7 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
   const items = (itemsResult.data || []) as BankItemStatsRow[];
   const difficultyCounts = { easy: 0, medium: 0, hard: 0 };
   const topicCounts: Record<string, number> = {};
+  const tagCounts: Record<string, number> = {};
   let totalQuestions = 0;
 
   for (const item of items) {
@@ -203,10 +243,28 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
       : question.topic;
     const topicName = topicValue?.name || "General";
     topicCounts[topicName] = (topicCounts[topicName] || 0) + 1;
+
+    if (Array.isArray(question.tags)) {
+      const normalizedTags = question.tags
+        .map((tag) => tag.trim())
+        .filter((tag) => tag.length > 0);
+      const uniqueTags = Array.from(new Set(normalizedTags));
+      uniqueTags.forEach((tag) => {
+        tagCounts[tag] = (tagCounts[tag] || 0) + 1;
+      });
+    }
   }
 
   const sortedTopics = (Object.entries(topicCounts) as [string, number][])
     .sort(([, a], [, b]) => b - a)
+    .slice(0, 5);
+  const sortedTags = (Object.entries(tagCounts) as [string, number][])
+    .sort(([tagA, countA], [tagB, countB]) => {
+      if (countB !== countA) {
+        return countB - countA;
+      }
+      return tagA.localeCompare(tagB);
+    })
     .slice(0, 5);
 
   const isCollected = !!collectionResult.data;
@@ -230,6 +288,7 @@ export default async function LibraryQuestionBankPreviewPage(props: PageProps) {
       user={userData}
       difficultyCounts={difficultyCounts}
       sortedTopics={sortedTopics}
+      sortedTags={sortedTags}
       totalQuestions={totalQuestions}
       isUnlocked={isUnlocked}
       unlockReason={unlockReason}

@@ -3,7 +3,8 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { LatexContent } from "@/components/ui/LatexContent";
 import { CodeBlock } from "@/components/ui/CodeBlock";
-import { X, Tag, Copy } from "lucide-react";
+import { X, Tag, Copy, AlertTriangle, Library, GraduationCap, BookOpen, Calendar } from "lucide-react";
+import { type QuestionUsage } from "./actions";
 
 interface Question {
   id: number;
@@ -30,12 +31,14 @@ interface QuestionPreviewModalProps {
   isOpen: boolean;
   question: Question | null;
   onClose: () => void;
+  usage?: QuestionUsage;
 }
 
 export default function QuestionPreviewModal({
   isOpen,
   question,
   onClose,
+  usage,
 }: QuestionPreviewModalProps) {
   if (!isOpen || !question) return null;
 
@@ -127,6 +130,107 @@ export default function QuestionPreviewModal({
                     </div>
                   )}
                 </div>
+
+                {/* Usage / References */}
+                {usage && (
+                  <div className="pb-6 border-b border-gray-100 dark:border-gray-800 space-y-3">
+                    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">
+                      Usage & References
+                    </h3>
+
+                    {usage.isOrphan ? (
+                      <div className="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-amber-700 dark:text-amber-400">
+                        <AlertTriangle className="size-5 shrink-0" />
+                        <div>
+                          <p className="font-medium text-sm">
+                            Orphan Question
+                          </p>
+                          <p className="text-xs opacity-90">
+                            This question is not used in any Question Bank, Mock Exam, Homework, or Weekly Practice.
+                          </p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid gap-2 text-sm">
+                        {usage.questionBanks.length > 0 && (
+                          <div className="flex items-start gap-3">
+                            <div className="flex items-center gap-2 w-32 shrink-0 text-blue-600 dark:text-blue-400">
+                              <Library className="size-4" />
+                              <span className="font-medium">Question Banks</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {usage.questionBanks.map((bank) => (
+                                <span
+                                  key={bank.id}
+                                  className="px-2 py-0.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded text-xs border border-blue-100 dark:border-blue-800"
+                                >
+                                  {bank.title}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {usage.exams.length > 0 && (
+                          <div className="flex items-start gap-3">
+                            <div className="flex items-center gap-2 w-32 shrink-0 text-purple-600 dark:text-purple-400">
+                              <GraduationCap className="size-4" />
+                              <span className="font-medium">Mock Exams</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {usage.exams.map((exam) => (
+                                <span
+                                  key={exam.id}
+                                  className="px-2 py-0.5 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 rounded text-xs border border-purple-100 dark:border-purple-800"
+                                >
+                                  {exam.title}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {usage.homeworks.length > 0 && (
+                          <div className="flex items-start gap-3">
+                            <div className="flex items-center gap-2 w-32 shrink-0 text-green-600 dark:text-green-400">
+                              <BookOpen className="size-4" />
+                              <span className="font-medium">Homework</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {usage.homeworks.map((hw) => (
+                                <span
+                                  key={hw.id}
+                                  className="px-2 py-0.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-300 rounded text-xs border border-green-100 dark:border-green-800"
+                                >
+                                  {hw.title}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        {usage.weeklyPractices.length > 0 && (
+                          <div className="flex items-start gap-3">
+                            <div className="flex items-center gap-2 w-32 shrink-0 text-orange-600 dark:text-orange-400">
+                              <Calendar className="size-4" />
+                              <span className="font-medium">Weekly Practice</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              {usage.weeklyPractices.map((wp) => (
+                                <span
+                                  key={wp.id}
+                                  className="px-2 py-0.5 bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-300 rounded text-xs border border-orange-100 dark:border-orange-800"
+                                >
+                                  {wp.title}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Title */}
                 <div>

@@ -17,6 +17,7 @@ interface CreateExamInput {
   unlockType: "free" | "premium" | "referral" | "paid";
   price?: number | null;
   allowedModes?: string[];
+  visibility?: "public" | "assigned_only";
 }
 
 export async function createExam(input: CreateExamInput) {
@@ -56,6 +57,7 @@ export async function createExam(input: CreateExamInput) {
       is_premium: isPremium,
       price: input.unlockType === "paid" ? input.price : null,
       allowed_modes: input.allowedModes || ["exam"],
+      visibility: input.visibility || "public",
     } as any)
     .select()
     .single();
@@ -146,6 +148,7 @@ export async function updateExam(input: UpdateExamInput) {
       is_premium: isPremium,
       price: input.unlockType === "paid" ? input.price : null,
       allowed_modes: input.allowedModes || ["exam"],
+      visibility: input.visibility || "public",
     })
     .eq("id", input.examId);
 
