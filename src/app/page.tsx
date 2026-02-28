@@ -1,8 +1,6 @@
 import { WholePageScroll } from "@/components/home/WholePageScroll";
-import { createClient } from "@/lib/supabase/server";
-import { Profile, Subject } from "@/types/database";
-import { getTranslations } from "next-intl/server";
 import { SoftwareApplicationJsonLd, FAQJsonLd } from "@/components/seo/JsonLd";
+import { getHomepageSnapshot } from "@/lib/home/getHomepageSnapshot";
 import Link from "next/link";
 
 // Homepage FAQ for GEO optimization
@@ -25,140 +23,11 @@ const homepageFaqs = [
 ];
 
 export default async function Home() {
-  const supabase = await createClient();
-
-  // Check for session
-  let user = null;
-  try {
-    const {
-      data: { user: authUser },
-    } = await supabase.auth.getUser();
-    user = authUser;
-  } catch (error) {
-    // Suppress auth errors (e.g. invalid refresh token) and treat as logged out
-    console.error("Auth error:", error);
-  }
-
-  let userData = null;
-  let isAdmin = false;
-
-  const subjectsPromise = supabase
-    .from("subjects")
-    .select("id, name, slug, icon, description, question_count, is_new, is_hot")
-    .order("name");
-
-  const totalQuestionsPromise = supabase
-    .from("questions")
-    .select("*", { count: "exact", head: true });
-
-  const totalBanksPromise = supabase
-    .from("question_banks")
-    .select("*", { count: "exact", head: true })
-    .eq("is_published", true);
-
-  const translationsPromise = Promise.all([
-    getTranslations("home"),
-    getTranslations("results"),
-    getTranslations("subjects"),
-  ]);
-
-  if (user) {
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("id, username, avatar_url, is_vip")
-      .eq("id", user.id)
-      .single();
-
-    const profile = profileData as Profile | null;
-
-    userData = {
-      username:
-        profile?.username ||
-        user.user_metadata?.name ||
-        user.email?.split("@")[0] ||
-        "User",
-      avatar_url:
-        profile?.avatar_url ||
-        user.user_metadata?.avatar_url ||
-        user.user_metadata?.picture ||
-        undefined,
-      is_vip: profile?.is_vip || false,
-    };
-
-    isAdmin =
-      !!process.env.ADMIN_EMAIL && user.email === process.env.ADMIN_EMAIL;
-  }
-
-  const [subjectsResult, totalQuestionsResult, totalBanksResult, translations] =
-    await Promise.all([
-      subjectsPromise,
-      totalQuestionsPromise,
-      totalBanksPromise,
-      translationsPromise,
-    ]);
-
-  const subjects = (subjectsResult.data || []) as Subject[];
-  const t = translations[0];
-  const t2 = translations[1];
-  const t3 = translations[2];
-
-  const totalQuestions = totalQuestionsResult.count;
-  const totalBanks = totalBanksResult.count;
-
-  const content = {
-    hero: {
-      title: t("title"),
-      subtitle: t("subtitle"),
-      completed: t("hero.completed"),
-      tagList: t("hero.tagList"),
-      tagFunction: t("hero.tagFunction"),
-    },
-    features: {
-      title: t("features.title"),
-      subtitle: t("features.subtitle"),
-      coreFeatures: t("features.coreFeatures"),
-      bank: {
-        title: t("features.bank.title"),
-        description: t("features.bank.description"),
-      },
-      mistakes: {
-        title: t("features.mistakes.title"),
-        description: t("features.mistakes.description"),
-      },
-      flow: {
-        title: t("features.flow.title"),
-        description: t("features.flow.description"),
-      },
-      flashcards: {
-        title: t("features.flashcards.title"),
-        description: t("features.flashcards.description"),
-      },
-    },
-    stats: {
-      users: t("stats.users"),
-      subjects: t("stats.subjects"),
-      questions: t("stats.questions"),
-    },
-    browse: {
-      title: t("browseSubjects.title"),
-      subtitle: t("browseSubjects.subtitle"),
-      viewAll: t("browseSubjects.viewAll"),
-    },
-    results: {
-      accuracy: t2("accuracy"),
-    },
-    analytics: {
-      title: "Smart Analytics",
-      subtitle: t("features.mistakes.description"), // Reusing existing text or hardcoding
-      features: {
-        radar: "Knowledge Radar",
-        history: "History",
-      },
-    },
-    common: {
-      questions: t3("questions"),
-    },
-  };
+  const snapshot = await getHomepageSnapshot();
+  const subjects = snapshot.topSubjects;
+  const totalQuestions = snapshot.totalQuestions;
+  const totalBanks = snapshot.totalBanks;
+  const subjectCount = snapshot.subjectCount;
 
   return (
     <>
@@ -184,7 +53,7 @@ export default async function Home() {
             spaced repetition flashcards, and smart mistake tracking. Practice
             smarter for midterms and finals with{" "}
             {totalQuestions?.toLocaleString() || "10,000"}+ curated questions
-            across {subjects.length} subjects.
+            across {subjectCount} subjects.
           </p>
         </header>
 
@@ -213,7 +82,7 @@ export default async function Home() {
         </section>
 
         <section aria-label="Available Subjects">
-          <h2>Practice Materials for {subjects.length} Subjects</h2>
+          <h2>Practice Materials for {subjectCount} Subjects</h2>
           <ul>
             {subjects.slice(0, 10).map((subject) => (
               <li key={subject.id}>
@@ -284,12 +153,7 @@ export default async function Home() {
       </noscript>
 
       {/* Interactive Client Component */}
-      <WholePageScroll
-        user={userData}
-        isAdmin={isAdmin}
-        subjects={subjects}
-        content={content}
-      />
+      <WholePageScroll />
     </>
   );
 }

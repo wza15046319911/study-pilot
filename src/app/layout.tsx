@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import { Lexend, Noto_Sans_SC, Fira_Code } from "next/font/google";
 import "./globals.css";
-import "katex/dist/katex.min.css";
 import "@fontsource/maple-mono";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
-import { FloatingSupportButton } from "@/components/common/FloatingSupportButton";
-import SessionGuard from "@/components/auth/SessionGuard";
-import AuthBootstrap from "@/components/auth/AuthBootstrap";
+import { ClientRuntimeEnhancers } from "@/components/app/ClientRuntimeEnhancers";
 import { WebsiteJsonLd, OrganizationJsonLd } from "@/components/seo/JsonLd";
 
 const lexend = Lexend({
@@ -147,10 +144,8 @@ export default async function RootLayout({
       >
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>
-            <SessionGuard />
-            <AuthBootstrap />
+            <ClientRuntimeEnhancers />
             {children}
-            <FloatingSupportButton />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

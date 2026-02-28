@@ -10,6 +10,20 @@ const COOKIE_OPTIONS = {
 };
 
 export async function updateSession(request: NextRequest) {
+  const protectedPaths = ["/library", "/practice", "/profile"];
+  const pathname = request.nextUrl.pathname;
+  const isProtectedPath = protectedPaths.some((path) =>
+    pathname.startsWith(path)
+  );
+  const isAdminPath = pathname.startsWith("/admin");
+
+  // Fast path: skip auth/session refresh entirely for public routes (including "/").
+  if (!isProtectedPath && !isAdminPath) {
+    return NextResponse.next({
+      request,
+    });
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -55,13 +69,7 @@ export async function updateSession(request: NextRequest) {
     console.error("Middleware auth error:", error);
   }
 
-  // Protected routes
-  const protectedPaths = ["/library", "/practice", "/profile"];
-  const isProtectedPath = protectedPaths.some((path) =>
-    request.nextUrl.pathname.startsWith(path)
-  );
-
-  if (isProtectedPath || request.nextUrl.pathname.startsWith("/admin")) {
+  if (isProtectedPath || isAdminPath) {
     if (!user) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";
@@ -70,7 +78,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   // Admin protection
-  if (request.nextUrl.pathname.startsWith("/admin")) {
+  if (isAdminPath) {
     if (!user) {
       const url = request.nextUrl.clone();
       url.pathname = "/login";

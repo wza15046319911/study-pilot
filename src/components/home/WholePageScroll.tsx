@@ -1,13 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useRef } from "react";
+import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { SplashScreen } from "./SplashScreen";
-import { ImpactStats } from "./ImpactStats";
-import { FAQSection } from "@/components/common/FAQSection";
 import { StatefulButton } from "@/components/ui/stateful-button";
-import { Footer } from "@/components/layout/Footer";
+
+const ImpactStats = dynamic(
+  () => import("./ImpactStats").then((module) => module.ImpactStats),
+  { ssr: false },
+);
 
 const AnimatedTestimonials = dynamic(
   () =>
@@ -37,66 +41,15 @@ const FeatureCarousel = dynamic(
   { ssr: false },
 );
 
-// ... (Subject and Props interfaces same as before)
-interface Subject {
-  id: number;
-  name: string;
-  slug: string;
-  icon?: string | null;
-  description?: string | null;
-  question_count?: number;
-  is_new?: boolean;
-  is_hot?: boolean;
-}
+const FAQSection = dynamic(
+  () => import("@/components/common/FAQSection").then((module) => module.FAQSection),
+  { ssr: false },
+);
 
-interface WholePageScrollProps {
-  user: any;
-  isAdmin: boolean;
-  subjects: Subject[];
-  content: {
-    hero: {
-      title: string;
-      subtitle: string;
-      completed: string;
-      tagList: string;
-      tagFunction: string;
-    };
-    features: {
-      title: string;
-      subtitle: string;
-      coreFeatures: string;
-      bank: { title: string; description: string };
-      mistakes: { title: string; description: string };
-      flow: { title: string; description: string };
-      flashcards: { title: string; description: string };
-    };
-    stats: {
-      users: string;
-      subjects: string;
-      questions: string;
-    };
-    browse: {
-      title: string;
-      subtitle: string;
-      viewAll: string;
-    };
-    results: {
-      accuracy: string;
-      accuracyDescription?: string;
-    };
-    analytics: {
-      title: string;
-      subtitle: string;
-      features: {
-        radar: string;
-        history: string;
-      };
-    };
-    common: {
-      questions: string;
-    };
-  };
-}
+const Footer = dynamic(
+  () => import("@/components/layout/Footer").then((module) => module.Footer),
+  { ssr: false },
+);
 
 const testimonials = [
   {
@@ -129,48 +82,76 @@ const testimonials = [
   },
 ];
 
-export function WholePageScroll({ user }: WholePageScrollProps) {
+function LazyMount({
+  children,
+  placeholderHeight = "min-h-[40vh]",
+}: {
+  children: ReactNode;
+  placeholderHeight?: string;
+}) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const isInView = useInView(containerRef, {
+    once: true,
+    margin: "300px 0px",
+  });
+
+  return (
+    <div ref={containerRef} className={placeholderHeight}>
+      {isInView ? children : null}
+    </div>
+  );
+}
+
+export function WholePageScroll() {
   const router = useRouter();
 
-  const handleStartPractice = async () => {
-    // Simulate async operation if needed, or just navigation delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    router.push(user ? "/library" : "/login");
+  const handleStartPractice = () => {
+    router.push("/library");
   };
 
   return (
     <>
       <div className="min-h-screen bg-background relative">
         {/* HERO / SPLASH SECTION */}
-        <SplashScreen user={user} />
+        <SplashScreen />
 
         {/* Impact Stats Section */}
-        <ImpactStats />
+        <LazyMount placeholderHeight="min-h-[30vh]">
+          <ImpactStats />
+        </LazyMount>
 
         {/* Timeline Section */}
-        <TimelineSection />
+        <LazyMount>
+          <TimelineSection />
+        </LazyMount>
 
         {/* Feature Carousel Section */}
-        <FeatureCarousel />
+        <LazyMount>
+          <FeatureCarousel />
+        </LazyMount>
 
         {/* Testimonials Section */}
-        <section className="py-24 bg-neutral-50 dark:bg-black relative flex flex-col items-center justify-center antialiased overflow-hidden">
-          <div className="max-w-6xl mx-auto px-6 mb-12 text-center relative z-10">
-            <h2 className="text-5xl font-bold text-neutral-800 dark:text-white tracking-tight mb-4">
-              What our users say
-            </h2>
-            <p className="text-neutral-500 dark:text-neutral-400 text-lg">
-              See what our customers have to say about us.
-            </p>
-          </div>
+        <LazyMount>
+          <section className="py-24 bg-neutral-50 dark:bg-black relative flex flex-col items-center justify-center antialiased overflow-hidden">
+            <div className="max-w-6xl mx-auto px-6 mb-12 text-center relative z-10">
+              <h2 className="text-5xl font-bold text-neutral-800 dark:text-white tracking-tight mb-4">
+                What our users say
+              </h2>
+              <p className="text-neutral-500 dark:text-neutral-400 text-lg">
+                See what our customers have to say about us.
+              </p>
+            </div>
 
-          <div className="relative z-10 w-full overflow-hidden">
-            <AnimatedTestimonials testimonials={testimonials} autoplay={true} />
-          </div>
-        </section>
+            <div className="relative z-10 w-full overflow-hidden">
+              <AnimatedTestimonials testimonials={testimonials} autoplay={true} />
+            </div>
+          </section>
+        </LazyMount>
 
         {/* FAQ Section */}
-        <FAQSection className="bg-background" />
+        <LazyMount placeholderHeight="min-h-[20vh]">
+          <FAQSection className="bg-background" />
+        </LazyMount>
 
         {/* CTA Section */}
         <section className="py-32 bg-background text-foreground relative overflow-hidden">
@@ -194,7 +175,7 @@ export function WholePageScroll({ user }: WholePageScrollProps) {
                   onClick={handleStartPractice}
                   className="rounded-full bg-primary text-white font-bold text-lg px-8 py-4 h-14 min-w-[200px]"
                 >
-                  {user ? "Start to Practice" : "Create Free Account"}
+                  Start Practice
                 </StatefulButton>
               </div>
             </motion.div>
@@ -202,8 +183,9 @@ export function WholePageScroll({ user }: WholePageScrollProps) {
         </section>
 
         {/* Footer */}
-        {/* Footer */}
-        <Footer />
+        <LazyMount placeholderHeight="min-h-[10vh]">
+          <Footer />
+        </LazyMount>
       </div>
     </>
   );

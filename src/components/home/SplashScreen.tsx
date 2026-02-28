@@ -4,22 +4,13 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { TypewriterEffect } from "@/components/aceternity/typewriter-effect";
 import ShimmerButton from "@/components/aceternity/shimmer-button";
-import { SparklesCore } from "@/components/aceternity/sparkles";
 import { Spotlight } from "@/components/aceternity/spotlight";
 
-interface SplashScreenProps {
-  user: any; // Add user prop to check auth status
-}
-
-export function SplashScreen({ user }: SplashScreenProps) {
+export function SplashScreen() {
   const router = useRouter();
 
   const handleStart = () => {
-    if (user) {
-      router.push("/library");
-    } else {
-      router.push("/login");
-    }
+    router.push("/library");
   };
 
   const words = [
@@ -65,7 +56,7 @@ export function SplashScreen({ user }: SplashScreenProps) {
             background="linear-gradient(110deg, #000103 45%, #1e2631 55%, #000103)"
           >
             <span className="whitespace-pre-wrap text-center text-sm font-medium leading-none tracking-tight text-white dark:from-white dark:to-slate-900/10 lg:text-lg">
-              {user ? "Go to Library" : "Get Started Now"}
+              Start Practice
             </span>
           </ShimmerButton>
         </motion.div>
