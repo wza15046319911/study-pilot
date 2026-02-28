@@ -3,6 +3,118 @@
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 
+export interface CreateQuestionInput {
+  subject_id: number;
+  topic_id: number | null;
+  title: string;
+  content: string;
+  type: string;
+  difficulty: "easy" | "medium" | "hard";
+  options: { label: string; content: string }[] | null;
+  answer: string;
+  explanation: string | null;
+  code_snippet: string | null;
+  test_cases: { function_name: string; test_cases: { input: unknown[]; expected: unknown }[] } | null;
+  tags: string[] | null;
+}
+
+export async function createQuestion(input: CreateQuestionInput) {
+  const userSupabase = await createClient();
+  const {
+    data: { user },
+  } = await userSupabase.auth.getUser();
+  if (!user || user.email !== process.env.ADMIN_EMAIL) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const supabase = createAdminClient();
+
+  const payload = {
+    subject_id: input.subject_id,
+    topic_id: input.topic_id,
+    title: input.title,
+    content: input.content,
+    type: input.type,
+    difficulty: input.difficulty,
+    options: input.options,
+    answer: input.answer,
+    explanation: input.explanation,
+    code_snippet: input.code_snippet,
+    test_cases: input.test_cases,
+    tags: input.tags,
+  };
+
+  const { error } = await (supabase as any)
+    .from("questions")
+    .insert(payload);
+
+  if (error) {
+    console.error("Create question error:", error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath("/admin/questions");
+  revalidatePath("/admin/create-question");
+  return { success: true };
+}
+
+export interface BatchUploadQuestionInput {
+  subject_id: number;
+  topic_id: number | null;
+  title: string;
+  content: string;
+  type: string;
+  difficulty: "easy" | "medium" | "hard";
+  options: { label: string; content: string }[] | null;
+  answer: string;
+  explanation: string | null;
+  code_snippet: string | null;
+  test_cases: unknown;
+  tags: string[] | null;
+}
+
+export async function batchUploadQuestions(
+  questions: BatchUploadQuestionInput[]
+) {
+  const userSupabase = await createClient();
+  const {
+    data: { user },
+  } = await userSupabase.auth.getUser();
+  if (!user || user.email !== process.env.ADMIN_EMAIL) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const supabase = createAdminClient();
+
+  const payload = questions.map((q) => ({
+    subject_id: q.subject_id,
+    topic_id: q.topic_id,
+    title: q.title,
+    content: q.content,
+    type: q.type,
+    difficulty: q.difficulty,
+    options: q.options,
+    answer: q.answer,
+    explanation: q.explanation,
+    code_snippet: q.code_snippet,
+    test_cases: q.test_cases,
+    tags: q.tags,
+  }));
+
+  const { error } = await (supabase as any)
+    .from("questions")
+    .insert(payload);
+
+  if (error) {
+    console.error("Batch upload questions error:", error);
+    return { success: false, error: error.message };
+  }
+
+  revalidatePath("/admin/questions");
+  revalidatePath("/admin/upload-question");
+  return { success: true, count: questions.length };
+}
+
 interface QuestionUpdate {
   title?: string;
   content?: string;

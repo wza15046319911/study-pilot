@@ -118,11 +118,7 @@ export default function WeeklyPracticeBuilder({
     const fetchQuestionsAndTopics = async () => {
       setLoading(true);
       setLoadingError(null);
-      let timeoutId: ReturnType<typeof setTimeout> | null = null;
       try {
-        const controller = new AbortController();
-        timeoutId = setTimeout(() => controller.abort(), 12000);
-
         const [questionsRes, topicsRes] = await Promise.all([
           supabase
             .from("questions")
@@ -131,14 +127,12 @@ export default function WeeklyPracticeBuilder({
             )
             .eq("subject_id", sid)
             .order("type")
-            .limit(500)
-            .abortSignal(controller.signal),
+            .limit(500),
           supabase
             .from("topics")
             .select("*")
             .eq("subject_id", sid)
-            .order("name")
-            .abortSignal(controller.signal),
+            .order("name"),
         ]);
         if (questionsRes.error) {
           console.error("Error fetching questions:", questionsRes.error);
@@ -154,12 +148,9 @@ export default function WeeklyPracticeBuilder({
       } catch (error) {
         console.error("Error in fetchQuestionsAndTopics:", error);
         setLoadingError(
-          "Loading questions timed out. Please refresh or narrow to another subject.",
+          "Failed to load questions. Please refresh or try another subject.",
         );
       } finally {
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
         setLoading(false);
       }
     };

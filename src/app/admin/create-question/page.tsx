@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { createQuestion } from "@/app/admin/questions/actions";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -253,11 +254,11 @@ export default function CreateQuestionPage() {
       tags: tags.length > 0 ? tags : null,
     };
 
-    const { error } = await supabase.from("questions").insert(payload as any);
+    const result = await createQuestion(payload);
     setLoading(false);
 
-    if (error) {
-      setMessage({ type: "error", text: `Failed to create question: ${error.message}` });
+    if (!result.success) {
+      setMessage({ type: "error", text: `Failed to create question: ${result.error}` });
       return;
     }
 
@@ -293,10 +294,13 @@ export default function CreateQuestionPage() {
                   setSelectedSubject(e.target.value);
                   setSelectedTopic("");
                 }}
-                options={subjects.map((subject) => ({
-                  value: subject.id,
-                  label: subject.name,
-                }))}
+                options={[
+                  { value: "", label: "Select subject" },
+                  ...subjects.map((subject) => ({
+                    value: subject.id,
+                    label: subject.name,
+                  })),
+                ]}
                 placeholder="Select subject"
               />
             </div>
@@ -308,10 +312,13 @@ export default function CreateQuestionPage() {
               <Select
                 value={selectedTopic}
                 onChange={(e) => setSelectedTopic(e.target.value)}
-                options={topics.map((topic) => ({
-                  value: topic.id,
-                  label: topic.name,
-                }))}
+                options={[
+                  { value: "", label: "Select topic (optional)" },
+                  ...topics.map((topic) => ({
+                    value: topic.id,
+                    label: topic.name,
+                  })),
+                ]}
                 placeholder="Select topic"
                 disabled={!selectedSubject}
               />

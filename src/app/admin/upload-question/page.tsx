@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { batchUploadQuestions } from "@/app/admin/questions/actions";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Textarea } from "@/components/ui/Textarea";
@@ -555,8 +556,7 @@ export default function UploadQuestionPage() {
     setLoading(true);
     setMessage(null);
 
-    const questionsData: Database["public"]["Tables"]["questions"]["Insert"][] =
-      validQuestions.map((q) => ({
+    const questionsData = validQuestions.map((q) => ({
       subject_id: parseInt(selectedSubject),
       topic_id: selectedTopic ? parseInt(selectedTopic) : null,
       title: q.title.substring(0, 100),
@@ -567,22 +567,20 @@ export default function UploadQuestionPage() {
       answer: isCodingChallenge ? "all_tests_passed" : q.answer,
       explanation: q.explanation || null,
       code_snippet: q.codeSnippet,
-      test_cases: isCodingChallenge ? (q.test_cases as Json) : null,
+      test_cases: isCodingChallenge ? q.test_cases : null,
       tags: tags.length > 0 ? tags : null,
-      }));
+    }));
 
-    const { error } = await (supabase.from("questions") as any).insert(
-      questionsData,
-    );
+    const result = await batchUploadQuestions(questionsData);
 
     setLoading(false);
 
-    if (error) {
-      setMessage({ type: "error", text: `Error: ${error.message}` });
+    if (!result.success) {
+      setMessage({ type: "error", text: `Error: ${result.error}` });
     } else {
       setMessage({
         type: "success",
-        text: `Successfully uploaded ${validQuestions.length} question(s)!`,
+        text: `Successfully uploaded ${result.count} question(s)!`,
       });
       setQuestionText("");
       setParsedQuestions([]);
@@ -645,10 +643,13 @@ export default function UploadQuestionPage() {
                     setSelectedSubject(e.target.value);
                     setSelectedTopic("");
                   }}
-                  options={subjects.map((s) => ({
+                options={[
+                  { value: "", label: "Select subject" },
+                  ...subjects.map((s) => ({
                     value: s.id,
                     label: s.name,
-                  }))}
+                  })),
+                ]}
                   placeholder="Select Subject"
                 />
               </div>
@@ -659,7 +660,10 @@ export default function UploadQuestionPage() {
                 <Select
                   value={selectedTopic}
                   onChange={(e) => setSelectedTopic(e.target.value)}
-                  options={topics.map((t) => ({ value: t.id, label: t.name }))}
+                  options={[
+                  { value: "", label: "Select topic (optional)" },
+                  ...topics.map((t) => ({ value: t.id, label: t.name })),
+                ]}
                   placeholder="Select Topic"
                   disabled={!selectedSubject}
                 />
