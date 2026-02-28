@@ -210,7 +210,7 @@ export default async function SubjectPage(props: PageProps) {
 
   const examDatesPromise = supabase
     .from("subject_exam_dates")
-    .select("id, exam_type, exam_date")
+    .select("id, exam_type, exam_date, student_level")
     .eq("subject_id", subject.id);
 
   const weeklyPracticesPromise = supabase

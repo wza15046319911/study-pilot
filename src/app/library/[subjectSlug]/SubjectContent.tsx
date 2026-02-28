@@ -38,6 +38,7 @@ interface SubjectContentProps {
     id: number;
     exam_type: "midterm" | "final" | string;
     exam_date: string;
+    student_level?: "undergraduate" | "postgraduate";
   }[];
   weeklyPractices?: WeeklyPracticeItem[];
   pastExams?: PastExamListItem[];
@@ -153,11 +154,25 @@ export function SubjectContent({
   const getSemesterLabel = (semester: number) =>
     semester === 1 ? t("semester.one") : t("semester.two");
 
-  // Find nearest upcoming exam
-  const upcomingExam = examDates
-    ?.map((d) => ({ ...d, dateObj: new Date(d.exam_date) }))
-    .filter((d) => d.dateObj > new Date())
-    .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime())[0];
+  // Find nearest upcoming exam per student level (undergraduate, postgraduate)
+  const now = new Date();
+  const withDates = (examDates ?? []).map((d) => ({
+    ...d,
+    dateObj: new Date(d.exam_date),
+    level: d.student_level ?? "undergraduate",
+  }));
+  const upcomingByLevel = {
+    undergraduate: withDates
+      .filter((d) => d.level === "undergraduate" && d.dateObj > now)
+      .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime())[0],
+    postgraduate: withDates
+      .filter((d) => d.level === "postgraduate" && d.dateObj > now)
+      .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime())[0],
+  };
+  const upcomingExams = [
+    upcomingByLevel.undergraduate,
+    upcomingByLevel.postgraduate,
+  ].filter(Boolean);
 
   const groupedPastExams = (pastExams || []).reduce(
     (acc, exam) => {
@@ -196,22 +211,29 @@ export function SubjectContent({
               {t("hero.description")}
             </p>
 
-            {upcomingExam && (
-              <div className="mt-6 inline-flex flex-wrap items-center gap-3 px-5 py-3 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800">
-                <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold animate-pulse">
-                  <Clock className="size-5" />
-                  <span>
-                    {upcomingExam.exam_type === "midterm"
-                      ? t("hero.midterm")
-                      : t("hero.final")}{" "}
-                    {t("hero.examCountdown")}
-                  </span>
-                </div>
-                <CountdownTimer
-                  targetDate={upcomingExam.dateObj}
-                  label={null}
-                  className="!gap-1 text-amber-900 dark:text-amber-100"
-                />
+            {upcomingExams.length > 0 && (
+              <div className="mt-6 flex flex-wrap gap-3">
+                {upcomingExams.map((exam) => (
+                  <div
+                    key={exam.id}
+                    className="inline-flex flex-wrap items-center gap-3 px-5 py-3 rounded-2xl bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800"
+                  >
+                    <div className="flex items-center gap-2 text-amber-700 dark:text-amber-400 font-bold animate-pulse">
+                      <Clock className="size-5" />
+                      <span>
+                        {exam.exam_type === "midterm"
+                          ? t("hero.midterm")
+                          : t("hero.final")}{" "}
+                        ({t(`hero.${exam.level}`)}) {t("hero.examCountdown")}
+                      </span>
+                    </div>
+                    <CountdownTimer
+                      targetDate={exam.dateObj}
+                      label={null}
+                      className="!gap-1 text-amber-900 dark:text-amber-100"
+                    />
+                  </div>
+                ))}
               </div>
             )}
           </div>

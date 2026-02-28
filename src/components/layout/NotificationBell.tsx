@@ -1,10 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Bell, Check, Trash2, ExternalLink } from "lucide-react";
-import Link from "next/link";
+import { Bell, Check } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
 import {
   getUserNotifications,
   markNotificationRead,
@@ -36,8 +34,6 @@ export function NotificationBell() {
     try {
       const data = await getUserNotifications();
       setNotifications(data);
-      const unread = data.filter((n) => !n.is_read).length;
-      // Also fetch exact count from DB if list is limited, but for now list count is fine or use separate count
       const count = await getUnreadCount();
       setUnreadCount(count);
     } catch (err) {
@@ -48,12 +44,10 @@ export function NotificationBell() {
   };
 
   useEffect(() => {
-    fetchNotifications();
-
-    // Optional: Poll every minute
-    const interval = setInterval(fetchNotifications, 60000);
-    return () => clearInterval(interval);
-  }, []);
+    if (isOpen) {
+      void fetchNotifications();
+    }
+  }, [isOpen]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

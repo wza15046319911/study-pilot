@@ -1,24 +1,18 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
-import { Question, Topic } from "@/types/database";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { LatexContent } from "@/components/ui/LatexContent";
-import { CodeBlock } from "@/components/ui/CodeBlock";
-import QuestionPreviewModal from "@/app/admin/questions/QuestionPreviewModal";
-import QuestionList from "./QuestionList";
 import { searchUsers } from "@/lib/actions/adminUnlock";
 import { saveHomeworkDraft, pushHomework } from "./actions";
+import { QuestionPickerPanel } from "@/components/admin/question-picker/QuestionPickerPanel";
+import type { QuestionPoolListItem } from "@/lib/actions/questionPool";
 import {
   ChevronLeft,
-  Plus,
-  Trash2,
   Save,
   Send,
   Search,
@@ -38,7 +32,16 @@ interface Subject {
 
 interface HomeworkBuilderProps {
   subjects: Subject[];
-  initialData?: any;
+  initialData?: {
+    id?: number;
+    subject_id?: number;
+    title?: string;
+    slug?: string;
+    description?: string;
+    due_at?: string | null;
+    allowed_modes?: string[];
+    questions?: QuestionPoolListItem[];
+  };
 }
 
 interface UserResult {
@@ -69,7 +72,6 @@ export default function HomeworkBuilder({
   initialData,
 }: HomeworkBuilderProps) {
   const router = useRouter();
-  const supabase = useMemo(() => createClient(), []);
 
   const [subjectId, setSubjectId] = useState<string>(
     initialData?.subject_id?.toString() || "",
@@ -91,18 +93,12 @@ export default function HomeworkBuilder({
   );
   const [selectedUsers, setSelectedUsers] = useState<UserResult[]>([]);
 
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [availableQuestions, setAvailableQuestions] = useState<Question[]>([]);
-  const [selectedQuestions, setSelectedQuestions] = useState<Question[]>(
+  const [selectedQuestions, setSelectedQuestions] = useState<
+    QuestionPoolListItem[]
+  >(
     initialData?.questions || [],
   );
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [topicFilter, setTopicFilter] = useState("all");
 
   const [userSearchQuery, setUserSearchQuery] = useState("");
   const [userResults, setUserResults] = useState<UserResult[]>([]);
@@ -123,75 +119,7 @@ export default function HomeworkBuilder({
       .replace(/-+/g, "-");
   };
 
-  const filteredQuestions = useMemo(() => {
-    return availableQuestions.filter((q) => {
-      const matchesSearch =
-        q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        q.content.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesType = typeFilter === "all" || q.type === typeFilter;
-      const matchesTopic =
-        topicFilter === "all" || q.topic_id?.toString() === topicFilter;
-      return matchesSearch && matchesType && matchesTopic;
-    });
-  }, [availableQuestions, searchQuery, typeFilter, topicFilter]);
-
-  useEffect(() => {
-    if (!subjectId) {
-      setAvailableQuestions([]);
-      return;
-    }
-
-    const sid = parseInt(subjectId);
-    if (isNaN(sid)) {
-      setAvailableQuestions([]);
-      return;
-    }
-
-    const fetchQuestionsAndTopics = async () => {
-      setLoading(true);
-      try {
-        const [questionsRes, topicsRes] = await Promise.all([
-          supabase
-            .from("questions")
-            .select("*")
-            .eq("subject_id", sid)
-            .order("type"),
-          supabase
-            .from("topics")
-            .select("*")
-            .eq("subject_id", sid)
-            .order("name"),
-        ]);
-
-        if (questionsRes.error) {
-          console.error("Error fetching questions:", questionsRes.error);
-        }
-        if (topicsRes.error) {
-          console.error("Error fetching topics:", topicsRes.error);
-        }
-
-        setAvailableQuestions((questionsRes.data as Question[]) || []);
-        setTopics((topicsRes.data as Topic[]) || []);
-      } catch (error) {
-        console.error("Error in fetchQuestionsAndTopics:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchQuestionsAndTopics();
-  }, [subjectId, supabase]);
-
-  const addQuestion = useCallback((question: Question) => {
-    setSelectedQuestions((prev) => {
-      if (prev.find((q) => q.id === question.id)) return prev;
-      return [...prev, question];
-    });
-  }, []);
-
-  const removeQuestion = useCallback((question: Question) => {
-    setSelectedQuestions((prev) => prev.filter((q) => q.id !== question.id));
-  }, []);
+  const selectedSubjectId = subjectId ? Number.parseInt(subjectId, 10) : null;
 
   const handleSearchUsers = () => {
     if (userSearchQuery.length < 2) return;
@@ -543,69 +471,11 @@ export default function HomeworkBuilder({
                 {selectedQuestions.length} selected
               </div>
             </div>
-
-            <div className="grid sm:grid-cols-3 gap-3 mb-4">
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search questions..."
-              />
-              <Select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                options={[
-                  { value: "all", label: "All types" },
-                  { value: "single_choice", label: "Single Choice" },
-                  { value: "multiple_choice", label: "Multiple Choice" },
-                  { value: "fill_blank", label: "Fill Blank" },
-                  { value: "code_output", label: "Code Output" },
-                  { value: "handwrite", label: "Handwrite" },
-                  { value: "true_false", label: "True/False" },
-                ]}
-                placeholder="All types"
-              />
-              <Select
-                value={topicFilter}
-                onChange={(e) => setTopicFilter(e.target.value)}
-                options={[
-                  { value: "all", label: "All topics" },
-                  ...topics.map((topic) => ({
-                    value: topic.id,
-                    label: topic.name,
-                  })),
-                ]}
-                placeholder="All topics"
-              />
-            </div>
-
-            <div className="grid lg:grid-cols-2 gap-4">
-              <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-4 h-[calc(100vh-350px)] overflow-y-auto">
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">
-                  Available Questions
-                </h3>
-                <QuestionList
-                  questions={filteredQuestions}
-                  onAction={addQuestion}
-                  onPreview={setPreviewQuestion}
-                  actionIcon="plus"
-                  emptyMessage="No questions found."
-                  loading={loading}
-                />
-              </div>
-
-              <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-4 h-[calc(100vh-350px)] overflow-y-auto">
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">
-                  Selected Questions
-                </h3>
-                <QuestionList
-                  questions={selectedQuestions}
-                  onAction={removeQuestion}
-                  onPreview={setPreviewQuestion}
-                  actionIcon="trash"
-                  emptyMessage="No questions selected yet."
-                />
-              </div>
-            </div>
+            <QuestionPickerPanel
+              subjectId={selectedSubjectId}
+              selectedQuestions={selectedQuestions}
+              onSelectedQuestionsChange={setSelectedQuestions}
+            />
           </GlassPanel>
 
           <div className="flex justify-end gap-3">
@@ -630,11 +500,6 @@ export default function HomeworkBuilder({
         </div>
       </div>
 
-      <QuestionPreviewModal
-        isOpen={!!previewQuestion}
-        question={previewQuestion as any}
-        onClose={() => setPreviewQuestion(null)}
-      />
     </main>
   );
 }

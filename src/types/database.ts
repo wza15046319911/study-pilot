@@ -86,6 +86,7 @@ export interface Database {
           exam_type: "midterm" | "final";
           exam_date: string;
           created_at: string;
+          student_level: "undergraduate" | "postgraduate";
         };
         Insert: {
           id?: number;
@@ -93,6 +94,7 @@ export interface Database {
           exam_type: "midterm" | "final";
           exam_date: string;
           created_at?: string;
+          student_level?: "undergraduate" | "postgraduate";
         };
         Update: {
           id?: number;
@@ -100,6 +102,7 @@ export interface Database {
           exam_type?: "midterm" | "final";
           exam_date?: string;
           created_at?: string;
+          student_level?: "undergraduate" | "postgraduate";
         };
       };
       subjects: {

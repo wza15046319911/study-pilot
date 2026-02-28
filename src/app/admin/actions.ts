@@ -129,7 +129,9 @@ export async function upsertSubjectExamDate(
 
   const { error } = await supabase
     .from("subject_exam_dates")
-    .upsert(data as any, { onConflict: "subject_id, exam_type" });
+    .upsert(data as any, {
+      onConflict: "subject_id, exam_type, student_level",
+    });
 
   if (error) {
     console.error("Error upserting subject exam date:", error);

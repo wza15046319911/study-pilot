@@ -981,7 +981,9 @@
       "description": "浏览练习资料、模拟考试与精选题库。",
       "examCountdown": "考试倒计时：",
       "final": "期末",
-      "midterm": "期中"
+      "midterm": "期中",
+      "undergraduate": "本科",
+      "postgraduate": "研究生"
     },
     "mockExams": {
       "title": "模拟考试"

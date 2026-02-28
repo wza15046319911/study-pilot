@@ -981,7 +981,9 @@
       "description": "Explore practice materials, mock exams, and curated question banks.",
       "examCountdown": "Exam Countdown:",
       "final": "Final",
-      "midterm": "Midterm"
+      "midterm": "Midterm",
+      "undergraduate": "Undergraduate",
+      "postgraduate": "Postgraduate"
     },
     "mockExams": {
       "title": "Mock Exams"

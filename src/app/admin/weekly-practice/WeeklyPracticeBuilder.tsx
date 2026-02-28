@@ -1,23 +1,17 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
-import { Question, Topic } from "@/types/database";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { LatexContent } from "@/components/ui/LatexContent";
-import { CodeBlock } from "@/components/ui/CodeBlock";
-import QuestionPreviewModal from "@/app/admin/questions/QuestionPreviewModal";
-import QuestionList from "../homework/QuestionList";
 import { createWeeklyPractice, updateWeeklyPractice } from "./actions";
+import { QuestionPickerPanel } from "@/components/admin/question-picker/QuestionPickerPanel";
+import type { QuestionPoolListItem } from "@/lib/actions/questionPool";
 import {
   ChevronLeft,
-  Plus,
-  Trash2,
   Save,
   Send,
   Calendar,
@@ -32,7 +26,15 @@ interface Subject {
 
 interface WeeklyPracticeBuilderProps {
   subjects: Subject[];
-  initialData?: any;
+  initialData?: {
+    id?: number;
+    subject_id?: number;
+    title?: string;
+    slug?: string;
+    description?: string;
+    week_start?: string | null;
+    questions?: QuestionPoolListItem[];
+  };
 }
 
 const toDateInput = (value?: string | null) => {
@@ -54,7 +56,6 @@ export default function WeeklyPracticeBuilder({
   initialData,
 }: WeeklyPracticeBuilderProps) {
   const router = useRouter();
-  const supabase = useMemo(() => createClient(), []);
 
   const [subjectId, setSubjectId] = useState<string>(
     initialData?.subject_id?.toString() || "",
@@ -68,19 +69,12 @@ export default function WeeklyPracticeBuilder({
     toDateInput(initialData?.week_start),
   );
 
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [availableQuestions, setAvailableQuestions] = useState<Question[]>([]);
-  const [selectedQuestions, setSelectedQuestions] = useState<Question[]>(
+  const [selectedQuestions, setSelectedQuestions] = useState<
+    QuestionPoolListItem[]
+  >(
     initialData?.questions || [],
   );
-  const [loading, setLoading] = useState(false);
-  const [loadingError, setLoadingError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
-
-  const [searchQuery, setSearchQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [topicFilter, setTopicFilter] = useState("all");
 
   const generateSlug = (text: string) => {
     return text
@@ -91,83 +85,7 @@ export default function WeeklyPracticeBuilder({
       .replace(/-+/g, "-");
   };
 
-  const filteredQuestions = useMemo(() => {
-    return availableQuestions.filter((q) => {
-      const matchesSearch =
-        q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        q.content.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesType = typeFilter === "all" || q.type === typeFilter;
-      const matchesTopic =
-        topicFilter === "all" || q.topic_id?.toString() === topicFilter;
-      return matchesSearch && matchesType && matchesTopic;
-    });
-  }, [availableQuestions, searchQuery, typeFilter, topicFilter]);
-
-  useEffect(() => {
-    if (!subjectId) {
-      setAvailableQuestions([]);
-      return;
-    }
-
-    const sid = parseInt(subjectId);
-    if (isNaN(sid)) {
-      setAvailableQuestions([]);
-      return;
-    }
-
-    const fetchQuestionsAndTopics = async () => {
-      setLoading(true);
-      setLoadingError(null);
-      try {
-        const [questionsRes, topicsRes] = await Promise.all([
-          supabase
-            .from("questions")
-            .select(
-              "id, subject_id, title, content, type, difficulty, options, code_snippet, topic_id",
-            )
-            .eq("subject_id", sid)
-            .order("type")
-            .limit(500),
-          supabase
-            .from("topics")
-            .select("*")
-            .eq("subject_id", sid)
-            .order("name"),
-        ]);
-        if (questionsRes.error) {
-          console.error("Error fetching questions:", questionsRes.error);
-          setLoadingError("Failed to load available questions.");
-        }
-        if (topicsRes.error) {
-          console.error("Error fetching topics:", topicsRes.error);
-          setLoadingError("Failed to load topics.");
-        }
-
-        setAvailableQuestions((questionsRes.data as Question[]) || []);
-        setTopics((topicsRes.data as Topic[]) || []);
-      } catch (error) {
-        console.error("Error in fetchQuestionsAndTopics:", error);
-        setLoadingError(
-          "Failed to load questions. Please refresh or try another subject.",
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchQuestionsAndTopics();
-  }, [subjectId, supabase]);
-
-  const addQuestion = useCallback((question: Question) => {
-    setSelectedQuestions((prev) => {
-      if (prev.find((q) => q.id === question.id)) return prev;
-      return [...prev, question];
-    });
-  }, []);
-
-  const removeQuestion = useCallback((question: Question) => {
-    setSelectedQuestions((prev) => prev.filter((q) => q.id !== question.id));
-  }, []);
+  const selectedSubjectId = subjectId ? Number.parseInt(subjectId, 10) : null;
 
   const saveWeeklyPractice = async (publish: boolean) => {
     if (!subjectId || !title.trim() || selectedQuestions.length === 0) {
@@ -180,7 +98,6 @@ export default function WeeklyPracticeBuilder({
     try {
       const finalSlug = slug.trim() || generateSlug(title.trim());
       const payload = {
-        weeklyPracticeId: initialData?.id,
         subjectId: parseInt(subjectId),
         title: title.trim(),
         slug: finalSlug,
@@ -191,8 +108,11 @@ export default function WeeklyPracticeBuilder({
         questionIds: selectedQuestions.map((q) => q.id),
       };
 
-      if (initialData) {
-        await updateWeeklyPractice(payload);
+      if (initialData?.id != null) {
+        await updateWeeklyPractice({
+          ...payload,
+          weeklyPracticeId: initialData.id,
+        });
       } else {
         await createWeeklyPractice(payload);
       }
@@ -328,74 +248,11 @@ export default function WeeklyPracticeBuilder({
                 {selectedQuestions.length} selected
               </div>
             </div>
-
-            <div className="grid sm:grid-cols-3 gap-3 mb-4">
-              <Input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search questions..."
-              />
-              <Select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                options={[
-                  { value: "all", label: "All types" },
-                  { value: "single_choice", label: "Single Choice" },
-                  { value: "multiple_choice", label: "Multiple Choice" },
-                  { value: "fill_blank", label: "Fill Blank" },
-                  { value: "code_output", label: "Code Output" },
-                  { value: "handwrite", label: "Handwrite" },
-                  { value: "true_false", label: "True/False" },
-                ]}
-                placeholder="All types"
-              />
-              <Select
-                value={topicFilter}
-                onChange={(e) => setTopicFilter(e.target.value)}
-                options={[
-                  { value: "all", label: "All topics" },
-                  ...topics.map((topic) => ({
-                    value: topic.id,
-                    label: topic.name,
-                  })),
-                ]}
-                placeholder="All topics"
-              />
-            </div>
-            {loadingError && (
-              <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300">
-                {loadingError}
-              </div>
-            )}
-
-            <div className="grid lg:grid-cols-2 gap-4">
-              <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-4 h-[calc(100vh-350px)] overflow-y-auto">
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">
-                  Available Questions
-                </h3>
-                <QuestionList
-                  questions={filteredQuestions}
-                  onAction={addQuestion}
-                  onPreview={setPreviewQuestion}
-                  actionIcon="plus"
-                  emptyMessage="No questions found."
-                  loading={loading}
-                />
-              </div>
-
-              <div className="border border-slate-200 dark:border-slate-800 rounded-xl p-4 h-[calc(100vh-350px)] overflow-y-auto">
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200 mb-3">
-                  Selected Questions
-                </h3>
-                <QuestionList
-                  questions={selectedQuestions}
-                  onAction={removeQuestion}
-                  onPreview={setPreviewQuestion}
-                  actionIcon="trash"
-                  emptyMessage="No questions selected yet."
-                />
-              </div>
-            </div>
+            <QuestionPickerPanel
+              subjectId={selectedSubjectId}
+              selectedQuestions={selectedQuestions}
+              onSelectedQuestionsChange={setSelectedQuestions}
+            />
           </GlassPanel>
 
           <div className="flex justify-end gap-3">
@@ -420,11 +277,6 @@ export default function WeeklyPracticeBuilder({
         </div>
       </div>
 
-      <QuestionPreviewModal
-        isOpen={!!previewQuestion}
-        question={previewQuestion as any}
-        onClose={() => setPreviewQuestion(null)}
-      />
     </main>
   );
 }

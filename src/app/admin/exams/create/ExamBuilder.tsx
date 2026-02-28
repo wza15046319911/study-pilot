@@ -1,33 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { createClient } from "@/lib/supabase/client";
-import { Question, Topic } from "@/types/database";
 import { createExam, updateExam } from "./actions";
+import { QuestionPickerPanel } from "@/components/admin/question-picker/QuestionPickerPanel";
+import type { QuestionPoolListItem } from "@/lib/actions/questionPool";
 import {
   ChevronLeft,
-  Sparkles,
-  Plus,
-  Trash2,
   Save,
   Send,
-  Search,
   ListChecks,
   Brain,
-  GraduationCap,
   Timer,
   Eye,
   EyeOff,
 } from "lucide-react";
-import { LatexContent } from "@/components/ui/LatexContent";
-import { CodeBlock } from "@/components/ui/CodeBlock";
-import QuestionPreviewModal from "@/app/admin/questions/QuestionPreviewModal";
 
 interface Subject {
   id: number;
@@ -36,22 +28,27 @@ interface Subject {
 
 interface ExamBuilderProps {
   subjects: Subject[];
-  initialData?: any;
+  initialData?: {
+    id?: number;
+    subject_id?: number;
+    title?: string;
+    slug?: string;
+    exam_type?: "midterm" | "final";
+    unlock_type?: "free" | "premium" | "referral" | "paid";
+    price?: number;
+    allowed_modes?: string[];
+    visibility?: "public" | "assigned_only";
+    duration_minutes?: number;
+    rules?: Record<string, number>;
+    questions?: QuestionPoolListItem[];
+  };
 }
-
-const questionTypes = [
-  { value: "single_choice", label: "Single Choice" },
-  { value: "multiple_choice", label: "Multiple Choice" },
-  { value: "fill_blank", label: "Fill in Blank" },
-  { value: "code_output", label: "Code Output" },
-];
 
 export default function ExamBuilder({
   subjects,
   initialData,
 }: ExamBuilderProps) {
   const router = useRouter();
-  const supabase = createClient();
 
   // Form state
   // Initialize with initialData if available
@@ -94,117 +91,28 @@ export default function ExamBuilder({
     setTitle(val);
     setSlug(generateSlug(val));
   };
+  const initialDurationMinutes = initialData?.duration_minutes ?? 120;
   const [durationHours, setDurationHours] = useState(
-    initialData ? Math.floor(initialData.duration_minutes / 60) : 2
+    Math.floor(initialDurationMinutes / 60),
   );
   const [durationMinutes, setDurationMinutes] = useState(
-    initialData ? initialData.duration_minutes % 60 : 0
+    initialDurationMinutes % 60,
   );
   const [rules, setRules] = useState<Record<string, number>>(
     initialData?.rules || {
       single_choice: 30,
       fill_blank: 5,
-    }
+    },
   );
 
-  // Data state
-  const [topics, setTopics] = useState<Topic[]>([]);
-  const [availableQuestions, setAvailableQuestions] = useState<Question[]>([]);
-  const [selectedQuestions, setSelectedQuestions] = useState<Question[]>(
-    initialData?.questions || []
-  );
-  const [loading, setLoading] = useState(false);
+  const [selectedQuestions, setSelectedQuestions] = useState<
+    QuestionPoolListItem[]
+  >(initialData?.questions || []);
   const [saving, setSaving] = useState(false);
-
-  // Search and Filter
-  const [searchQuery, setSearchQuery] = useState("");
-  const [typeFilter, setTypeFilter] = useState("all");
-  const [bankTopicFilter, setBankTopicFilter] = useState("all");
-
-  // Preview Modal
-  const [previewQuestion, setPreviewQuestion] = useState<Question | null>(null);
 
   // Generation Rules
   const [generationTopicId, setGenerationTopicId] = useState<string>("all");
-
-  const filteredQuestions = availableQuestions.filter((q) => {
-    const matchesSearch =
-      q.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      q.content.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = typeFilter === "all" || q.type === typeFilter;
-    const matchesTopic =
-      bankTopicFilter === "all" || q.topic_id?.toString() === bankTopicFilter;
-    return matchesSearch && matchesType && matchesTopic;
-  });
-
-  // Fetch questions when subject changes
-  useEffect(() => {
-    if (!subjectId) {
-      setAvailableQuestions([]);
-      return;
-    }
-
-    const fetchQuestionsAndTopics = async () => {
-      setLoading(true);
-
-      // Fetch questions
-      const { data: questionsData } = await supabase
-        .from("questions")
-        .select("*")
-        .eq("subject_id", parseInt(subjectId))
-        .order("type");
-      setAvailableQuestions((questionsData as Question[]) || []);
-
-      // Fetch topics
-      const { data: topicsData } = await supabase
-        .from("topics")
-        .select("*")
-        .eq("subject_id", parseInt(subjectId))
-        .order("name");
-      setTopics((topicsData as Topic[]) || []);
-
-      setLoading(false);
-    };
-
-    fetchQuestionsAndTopics();
-  }, [subjectId]);
-
-  // Update rule count
-  const updateRule = (type: string, count: number) => {
-    setRules((prev) => ({ ...prev, [type]: Math.max(0, count) }));
-  };
-
-  // Add question to selection
-  const addQuestion = (question: Question) => {
-    if (selectedQuestions.find((q) => q.id === question.id)) return;
-    setSelectedQuestions((prev) => [...prev, question]);
-  };
-
-  // Remove question from selection
-  const removeQuestion = (questionId: number) => {
-    setSelectedQuestions((prev) => prev.filter((q) => q.id !== questionId));
-  };
-
-  // Random generate based on rules
-  const randomGenerate = () => {
-    const newSelection: Question[] = [];
-
-    // Filter available questions by generation topic if set
-    const pool =
-      generationTopicId === "all"
-        ? availableQuestions
-        : availableQuestions.filter(
-            (q) => q.topic_id?.toString() === generationTopicId
-          );
-
-    for (const [type, count] of Object.entries(rules)) {
-      const questionsOfType = pool.filter((q) => q.type === type);
-      const shuffled = [...questionsOfType].sort(() => 0.5 - Math.random());
-      newSelection.push(...shuffled.slice(0, count));
-    }
-
-    setSelectedQuestions(newSelection);
-  };
+  const selectedSubjectId = subjectId ? Number.parseInt(subjectId, 10) : null;
 
   // Save exam
   const saveExam = async (publish: boolean) => {
@@ -233,7 +141,7 @@ export default function ExamBuilder({
         visibility,
       };
 
-      if (initialData) {
+      if (initialData?.id != null) {
         await updateExam({
           ...payload,
           examId: initialData.id,
@@ -380,7 +288,15 @@ export default function ExamBuilder({
                   </label>
                   <Select
                     value={unlockType}
-                    onChange={(e) => setUnlockType(e.target.value as any)}
+                    onChange={(e) =>
+                      setUnlockType(
+                        e.target.value as
+                          | "free"
+                          | "premium"
+                          | "referral"
+                          | "paid",
+                      )
+                    }
                     options={[
                       { value: "free", label: "Free" },
                       { value: "premium", label: "Premium (VIP Only)" },
@@ -551,175 +467,13 @@ export default function ExamBuilder({
             </div>
           </GlassPanel>
 
-          {/* Question Rules */}
-          <GlassPanel className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold">Question Rules</h2>
-              <div className="w-[200px]">
-                <Select
-                  value={generationTopicId}
-                  onChange={(e) => setGenerationTopicId(e.target.value)}
-                  options={[
-                    { value: "all", label: "Any Topic" },
-                    ...topics.map((t) => ({
-                      value: t.id.toString(),
-                      label: t.name,
-                    })),
-                  ]}
-                  placeholder="Source Topic"
-                />
-              </div>
-            </div>
-            <div className="space-y-3">
-              {questionTypes.map((type) => (
-                <div
-                  key={type.value}
-                  className="flex items-center justify-between"
-                >
-                  <span className="text-sm font-medium">{type.label}</span>
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() =>
-                        updateRule(type.value, (rules[type.value] || 0) - 1)
-                      }
-                      className="size-8 rounded bg-gray-100 hover:bg-gray-200 dark:bg-slate-700 dark:hover:bg-slate-600 flex items-center justify-center transition-colors text-gray-600 dark:text-gray-300"
-                    >
-                      -
-                    </button>
-                    <Input
-                      type="number"
-                      value={rules[type.value] || 0}
-                      onChange={(e) =>
-                        updateRule(type.value, parseInt(e.target.value) || 0)
-                      }
-                      className="w-16 text-center h-8 p-1 font-mono text-sm"
-                      min={0}
-                    />
-                    <button
-                      onClick={() =>
-                        updateRule(type.value, (rules[type.value] || 0) + 1)
-                      }
-                      className="size-8 rounded bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors text-gray-600"
-                    >
-                      +
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
-              <span className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                Total: {Object.values(rules).reduce((a, b) => a + b, 0)}{" "}
-                questions
-              </span>
-              <Button
-                variant="secondary"
-                onClick={randomGenerate}
-                disabled={!subjectId || loading}
-              >
-                <Sparkles className="size-4 mr-2" />
-                Random Generate
-              </Button>
-            </div>
-          </GlassPanel>
-
-          {/* Available Questions */}
-          <GlassPanel className="p-6 max-h-[600px] overflow-y-auto">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-              <h2 className="text-lg font-bold">
-                Available Questions
-                {subjectId && (
-                  <span className="text-sm font-normal text-slate-500 dark:text-slate-400 ml-2">
-                    ({filteredQuestions.length}/{availableQuestions.length})
-                  </span>
-                )}
-              </h2>
-            </div>
-
-            {/* Search and Filter Controls */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-2.5 top-2.5 size-4 text-slate-400" />
-                <Input
-                  placeholder="Search questions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-              <div className="w-full sm:w-[200px]">
-                <Select
-                  value={bankTopicFilter}
-                  onChange={(e) => setBankTopicFilter(e.target.value)}
-                  options={[
-                    { value: "all", label: "All Topics" },
-                    ...topics.map((t) => ({
-                      value: t.id.toString(),
-                      label: t.name,
-                    })),
-                  ]}
-                />
-              </div>
-              <div className="w-full sm:w-[200px]">
-                <Select
-                  value={typeFilter}
-                  onChange={(e) => setTypeFilter(e.target.value)}
-                  options={[
-                    { value: "all", label: "All Types" },
-                    ...questionTypes,
-                  ]}
-                />
-              </div>
-            </div>
-
-            {!subjectId ? (
-              <p className="text-gray-400 italic text-center py-8">
-                Select a subject first
-              </p>
-            ) : loading ? (
-              <p className="text-gray-400 text-center py-8">Loading…</p>
-            ) : filteredQuestions.length === 0 ? (
-              <p className="text-gray-400 italic text-center py-8">
-                No questions match your search
-              </p>
-            ) : (
-              <div className="space-y-2">
-                {filteredQuestions.map((q) => (
-                  <div
-                    key={q.id}
-                    className={`flex items-center justify-between p-3 rounded-lg border transition-colors cursor-pointer ${
-                      selectedQuestions.find((sq) => sq.id === q.id)
-                        ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800"
-                        : "bg-white/50 dark:bg-slate-800/50 border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600 hover:bg-white dark:hover:bg-slate-800"
-                    }`}
-                    onClick={() => setPreviewQuestion(q)}
-                  >
-                    <div className="flex-1 min-w-0 mr-4">
-                      <p className="text-sm font-medium truncate">{q.title}</p>
-                      <p className="text-xs text-[#4c669a]">{q.type}</p>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        addQuestion(q);
-                      }}
-                      disabled={!!selectedQuestions.find((sq) => sq.id === q.id)}
-                      className="p-1.5 rounded bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                    >
-                      <Plus className="size-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </GlassPanel>
         </div>
 
-        {/* Right Panel - Preview */}
+        {/* Right Panel - Questions */}
         <div className="space-y-6">
           <GlassPanel className="p-6 sticky top-4">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold">Exam Preview</h2>
+              <h2 className="text-lg font-bold">Questions</h2>
               <span className="text-sm text-slate-500 dark:text-slate-400">
                 {selectedQuestions.length} questions selected
               </span>
@@ -764,88 +518,18 @@ export default function ExamBuilder({
                 ))}
               </div>
             </div>
-
-            {/* Selected Questions */}
-
-            <div className="space-y-6 max-h-[800px] overflow-y-auto pr-2">
-              {selectedQuestions.length === 0 ? (
-                <p className="text-gray-400 italic text-center py-8">
-                  No questions selected yet
-                </p>
-              ) : (
-                selectedQuestions.map((q, index) => (
-                  <div
-                    key={q.id}
-                    className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm relative group"
-                  >
-                    <div className="flex gap-4">
-                      <span className="text-lg font-bold text-slate-500 dark:text-slate-400">
-                        {index + 1}.
-                      </span>
-                      <div className="flex-1 space-y-3 min-w-0">
-                        {/* Question Title/Content */}
-                        <div className="prose dark:prose-invert max-w-none">
-                          <div className="font-medium text-slate-900 dark:text-slate-100">
-                            <LatexContent>{q.content}</LatexContent>
-                          </div>
-                        </div>
-
-                        {/* Code Snippet */}
-                        {q.code_snippet && (
-                          <div className="mt-2 text-sm">
-                            <CodeBlock
-                              code={q.code_snippet}
-                              language="python"
-                            />
-                          </div>
-                        )}
-
-                        {/* Options */}
-                        {(q.type === "single_choice" ||
-                          q.type === "multiple_choice") &&
-                          q.options && (
-                            <div className="space-y-2 mt-3">
-                              {(q.options as any[]).map(
-                                (opt: any, i: number) => (
-                                  <div
-                                    key={i}
-                                    className="flex items-start gap-3 text-sm"
-                                  >
-                                    <div className="flex items-center justify-center size-6 rounded-full border border-gray-300 dark:border-gray-600 text-gray-500 dark:text-gray-400 text-xs font-medium shrink-0 mt-0.5">
-                                      {String.fromCharCode(65 + i)}
-                                    </div>
-                                    <div className="text-slate-700 dark:text-slate-300 pt-0.5">
-                                      <LatexContent>
-                                        {opt.content || opt.label}
-                                      </LatexContent>
-                                    </div>
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          )}
-
-                        {/* Type Badge */}
-                        <div className="pt-2">
-                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-300 capitalize">
-                            {q.type.replace("_", " ")}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Delete Action */}
-                      <button
-                        onClick={() => removeQuestion(q.id)}
-                        className="absolute top-4 right-4 p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 opacity-0 group-hover:opacity-100 transition-[color,background-color,opacity]"
-                        title="Remove question"
-                      >
-                        <Trash2 className="size-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+            <QuestionPickerPanel
+              subjectId={selectedSubjectId}
+              selectedQuestions={selectedQuestions}
+              onSelectedQuestionsChange={setSelectedQuestions}
+              randomizer={{
+                enabled: true,
+                rules,
+                onRulesChange: setRules,
+                generationTopicId,
+                onGenerationTopicIdChange: setGenerationTopicId,
+              }}
+            />
 
             {/* Actions */}
             <div className="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700 flex gap-3">
@@ -870,11 +554,6 @@ export default function ExamBuilder({
           </GlassPanel>
         </div>
       </div>
-      <QuestionPreviewModal
-        isOpen={!!previewQuestion}
-        question={previewQuestion as any}
-        onClose={() => setPreviewQuestion(null)}
-      />
     </main>
   );
 }
