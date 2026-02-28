@@ -3,10 +3,10 @@
 import { useDeferredValue, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { Button } from "@/components/ui/Button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from "@/lib/supabase/client";
-import { ExportMistakesModal } from "@/components/modals/ExportMistakesModal";
 import { MistakesAnalytics } from "./MistakesAnalytics";
 import { encodeId } from "@/lib/ids";
 import {
@@ -21,6 +21,16 @@ import {
 } from "lucide-react";
 import { LatexContent } from "@/components/ui/LatexContent";
 import { useTranslations } from "next-intl";
+
+const ExportMistakesModal = dynamic(
+  () =>
+    import("@/components/modals/ExportMistakesModal").then(
+      (module) => module.ExportMistakesModal,
+    ),
+  {
+    ssr: false,
+  },
+);
 
 interface MistakeData {
   id: number;
@@ -270,12 +280,14 @@ export default function MistakesClient({
         </Tabs>
       )}
 
-      <ExportMistakesModal
-        isOpen={showExportModal}
-        onClose={() => setShowExportModal(false)}
-        mistakes={mistakes as any}
-        userId={userId}
-      />
+      {showExportModal ? (
+        <ExportMistakesModal
+          isOpen={showExportModal}
+          onClose={() => setShowExportModal(false)}
+          mistakes={mistakes as any}
+          userId={userId}
+        />
+      ) : null}
     </div>
   );
 }

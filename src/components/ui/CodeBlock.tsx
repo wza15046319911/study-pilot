@@ -1,7 +1,22 @@
 "use client";
 
 import { useMemo } from "react";
-import { CodeBlock as AceternityCodeBlock } from "@/components/aceternity/code-block";
+import dynamic from "next/dynamic";
+
+const AceternityCodeBlock = dynamic(
+  () =>
+    import("@/components/aceternity/code-block").then(
+      (module) => module.CodeBlock,
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="relative w-full rounded-lg bg-slate-900 p-4 font-mono text-sm">
+        <div className="h-28 w-full animate-pulse rounded bg-slate-800/70" />
+      </div>
+    ),
+  },
+);
 
 interface CodeBlockProps {
   code: string;

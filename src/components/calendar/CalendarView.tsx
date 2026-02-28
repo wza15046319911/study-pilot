@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Calendar, dateFnsLocalizer, EventProps } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay } from "date-fns";
 import { enUS } from "date-fns/locale/en-US";
@@ -8,17 +8,10 @@ import "react-big-calendar/lib/css/react-big-calendar.css";
 import {
   CalendarEvent,
   getConflictsForDay,
-  CalendarCategory,
   ExportSelection,
 } from "@/lib/calendar-utils";
-import { Info, AlertTriangle, Plane } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/Select";
+import { AlertTriangle, Plane } from "lucide-react";
+import { Select } from "@/components/ui/Select";
 import { ExportModal } from "./ExportModal";
 
 const locales = {
@@ -60,7 +53,6 @@ export function CalendarView({ events }: CalendarViewProps) {
     includeCN: true, // Default to showing all
   });
 
-  const [isExporting, setIsExporting] = useState(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
 
   // Filter valid events for display
@@ -74,42 +66,38 @@ export function CalendarView({ events }: CalendarViewProps) {
   }, [events, viewState]);
 
   // Event Styling
-  const eventPropGetter = (event: CalendarEvent) => {
-    let className = "border-0 rounded-md shadow-sm transition-all ";
-    let style: React.CSSProperties = {
-      color: "white",
-    };
+  const eventPropGetter = useCallback(
+    (event: CalendarEvent) => {
+      let className = "border-0 rounded-md shadow-sm transition-all ";
+      let style: React.CSSProperties = {
+        color: "white",
+      };
 
-    // Base colors - using inline styles to override specific defaults if needed
-    if (event.category === "UQ") {
-      className += "hover:bg-purple-700";
-      style.backgroundColor = "#9333EA"; // purple-600
-    } else if (event.category === "QLD") {
-      className += "hover:bg-blue-600";
-      style.backgroundColor = "#3B82F6"; // blue-500
-    } else if (event.category === "CN") {
-      className += "hover:bg-red-600";
-      style.backgroundColor = "#EF4444"; // red-500
-    }
-
-    // Conflict Highlight Logic (Stripes?)
-    // Checking if this event conflicts with OTHERS in the displayed set
-    const conflicts = getConflictsForDay(event.start, displayedEvents);
-    if (conflicts.length > 1) {
-      // If multiple events on same day, give visual cue
-      // Let's add a left border for exams
-      if (event.type === "Exam") {
-        style.borderLeft = "4px solid #FCD34D"; // Yellow warning border
+      if (event.category === "UQ") {
+        className += "hover:bg-purple-700";
+        style.backgroundColor = "#9333EA";
+      } else if (event.category === "QLD") {
+        className += "hover:bg-blue-600";
+        style.backgroundColor = "#3B82F6";
+      } else if (event.category === "CN") {
+        className += "hover:bg-red-600";
+        style.backgroundColor = "#EF4444";
       }
-    }
 
-    return { className, style };
-  };
+      const conflicts = getConflictsForDay(event.start, displayedEvents);
+      if (conflicts.length > 1 && event.type === "Exam") {
+        style.borderLeft = "4px solid #FCD34D";
+      }
 
-  const handleMonthChange = (val: string) => {
+      return { className, style };
+    },
+    [displayedEvents],
+  );
+
+  const handleMonthChange = useCallback((val: string) => {
     const monthIndex = parseInt(val, 10);
     setDate(new Date(2026, monthIndex, 1));
-  };
+  }, []);
 
   const MONTH_OPTIONS = useMemo(
     () =>

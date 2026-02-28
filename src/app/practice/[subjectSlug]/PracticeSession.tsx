@@ -556,12 +556,16 @@ export function PracticeSession({
   };
 
   const handleNext = async () => {
-    if (!answers[currentQuestion.id]) return;
-
-    // If not checked, check first
+    // If not checked and has answer, check first
     if (!isChecked) {
-      await handleCheck();
-      return;
+      if (answers[currentQuestion.id]) {
+        await handleCheck();
+        return;
+      }
+      // On last question: allow finish without answering (submit partial progress)
+      if (currentIndex !== questions.length - 1) {
+        return; // Must answer to proceed to next question
+      }
     }
 
     // Intercept next for guest users
@@ -1155,8 +1159,8 @@ export function PracticeSession({
           </div>
         </div>
 
-        {/* Navigation & Actions Footer (External to paper or bottom of paper) */}
-        <div className="mt-6 flex items-center justify-between print:hidden">
+        {/* Navigation & Actions Footer - sticky so always visible on scroll */}
+        <div className="sticky bottom-0 mt-6 flex items-center justify-between print:hidden py-4 -mx-4 px-4 lg:-mx-16 lg:px-16 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800">
           <Button
             variant="ghost"
             onClick={() => setCurrentIndex((prev) => Math.max(0, prev - 1))}
@@ -1171,16 +1175,28 @@ export function PracticeSession({
 
           <div className="flex items-center gap-3">
             {!isChecked ? (
-              <Button
-                onClick={() => handleCheck()}
-                disabled={!answers[currentQuestion.id]}
-                className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-[background-color,box-shadow,transform,color] active:scale-95 group gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Submit Answer
-                <span className="text-xs px-1.5 py-0.5 rounded border border-white/20 bg-white/10 text-white/80 group-hover:text-white transition-colors">
-                  ✓
-                </span>
-              </Button>
+              <>
+                <Button
+                  onClick={() => handleCheck()}
+                  disabled={!answers[currentQuestion.id]}
+                  className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-[background-color,box-shadow,transform,color] active:scale-95 group gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Submit Answer
+                  <span className="text-xs px-1.5 py-0.5 rounded border border-white/20 bg-white/10 text-white/80 group-hover:text-white transition-colors">
+                    ✓
+                  </span>
+                </Button>
+                {currentIndex === questions.length - 1 && (
+                  <Button
+                    onClick={handleNext}
+                    disabled={isSubmitting}
+                    variant="outline"
+                    className="px-6 rounded-full border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
+                  >
+                    {isSubmitting ? "Submitting…" : "Finish"}
+                  </Button>
+                )}
+              </>
             ) : (
               <>
                 <Button
@@ -1193,10 +1209,13 @@ export function PracticeSession({
                 </Button>
                 <Button
                   onClick={handleNext}
-                  className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-[background-color,box-shadow,transform,color] active:scale-95 group gap-2"
+                  disabled={isSubmitting}
+                  className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-[background-color,box-shadow,transform,color] active:scale-95 group gap-2 disabled:opacity-50"
                 >
                   {currentIndex === questions.length - 1
-                    ? "Finish Exam"
+                    ? isSubmitting
+                      ? "Submitting…"
+                      : "Finish"
                     : "Next Question"}
                   <span className="text-xs px-1.5 py-0.5 rounded border border-white/20 bg-white/10 text-white/80 group-hover:text-white transition-colors">
                     ↓

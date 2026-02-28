@@ -1,9 +1,61 @@
 "use client";
 import React from "react";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { PrismLight as SyntaxHighlighter } from "react-syntax-highlighter";
 import { atomDark } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import jsLanguage from "react-syntax-highlighter/dist/cjs/languages/prism/javascript";
+import tsLanguage from "react-syntax-highlighter/dist/cjs/languages/prism/typescript";
+import pythonLanguage from "react-syntax-highlighter/dist/cjs/languages/prism/python";
+import javaLanguage from "react-syntax-highlighter/dist/cjs/languages/prism/java";
+import cLanguage from "react-syntax-highlighter/dist/cjs/languages/prism/c";
+import cppLanguage from "react-syntax-highlighter/dist/cjs/languages/prism/cpp";
+import bashLanguage from "react-syntax-highlighter/dist/cjs/languages/prism/bash";
+import jsonLanguage from "react-syntax-highlighter/dist/cjs/languages/prism/json";
+import sqlLanguage from "react-syntax-highlighter/dist/cjs/languages/prism/sql";
 import { Check, Copy } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+SyntaxHighlighter.registerLanguage("javascript", jsLanguage);
+SyntaxHighlighter.registerLanguage("typescript", tsLanguage);
+SyntaxHighlighter.registerLanguage("python", pythonLanguage);
+SyntaxHighlighter.registerLanguage("java", javaLanguage);
+SyntaxHighlighter.registerLanguage("c", cLanguage);
+SyntaxHighlighter.registerLanguage("cpp", cppLanguage);
+SyntaxHighlighter.registerLanguage("bash", bashLanguage);
+SyntaxHighlighter.registerLanguage("json", jsonLanguage);
+SyntaxHighlighter.registerLanguage("sql", sqlLanguage);
+
+const LANGUAGE_ALIASES: Record<string, string> = {
+  js: "javascript",
+  jsx: "javascript",
+  ts: "typescript",
+  tsx: "typescript",
+  py: "python",
+  sh: "bash",
+  shell: "bash",
+  zsh: "bash",
+  cxx: "cpp",
+  cc: "cpp",
+  csharp: "c",
+};
+
+const SUPPORTED_LANGUAGES = new Set([
+  "javascript",
+  "typescript",
+  "python",
+  "java",
+  "c",
+  "cpp",
+  "bash",
+  "json",
+  "sql",
+]);
+
+function normalizeLanguage(language?: string) {
+  if (!language) return null;
+  const key = language.trim().toLowerCase();
+  const normalized = LANGUAGE_ALIASES[key] || key;
+  return SUPPORTED_LANGUAGES.has(normalized) ? normalized : null;
+}
 
 type CodeBlockProps = {
   language?: string;
@@ -50,6 +102,7 @@ export const CodeBlock = ({
   const activeLanguage = tabsExist
     ? tabs[activeTab].language || language
     : language;
+  const normalizedLanguage = normalizeLanguage(activeLanguage);
   const activeHighlightLines = tabsExist
     ? tabs[activeTab].highlightLines || highlightLines
     : highlightLines;
@@ -99,30 +152,36 @@ export const CodeBlock = ({
           </div>
          )}
       </div>
-      <SyntaxHighlighter
-        language={activeLanguage}
-        style={atomDark}
-        customStyle={{
-          margin: 0,
-          padding: 0,
-          background: "transparent",
-          fontSize: "0.875rem", // text-sm
-        }}
-        wrapLines={true}
-        showLineNumbers={true}
-        lineProps={(lineNumber) => ({
-          style: {
-            backgroundColor: activeHighlightLines.includes(lineNumber)
-              ? "rgba(255,255,255,0.1)"
-              : "transparent",
-            display: "block",
-            width: "100%",
-          },
-        })}
-        PreTag="div"
-      >
-        {String(activeCode)}
-      </SyntaxHighlighter>
+      {normalizedLanguage ? (
+        <SyntaxHighlighter
+          language={normalizedLanguage}
+          style={atomDark}
+          customStyle={{
+            margin: 0,
+            padding: 0,
+            background: "transparent",
+            fontSize: "0.875rem",
+          }}
+          wrapLines={true}
+          showLineNumbers={true}
+          lineProps={(lineNumber) => ({
+            style: {
+              backgroundColor: activeHighlightLines.includes(lineNumber)
+                ? "rgba(255,255,255,0.1)"
+                : "transparent",
+              display: "block",
+              width: "100%",
+            },
+          })}
+          PreTag="div"
+        >
+          {String(activeCode || "")}
+        </SyntaxHighlighter>
+      ) : (
+        <pre className="m-0 overflow-x-auto bg-transparent p-0 text-sm text-slate-100">
+          <code className="whitespace-pre">{String(activeCode || "")}</code>
+        </pre>
+      )}
     </div>
   );
 };

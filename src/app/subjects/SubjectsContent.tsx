@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import type { Subject } from "@/types/database";
 import { ArrowRight, Search, Sparkles } from "lucide-react";
 
@@ -51,11 +50,7 @@ export function SubjectsContent({ subjects }: SubjectsContentProps) {
 
       {/* Featured Card */}
       {featured && (
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <div>
           <Link href={`/library/${featured.slug}/setup`}>
             <div
               className={`relative group overflow-hidden rounded-3xl bg-gradient-to-br ${gradients[0]} p-8 md:p-12 text-white shadow-2xl cursor-pointer transition-transform duration-300 hover:scale-[1.02]`}
@@ -110,18 +105,13 @@ export function SubjectsContent({ subjects }: SubjectsContentProps) {
               </div>
             </div>
           </Link>
-        </motion.div>
+        </div>
       )}
 
       {/* Grid of remaining subjects */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {rest.map((subject, index) => (
-          <motion.div
-            key={subject.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.1 * (index + 1) }}
-          >
+          <div key={subject.id}>
             <Link
               href={`/library/${subject.slug}/setup`}
               className="block h-full"
@@ -170,17 +160,13 @@ export function SubjectsContent({ subjects }: SubjectsContentProps) {
                 </div>
               </div>
             </Link>
-          </motion.div>
+          </div>
         ))}
       </div>
 
       {/* Empty State */}
       {filteredSubjects.length === 0 && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-center py-16"
-        >
+        <div className="text-center py-16">
           <div className="text-6xl mb-4">🔍</div>
           <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">
             No subjects found
@@ -188,7 +174,7 @@ export function SubjectsContent({ subjects }: SubjectsContentProps) {
           <p className="text-slate-500 dark:text-slate-400">
             Try adjusting your search terms
           </p>
-        </motion.div>
+        </div>
       )}
     </div>
   );

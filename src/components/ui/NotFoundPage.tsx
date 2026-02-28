@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/Button";
 import { useRouter } from "next/navigation";
 import { FileQuestion, Home, ArrowLeft } from "lucide-react";
@@ -32,26 +31,11 @@ export function NotFoundPage({
       <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-500/10 rounded-full blur-[100px] -z-10 animate-pulse" />
       <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[100px] -z-10 animate-pulse delay-700" />
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-lg text-center"
-      >
-        <motion.div
-          initial={{ y: -20 }}
-          animate={{ y: 0 }}
-          transition={{
-            type: "spring",
-            stiffness: 300,
-            damping: 20,
-            delay: 0.2,
-          }}
-          className="mx-auto size-32 bg-gray-50 dark:bg-gray-800 rounded-3xl flex items-center justify-center mb-8 shadow-xl shadow-blue-500/10 border border-gray-100 dark:border-gray-700 relative group"
-        >
+      <div className="w-full max-w-lg text-center transition-opacity duration-300">
+        <div className="mx-auto size-32 bg-gray-50 dark:bg-gray-800 rounded-3xl flex items-center justify-center mb-8 shadow-xl shadow-blue-500/10 border border-gray-100 dark:border-gray-700 relative group transition-transform duration-300">
           <div className="absolute inset-0 bg-slate-100 dark:bg-slate-700/50 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           <FileQuestion className="size-16 text-gray-400 dark:text-gray-500 group-hover:scale-110 transition-transform duration-300 group-hover:text-blue-500" />
-        </motion.div>
+        </div>
 
         <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-4 tracking-tight">
           {resolvedTitle}
@@ -78,7 +62,7 @@ export function NotFoundPage({
             </Button>
           </Link>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

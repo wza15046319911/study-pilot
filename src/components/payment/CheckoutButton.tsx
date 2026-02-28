@@ -1,9 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { WeChatPaymentModal } from "./WeChatPaymentModal";
+
+const WeChatPaymentModal = dynamic(
+  () =>
+    import("./WeChatPaymentModal").then((module) => module.WeChatPaymentModal),
+  {
+    ssr: false,
+  },
+);
 
 interface CheckoutButtonProps {
   className?: string;
@@ -14,7 +21,6 @@ export function CheckoutButton({ className, children }: CheckoutButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
-  const router = useRouter();
 
   const handleCheckout = async () => {
     // Temporary: Show WeChat modal instead of Stripe
