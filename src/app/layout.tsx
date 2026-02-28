@@ -5,6 +5,7 @@ import "@fontsource/maple-mono";
 import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
+import { Analytics } from "@vercel/analytics/next";
 import { ClientRuntimeEnhancers } from "@/components/app/ClientRuntimeEnhancers";
 import { WebsiteJsonLd, OrganizationJsonLd } from "@/components/seo/JsonLd";
 
@@ -146,6 +147,7 @@ export default async function RootLayout({
           <ThemeProvider>
             <ClientRuntimeEnhancers />
             {children}
+            <Analytics />
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>
