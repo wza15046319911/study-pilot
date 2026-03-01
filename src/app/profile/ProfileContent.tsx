@@ -41,7 +41,7 @@ const DailyTrendChart = dynamic(
   { ssr: false },
 );
 
-const weekDots = Array.from({ length: 7 });
+const weekDots = Array.from({ length: 13 });
 
 // Combined types for props
 interface ProgressWithSubject {
@@ -133,6 +133,7 @@ interface ProfileContentProps {
     assigned: number;
     due: number;
     graded: number;
+    expired?: number;
   };
   homeworkPreview?: Array<{
     id: number;
@@ -151,7 +152,7 @@ export function ProfileContent({
   dailyActivity,
   userQuestionBanks,
   userExams,
-  homeworkStats = { assigned: 0, due: 0, graded: 0 },
+  homeworkStats = { assigned: 0, due: 0, graded: 0, expired: 0 },
   homeworkPreview = [],
   isAdmin = false,
 }: ProfileContentProps) {
@@ -225,7 +226,8 @@ export function ProfileContent({
     }
 
     const dayLabel = dueDate.toLocaleDateString(undefined, {
-      weekday: "short",
+      month: "numeric",
+      day: "numeric",
     });
 
     return `${dayLabel} ${timeLabel}`;
@@ -393,6 +395,10 @@ export function ProfileContent({
                           ? t("homework.dueThisWeek", {
                               count: homeworkStats.due,
                             })
+                          : (homeworkStats.expired ?? 0) > 0
+                          ? t("homework.expired", {
+                              count: homeworkStats.expired ?? 0,
+                            })
                           : t("homework.noDueThisWeek")}
                       </span>
                     </div>
@@ -483,18 +489,15 @@ export function ProfileContent({
                         {weekDots.map((_, idx) => (
                           <span
                             key={`week-dot-${idx}`}
-                            className="size-2.5 rounded-full bg-gray-200 dark:bg-gray-700"
+                            className={cn(
+                              "size-2.5 rounded-full",
+                              idx < (user.streak_days || 0)
+                                ? "bg-sky-500"
+                                : "bg-gray-200 dark:bg-gray-700"
+                            )}
                           />
                         ))}
                       </div>
-                    </div>
-                    <div className="rounded-2xl border border-gray-200 dark:border-gray-700 px-5 py-5 bg-white dark:bg-slate-950/30 flex items-center justify-between gap-4">
-                      <p className="truncate text-base font-semibold text-slate-900 dark:text-white">
-                        {t("weeklyPractice.reviewFocus")}
-                      </p>
-                      <span className="whitespace-nowrap text-sm font-semibold text-sky-600 dark:text-sky-400">
-                        {t("weeklyPractice.thisWeek")}
-                      </span>
                     </div>
                   </div>
                 </div>

@@ -395,7 +395,7 @@ export function SubjectContent({
                             {group.items.length}
                           </span>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <div className="grid grid-cols-1 gap-4">
                           {group.items.map((bank) => (
                             <QuestionBankItem
                               key={bank.id}
@@ -447,7 +447,7 @@ export function SubjectContent({
                             {group.items.length}
                           </span>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <div className="grid grid-cols-1 gap-4">
                           {group.items.map((exam) => (
                             <QuestionBankItem
                               key={exam.id}

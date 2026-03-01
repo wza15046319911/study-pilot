@@ -274,10 +274,20 @@ export default async function ProfilePage() {
     []) as HomeworkAssignmentWithDetails[];
 
   // Calculate homework stats
+  const now = new Date();
   const homeworkStats = {
     assigned: homeworkAssignments.length,
     graded: homeworkAssignments.filter((h) => h.completed_at).length,
-    due: homeworkAssignments.filter((h) => !h.completed_at).length,
+    due: homeworkAssignments.filter((h) => {
+      if (h.completed_at) return false;
+      if (h.homeworks?.due_at && new Date(h.homeworks.due_at) < now) return false;
+      return true;
+    }).length,
+    expired: homeworkAssignments.filter((h) => {
+      if (h.completed_at) return false;
+      if (h.homeworks?.due_at && new Date(h.homeworks.due_at) < now) return true;
+      return false;
+    }).length,
   };
 
   const homeworkPreview: HomeworkPreviewItem[] = homeworkAssignments

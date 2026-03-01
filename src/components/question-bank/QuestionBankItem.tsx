@@ -185,7 +185,7 @@ export function QuestionBankItem({
     >
       <GlassPanel
         className={cn(
-          "h-full p-6 flex flex-col justify-between relative overflow-hidden group cursor-pointer transition-all duration-300",
+          "h-full p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between relative overflow-hidden group cursor-pointer transition-all duration-300 gap-4 sm:gap-6",
           colorScheme.border,
           colorScheme.bg,
           colorScheme.hoverBorder,
@@ -195,17 +195,17 @@ export function QuestionBankItem({
         {/* Subtle Gradient Overlay */}
         <div
           className={cn(
-            "absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none",
+            "absolute inset-0 bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none",
             colorScheme.accentGradient,
           )}
         />
 
-        {/* Top Section */}
-        <div>
-          <div className="flex justify-between items-start gap-3 mb-6">
+        {/* Left Section */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3 mb-3">
             <div
               className={cn(
-                "flex items-center gap-1.5 px-3 py-1 rounded-full text-[14px] font-bold tracking-wide uppercase",
+                "flex items-center gap-1.5 px-3 py-1 rounded-full text-[13px] sm:text-[14px] font-bold tracking-wide uppercase",
                 colorScheme.badgeBg,
                 colorScheme.badgeText,
               )}
@@ -213,7 +213,6 @@ export function QuestionBankItem({
               {badgeIcon}
               <span>{badgeText}</span>
             </div>
-
             {/* Lock Status Icon */}
             {isLocked && (
               <div className="p-1.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-400">
@@ -222,23 +221,23 @@ export function QuestionBankItem({
             )}
           </div>
 
-          <h3 className="font-bold text-xl text-slate-900 dark:text-white mb-2 leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+          <h3 className="font-bold text-lg sm:text-xl text-slate-900 dark:text-white mb-2 leading-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
             {title}
           </h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-3">
+          <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed line-clamp-2">
             {description}
           </p>
         </div>
 
-        {/* Bottom Section */}
-        <div className="mt-6 pt-4 border-t border-slate-200/50 dark:border-slate-700/50 flex items-center justify-between">
-          <span className="text-xs font-medium text-slate-400 font-mono tracking-tight">
+        {/* Right Section */}
+        <div className="flex items-center justify-between sm:flex-col sm:items-end sm:justify-center gap-2 sm:gap-4 shrink-0 sm:pl-6 sm:border-l border-t sm:border-t-0 border-slate-200/50 dark:border-slate-700/50 pt-4 sm:pt-0 mt-2 sm:mt-0">
+          <span className="text-xs font-medium text-slate-400 font-mono tracking-tight bg-slate-100/50 dark:bg-slate-800/50 px-2 py-1 rounded-md">
             {metaInfo}
           </span>
 
           <div
             className={cn(
-              "flex items-center gap-1 text-sm font-bold transition-all duration-300 group-hover:translate-x-1",
+              "flex items-center gap-1 text-sm font-bold transition-all duration-300 sm:group-hover:translate-x-1",
               isLocked ? "text-slate-400" : "text-blue-600 dark:text-blue-400",
             )}
           >

@@ -117,7 +117,7 @@ export default async function QuestionBanksPage() {
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 gap-4">
                   {subjectBanks.map((bank: any) => (
                     <QuestionBankItem
                       key={bank.id}

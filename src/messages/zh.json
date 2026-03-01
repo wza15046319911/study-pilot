@@ -592,6 +592,7 @@
       "assigned": "已分配",
       "done": "已完成",
       "dueThisWeek": "本周有 {count} 份作业待完成",
+      "expired": "有 {count} 份作业已过期",
       "noAssignedYet": "暂无已分配作业",
       "noDeadline": "无截止时间",
       "noDueThisWeek": "本周暂无待交作业",
@@ -644,7 +645,7 @@
     "weeklyPractice": {
       "open": "打开",
       "progressTimeline": "进度时间线",
-      "ready": "周计划已就绪，保持 13 周连续学习！",
+      "ready": "本周练习已更新，快来完成打卡吧！",
       "reviewFocus": "复习重点",
       "sprint": "7 天冲刺",
       "thisWeek": "本周",

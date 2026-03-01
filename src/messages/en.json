@@ -592,6 +592,7 @@
       "assigned": "Assigned",
       "done": "Done",
       "dueThisWeek": "{count} homework(s) due this week",
+      "expired": "{count} homework(s) expired",
       "noAssignedYet": "No homework assigned yet",
       "noDeadline": "No deadline",
       "noDueThisWeek": "No homework due this week",
@@ -644,7 +645,7 @@
     "weeklyPractice": {
       "open": "Open",
       "progressTimeline": "Progress Timeline",
-      "ready": "Weekly plan ready. Keep your streak for 13 weeks!",
+      "ready": "New weekly practice is available. Complete it to keep your streak!",
       "reviewFocus": "Review Focus",
       "sprint": "7-Day Sprint",
       "thisWeek": "This Week",
