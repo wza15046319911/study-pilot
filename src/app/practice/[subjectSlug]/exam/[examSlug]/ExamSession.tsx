@@ -21,6 +21,7 @@ import {
   RotateCcw,
 } from "lucide-react";
 import { encodeId } from "@/lib/ids";
+import { isQuestionCorrect } from "@/lib/answerValidation";
 
 const HandwriteCanvas = dynamic(
   () =>
@@ -151,14 +152,6 @@ export default function ExamSession({
   const handleAnswer = (questionId: number, answer: string) => {
     if (isFinished) return;
     setAnswers((prev) => ({ ...prev, [questionId]: answer }));
-  };
-
-  const isQuestionCorrect = (question: Question, userAnswer?: string) => {
-    if (!userAnswer) return false;
-    if (question.type === "coding_challenge") {
-      return userAnswer.trim().length > 0;
-    }
-    return userAnswer === question.answer;
   };
 
   const submitExam = async () => {

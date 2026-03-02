@@ -6,6 +6,7 @@ import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { CodeBlock } from "@/components/ui/CodeBlock";
 import { createClient } from "@/lib/supabase/client";
+import { isQuestionCorrect } from "@/lib/answerValidation";
 import { Question, Profile, QuestionOption } from "@/types/database";
 import {
   Bookmark,
@@ -124,14 +125,6 @@ export default function ImmersiveSession({
   const handleSelectAnswer = (answer: string) => {
     if (isChecked) return;
     setUserAnswer(answer);
-  };
-
-  const isQuestionCorrect = (question: Question, answer?: string) => {
-    if (!answer) return false;
-    if (question.type === "coding_challenge") {
-      return answer.trim().length > 0;
-    }
-    return answer === question.answer;
   };
 
   const handleCheck = async () => {

@@ -6,6 +6,7 @@ import dynamic from "next/dynamic";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { formatTime } from "@/lib/utils";
+import { isQuestionCorrect } from "@/lib/answerValidation";
 import { createClient } from "@/lib/supabase/client";
 import { Question, Profile, QuestionOption } from "@/types/database";
 import { CodeBlock } from "@/components/ui/CodeBlock";
@@ -152,14 +153,6 @@ export function PracticeSession({
 
   const currentQuestion = questions[currentIndex];
   const isChecked = checkedAnswers[currentQuestion.id];
-
-  const isQuestionCorrect = (question: Question, userAnswer?: string) => {
-    if (!userAnswer) return false;
-    if (question.type === "coding_challenge") {
-      return userAnswer.trim().length > 0;
-    }
-    return userAnswer === question.answer;
-  };
 
   const getAnswerStats = (answerMap: Record<number, string>) => {
     let answeredCount = 0;
