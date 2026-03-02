@@ -3,7 +3,6 @@
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import { GlassPanel } from "@/components/ui/GlassPanel";
 import { PythonCodeEditor } from "@/components/ui/PythonCodeEditor";
 import { Button } from "@/components/ui/Button";
 import { formatTime } from "@/lib/utils";
@@ -12,7 +11,6 @@ import { createClient } from "@/lib/supabase/client";
 import { Question, Profile, QuestionOption } from "@/types/database";
 import { CodeBlock } from "@/components/ui/CodeBlock";
 import { LatexContent } from "@/components/ui/LatexContent";
-import { ResultsModal } from "@/components/ui/ResultsModal";
 import { PenCircle } from "@/components/ui/PenCircle";
 import {
   TrendingUp,
@@ -88,9 +86,6 @@ export function PracticeSession({
   >({});
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
   const [elapsedTime, setElapsedTime] = useState(0);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showResults, setShowResults] = useState(false);
-  const [finalScore, setFinalScore] = useState(0);
   const [isAddingMistake, setIsAddingMistake] = useState(false);
   const [addedMistake, setAddedMistake] = useState(false);
   const [showLoginModal, setShowLoginModal] = useState(false);
@@ -260,7 +255,6 @@ export function PracticeSession({
       setCheckedAnswers({});
       setCodingTestStatus({});
       setElapsedTime(0);
-      setFinalScore(0);
     }
   };
 
@@ -375,7 +369,6 @@ export function PracticeSession({
 
   useEffect(() => {
     if (isHydratingSessionRef.current) return;
-    if (showResults || isSubmitting) return;
     if (isGuest || (!homeworkId && !weeklyPracticeId)) return;
     if (Object.keys(answers).length === 0) return;
 
@@ -389,8 +382,6 @@ export function PracticeSession({
     }, 700);
   }, [
     answers,
-    showResults,
-    isSubmitting,
     isGuest,
     homeworkId,
     weeklyPracticeId,
@@ -488,13 +479,13 @@ export function PracticeSession({
 
   // Timer
   useEffect(() => {
-    if (!enableTimer || showResults || isSubmitting) return;
+    if (!enableTimer) return;
 
     const timer = setInterval(() => {
       setElapsedTime((prev) => prev + 1);
     }, 1000);
     return () => clearInterval(timer);
-  }, [enableTimer, showResults, isSubmitting]);
+  }, [enableTimer]);
 
   const handleAnswer = (answer: string) => {
     if (isChecked) return;
@@ -618,10 +609,7 @@ export function PracticeSession({
         await handleCheck();
         return;
       }
-      // On last question: allow finish without answering (submit partial progress)
-      if (currentIndex !== questions.length - 1) {
-        return; // Must answer to proceed to next question
-      }
+      return; // Must answer to proceed
     }
 
     // Intercept next for guest users
@@ -630,87 +618,9 @@ export function PracticeSession({
       return;
     }
 
-    // Move to next or finish
+    // Move to next question (no-op on last question)
     if (currentIndex < questions.length - 1) {
       setCurrentIndex((prev) => prev + 1);
-    } else {
-      await finishPractice();
-    }
-  };
-
-  const finishPractice = async () => {
-    if (progressSaveTimeoutRef.current) {
-      clearTimeout(progressSaveTimeoutRef.current);
-      progressSaveTimeoutRef.current = null;
-    }
-
-    setIsSubmitting(true);
-
-    try {
-      // Calculate correct count for results modal
-      let correctCount = 0;
-      for (const q of questions) {
-        const userAnswer = answers[q.id];
-        if (!userAnswer) continue;
-        if (isQuestionMarkedCorrect(q, userAnswer)) correctCount++;
-      }
-
-      // Note: Answers are already recorded in handleCheck() via recordAnswer
-
-      // Update last practice date
-      await supabase
-        .from("profiles")
-        .update({
-          last_practice_date: new Date().toISOString(),
-        } as any)
-        .eq("id", user.id);
-
-      if (homeworkId) {
-        const answeredCount = Object.keys(answers).length;
-        try {
-          const { submitHomework } = await import("@/app/homework/actions");
-          await submitHomework({
-            homeworkId,
-            answeredCount,
-            correctCount,
-            totalCount: questions.length,
-            durationSeconds: elapsedTime,
-            mode: homeworkMode,
-          });
-        } catch (homeworkError) {
-          console.error("Failed to submit homework:", homeworkError);
-        }
-      }
-
-      if (weeklyPracticeId) {
-        const answeredCount = Object.keys(answers).length;
-        try {
-          const { submitWeeklyPractice } =
-            await import("@/app/weekly-practice/actions");
-          await Promise.race([
-            submitWeeklyPractice({
-              weeklyPracticeId,
-              answeredCount,
-              correctCount,
-              totalCount: questions.length,
-              durationSeconds: elapsedTime,
-              mode: weeklyPracticeMode,
-            }),
-            new Promise<void>((resolve) => setTimeout(resolve, 8000)),
-          ]);
-        } catch (weeklyError) {
-          console.error("Failed to submit weekly practice:", weeklyError);
-        }
-      }
-
-      // Show results modal
-      sessionStorage.removeItem(sessionStorageKey);
-      setFinalScore(correctCount);
-      setShowResults(true);
-      setIsSubmitting(false);
-    } catch (error) {
-      console.error("Error submitting results:", error);
-      setIsSubmitting(false);
     }
   };
 
@@ -1243,28 +1153,16 @@ export function PracticeSession({
 
           <div className="flex items-center gap-3">
             {!isChecked ? (
-              <>
-                <Button
-                  onClick={() => handleCheck()}
-                  disabled={!answers[currentQuestion.id]}
-                  className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-[background-color,box-shadow,transform,color] active:scale-95 group gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Submit Answer
-                  <span className="text-xs px-1.5 py-0.5 rounded border border-white/20 bg-white/10 text-white/80 group-hover:text-white transition-colors">
-                    ✓
-                  </span>
-                </Button>
-                {currentIndex === questions.length - 1 && (
-                  <Button
-                    onClick={handleNext}
-                    disabled={isSubmitting}
-                    variant="outline"
-                    className="px-6 rounded-full border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors disabled:opacity-50"
-                  >
-                    {isSubmitting ? "Submitting…" : "Finish"}
-                  </Button>
-                )}
-              </>
+              <Button
+                onClick={() => handleCheck()}
+                disabled={!answers[currentQuestion.id]}
+                className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-[background-color,box-shadow,transform,color] active:scale-95 group gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Submit Answer
+                <span className="text-xs px-1.5 py-0.5 rounded border border-white/20 bg-white/10 text-white/80 group-hover:text-white transition-colors">
+                  ✓
+                </span>
+              </Button>
             ) : (
               <>
                 <Button
@@ -1275,47 +1173,23 @@ export function PracticeSession({
                   <RefreshCw className="mr-2 size-4" />
                   Redo
                 </Button>
-                <Button
-                  onClick={handleNext}
-                  disabled={isSubmitting}
-                  className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-[background-color,box-shadow,transform,color] active:scale-95 group gap-2 disabled:opacity-50"
-                >
-                  {currentIndex === questions.length - 1
-                    ? isSubmitting
-                      ? "Submitting…"
-                      : "Finish"
-                    : "Next Question"}
-                  <span className="text-xs px-1.5 py-0.5 rounded border border-white/20 bg-white/10 text-white/80 group-hover:text-white transition-colors">
-                    ↓
-                  </span>
-                </Button>
+                {currentIndex < questions.length - 1 && (
+                  <Button
+                    onClick={handleNext}
+                    className="px-8 bg-black hover:bg-gray-800 text-white dark:bg-white dark:hover:bg-gray-200 dark:text-black rounded-full shadow-lg transition-[background-color,box-shadow,transform,color] active:scale-95 group gap-2"
+                  >
+                    Next Question
+                    <span className="text-xs px-1.5 py-0.5 rounded border border-white/20 bg-white/10 text-white/80 group-hover:text-white transition-colors">
+                      ↓
+                    </span>
+                  </Button>
+                )}
               </>
             )}
           </div>
         </div>
       </div>
 
-      {/* Results Modal - Only for Practice Mode */}
-      {mode === "practice" && (
-        <ResultsModal
-          isOpen={showResults}
-          score={finalScore}
-          total={questions.length}
-          timeSpent={elapsedTime}
-          subjectId={subjectId}
-          onReviewMistakes={() => router.push("/profile/mistakes")}
-          onPracticeAgain={() => {
-            sessionStorage.removeItem(sessionStorageKey);
-            setShowResults(false);
-            setCurrentIndex(0);
-            setAnswers({});
-            setCheckedAnswers({});
-            setCodingTestStatus({});
-            setElapsedTime(0);
-            setFinalScore(0);
-          }}
-        />
-      )}
     </div>
   );
 }
