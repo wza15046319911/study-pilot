@@ -52,7 +52,6 @@ export function ClientRuntimeEnhancers() {
   const shouldShowSupportButton =
     shouldEnableAuthRuntime &&
     !pathname.startsWith("/login") &&
-    !pathname.startsWith("/payment") &&
     !pathname.startsWith("/auth");
 
   if (!shouldEnableAuthRuntime && !shouldShowSupportButton) {
