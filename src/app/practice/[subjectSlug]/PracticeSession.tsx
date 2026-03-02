@@ -498,15 +498,23 @@ export function PracticeSession({
 
   const handleAnswer = (answer: string) => {
     if (isChecked) return;
-    if (currentQuestion.type === "coding_challenge") {
-      setCodingTestStatus((prev) => {
-        if (!(currentQuestion.id in prev)) return prev;
-        const next = { ...prev };
-        delete next[currentQuestion.id];
-        return next;
-      });
-    }
-    setAnswers((prev) => ({ ...prev, [currentQuestion.id]: answer }));
+    const questionId = currentQuestion.id;
+
+    setAnswers((prev) => {
+      const previousAnswer = prev[questionId];
+      if (previousAnswer === answer) return prev;
+
+      if (currentQuestion.type === "coding_challenge") {
+        setCodingTestStatus((codingPrev) => {
+          if (!(questionId in codingPrev)) return codingPrev;
+          const next = { ...codingPrev };
+          delete next[questionId];
+          return next;
+        });
+      }
+
+      return { ...prev, [questionId]: answer };
+    });
   };
 
   const handleAddToMistakes = async () => {
@@ -1117,12 +1125,14 @@ export function PracticeSession({
                   ) : currentQuestion.type === "coding_challenge" ? (
                     /* Coding Challenge - Python 代码编辑器 */
                     (() => {
+                      const questionId = currentQuestion.id;
                       const testCasesConfig = currentQuestion.test_cases as {
                         function_name?: string;
                         test_cases?: { input: unknown[]; expected: unknown }[];
                       } | null;
                       return (
                         <PythonCodeEditor
+                          key={questionId}
                           value={answers[currentQuestion.id] || ""}
                           onChange={(code) => handleAnswer(code)}
                           disabled={isChecked}
@@ -1131,7 +1141,7 @@ export function PracticeSession({
                           onTestStatusChange={(status) => {
                             setCodingTestStatus((prev) => ({
                               ...prev,
-                              [currentQuestion.id]: {
+                              [questionId]: {
                                 hasRun: status.hasRun,
                                 allPassed: status.allPassed,
                               },
