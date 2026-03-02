@@ -148,7 +148,7 @@ export default async function WeeklyPracticeSessionPage(props: PageProps) {
         exitLink="/profile/weekly-practice"
         weeklyPracticeId={weeklyPractice.id}
         weeklyPracticeMode="practice"
-        showTopics={false}
+        showTopics
       />
     </div>
   );

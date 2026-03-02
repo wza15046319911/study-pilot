@@ -156,7 +156,7 @@ export function PythonCodeEditor({
         editableCompartmentRef.current.of(EditorView.editable.of(!disabled)),
         EditorView.theme({
           "&": {
-            fontSize: "13px",
+            fontSize: "20px",
             fontFamily:
               "'Maple Mono', 'JetBrains Mono', 'Fira Code', monospace",
             borderRadius: "0.5rem",
