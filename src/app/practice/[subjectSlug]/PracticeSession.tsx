@@ -624,14 +624,17 @@ export function PracticeSession({
         try {
           const { submitWeeklyPractice } =
             await import("@/app/weekly-practice/actions");
-          await submitWeeklyPractice({
-            weeklyPracticeId,
-            answeredCount,
-            correctCount,
-            totalCount: questions.length,
-            durationSeconds: elapsedTime,
-            mode: weeklyPracticeMode,
-          });
+          await Promise.race([
+            submitWeeklyPractice({
+              weeklyPracticeId,
+              answeredCount,
+              correctCount,
+              totalCount: questions.length,
+              durationSeconds: elapsedTime,
+              mode: weeklyPracticeMode,
+            }),
+            new Promise<void>((resolve) => setTimeout(resolve, 8000)),
+          ]);
         } catch (weeklyError) {
           console.error("Failed to submit weekly practice:", weeklyError);
         }

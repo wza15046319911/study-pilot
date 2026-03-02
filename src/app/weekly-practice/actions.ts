@@ -1,7 +1,6 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
 
 type WeeklyPracticeSubmissionPayload = {
   weeklyPracticeId: number;
@@ -54,8 +53,6 @@ export async function saveWeeklyPracticeProgress(
     return { success: false, error: submitError.message };
   }
 
-  revalidatePath("/profile/weekly-practice");
-  revalidatePath("/profile");
   return { success: true };
 }
 
@@ -81,7 +78,5 @@ export async function submitWeeklyPractice(
     return { success: false, error: submitError.message };
   }
 
-  revalidatePath("/profile/weekly-practice");
-  revalidatePath("/profile");
   return { success: true };
 }
