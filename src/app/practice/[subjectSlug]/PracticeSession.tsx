@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { GlassPanel } from "@/components/ui/GlassPanel";
+import { PythonCodeEditor } from "@/components/ui/PythonCodeEditor";
 import { Button } from "@/components/ui/Button";
 import { formatTime } from "@/lib/utils";
 import { isQuestionCorrect } from "@/lib/answerValidation";
@@ -82,6 +83,9 @@ export function PracticeSession({
   const [checkedAnswers, setCheckedAnswers] = useState<Record<number, boolean>>(
     {},
   );
+  const [codingTestStatus, setCodingTestStatus] = useState<
+    Record<number, { hasRun: boolean; allPassed: boolean }>
+  >({});
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -154,6 +158,30 @@ export function PracticeSession({
   const currentQuestion = questions[currentIndex];
   const isChecked = checkedAnswers[currentQuestion.id];
 
+  const isQuestionMarkedCorrect = useCallback(
+    (question: Question, userAnswer?: string) => {
+      if (!userAnswer) return false;
+
+      if (question.type !== "coding_challenge") {
+        return isQuestionCorrect(question, userAnswer);
+      }
+
+      const testCasesConfig = question.test_cases as {
+        test_cases?: unknown[];
+      } | null;
+      const hasTestCases =
+        Array.isArray(testCasesConfig?.test_cases) &&
+        testCasesConfig.test_cases.length > 0;
+
+      if (!hasTestCases) {
+        return isQuestionCorrect(question, userAnswer);
+      }
+
+      return codingTestStatus[question.id]?.allPassed === true;
+    },
+    [codingTestStatus],
+  );
+
   const getAnswerStats = (answerMap: Record<number, string>) => {
     let answeredCount = 0;
     let correctCount = 0;
@@ -162,7 +190,7 @@ export function PracticeSession({
       const userAnswer = answerMap[q.id];
       if (!userAnswer) continue;
       answeredCount += 1;
-      if (isQuestionCorrect(q, userAnswer)) {
+      if (isQuestionMarkedCorrect(q, userAnswer)) {
         correctCount += 1;
       }
     }
@@ -230,6 +258,7 @@ export function PracticeSession({
       setCurrentIndex(0);
       setAnswers({});
       setCheckedAnswers({});
+      setCodingTestStatus({});
       setElapsedTime(0);
       setFinalScore(0);
     }
@@ -243,6 +272,12 @@ export function PracticeSession({
       return next;
     });
     setCheckedAnswers((prev) => {
+      const next = { ...prev };
+      delete next[questionId];
+      return next;
+    });
+    setCodingTestStatus((prev) => {
+      if (!(questionId in prev)) return prev;
       const next = { ...prev };
       delete next[questionId];
       return next;
@@ -263,6 +298,7 @@ export function PracticeSession({
         currentIndex?: number;
         answers?: Record<string, unknown>;
         checkedAnswers?: Record<string, unknown>;
+        codingTestStatus?: Record<string, unknown>;
       };
 
       const validQuestionIds = new Set(questions.map((q) => String(q.id)));
@@ -294,6 +330,24 @@ export function PracticeSession({
         ) as Record<number, boolean>;
         setCheckedAnswers(restoredCheckedAnswers);
       }
+
+      if (
+        parsed.codingTestStatus &&
+        typeof parsed.codingTestStatus === "object"
+      ) {
+        const restoredCodingTestStatus = Object.fromEntries(
+          Object.entries(parsed.codingTestStatus).filter(([questionId, value]) => {
+            if (!validQuestionIds.has(questionId)) return false;
+            if (!value || typeof value !== "object") return false;
+            const status = value as { hasRun?: unknown; allPassed?: unknown };
+            return (
+              typeof status.hasRun === "boolean" &&
+              typeof status.allPassed === "boolean"
+            );
+          }),
+        ) as Record<number, { hasRun: boolean; allPassed: boolean }>;
+        setCodingTestStatus(restoredCodingTestStatus);
+      }
     } catch (error) {
       console.error("Failed to restore practice session progress:", error);
     } finally {
@@ -311,12 +365,13 @@ export function PracticeSession({
           currentIndex,
           answers,
           checkedAnswers,
+          codingTestStatus,
         }),
       );
     } catch (error) {
       console.error("Failed to persist practice session progress:", error);
     }
-  }, [sessionStorageKey, currentIndex, answers, checkedAnswers]);
+  }, [sessionStorageKey, currentIndex, answers, checkedAnswers, codingTestStatus]);
 
   useEffect(() => {
     if (isHydratingSessionRef.current) return;
@@ -443,6 +498,14 @@ export function PracticeSession({
 
   const handleAnswer = (answer: string) => {
     if (isChecked) return;
+    if (currentQuestion.type === "coding_challenge") {
+      setCodingTestStatus((prev) => {
+        if (!(currentQuestion.id in prev)) return prev;
+        const next = { ...prev };
+        delete next[currentQuestion.id];
+        return next;
+      });
+    }
     setAnswers((prev) => ({ ...prev, [currentQuestion.id]: answer }));
   };
 
@@ -512,7 +575,7 @@ export function PracticeSession({
       return;
     }
 
-    const isCorrect = isQuestionCorrect(currentQuestion, answer);
+    const isCorrect = isQuestionMarkedCorrect(currentQuestion, answer);
 
     // Record answer for progress tracking
     const { recordAnswer } = await import("@/lib/actions/recordAnswer");
@@ -589,7 +652,7 @@ export function PracticeSession({
       for (const q of questions) {
         const userAnswer = answers[q.id];
         if (!userAnswer) continue;
-        if (isQuestionCorrect(q, userAnswer)) correctCount++;
+        if (isQuestionMarkedCorrect(q, userAnswer)) correctCount++;
       }
 
       // Note: Answers are already recorded in handleCheck() via recordAnswer
@@ -743,7 +806,7 @@ export function PracticeSession({
                           const wasChecked = checkedAnswers[q.id];
                           const isAnswered = !!answers[q.id];
                           const isCorrect =
-                            wasChecked && isQuestionCorrect(q, answers[q.id]);
+                            wasChecked && isQuestionMarkedCorrect(q, answers[q.id]);
 
                           let btnClass =
                             "bg-white dark:bg-slate-900 text-gray-500 border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500";
@@ -1052,22 +1115,31 @@ export function PracticeSession({
                       )}
                     </div>
                   ) : currentQuestion.type === "coding_challenge" ? (
-                    /* Coding Challenge - 静态代码展示，文本输入作答 */
-                    <div className="relative">
-                      <div className="absolute -left-6 top-8 bottom-8 w-0.5 bg-red-300/30 hidden lg:block" />
-                      <textarea
-                        value={answers[currentQuestion.id] || ""}
-                        onChange={(e) => handleAnswer(e.target.value)}
-                        disabled={isChecked}
-                        placeholder="在此输入你的答案..."
-                        className="w-full min-h-[200px] p-0 bg-[repeating-linear-gradient(transparent,transparent_31px,#000000_32px)] text-lg leading-8 font-serif text-black dark:text-gray-100 border-none focus:ring-0 resize-y placeholder:text-gray-300 dark:placeholder:text-gray-700 bg-transparent translate-y-[6px]"
-                        style={{
-                          lineHeight: "32px",
-                          backgroundAttachment: "local",
-                          backgroundSize: "100% 32px",
-                        }}
-                      />
-                    </div>
+                    /* Coding Challenge - Python 代码编辑器 */
+                    (() => {
+                      const testCasesConfig = currentQuestion.test_cases as {
+                        function_name?: string;
+                        test_cases?: { input: unknown[]; expected: unknown }[];
+                      } | null;
+                      return (
+                        <PythonCodeEditor
+                          value={answers[currentQuestion.id] || ""}
+                          onChange={(code) => handleAnswer(code)}
+                          disabled={isChecked}
+                          testCases={testCasesConfig?.test_cases}
+                          functionName={testCasesConfig?.function_name}
+                          onTestStatusChange={(status) => {
+                            setCodingTestStatus((prev) => ({
+                              ...prev,
+                              [currentQuestion.id]: {
+                                hasRun: status.hasRun,
+                                allPassed: status.allPassed,
+                              },
+                            }));
+                          }}
+                        />
+                      );
+                    })()
                   ) : currentQuestion.type === "handwrite" ? (
                     /* Handwriting Canvas */
                     <div className="w-full h-[500px] border-2 border-gray-100 dark:border-gray-800 rounded-xl overflow-hidden bg-white dark:bg-canvas-dark relative">
@@ -1110,7 +1182,7 @@ export function PracticeSession({
             {isChecked &&
               (() => {
                 const isCorrectAnswer =
-                  isQuestionCorrect(
+                  isQuestionMarkedCorrect(
                     currentQuestion,
                     answers[currentQuestion.id],
                   );
@@ -1238,6 +1310,7 @@ export function PracticeSession({
             setCurrentIndex(0);
             setAnswers({});
             setCheckedAnswers({});
+            setCodingTestStatus({});
             setElapsedTime(0);
             setFinalScore(0);
           }}

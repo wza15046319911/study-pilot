@@ -41,7 +41,7 @@
 
 ### 💰 灵活的内容变现
 - 免费基础题目
-- VIP订阅（通过Stripe支付）
+- VIP订阅
 - 推荐解锁（病毒式增长）
 - 单题库购买
 
@@ -91,7 +91,7 @@
 - **数据库**: Supabase (PostgreSQL)
 - **认证**: Supabase Auth (邮箱OTP + Google OAuth)
 - **实时通信**: Supabase Realtime
-- **支付**: Stripe (Checkout + Webhooks)
+- **支付**: 微信支付（Beta 阶段）
 - **AI**: 智谱AI (ZhipuAI API)
 - **安全**: 行级安全策略（RLS）
 
@@ -131,7 +131,7 @@ shared_mistakes (分享的错题集)
 
 -- 反馈与支付
 question_feedback (题目反馈: 错误/太难/重复)
-payments (Stripe交易记录)
+payments (支付记录)
 ```
 
 ### 关键设计特性
@@ -168,8 +168,7 @@ study-pilot/
 │   │   ├── practice/          # 练习会话页面
 │   │   ├── profile/           # 用户仪表盘
 │   │   ├── calendar/          # 学术日历
-│   │   ├── payment/           # 支付页面
-│   │   └── api/               # API路由（Stripe/Calendar）
+│   │   └── api/               # API路由（Calendar 等）
 │   ├── components/
 │   │   ├── ui/                # 可复用UI组件
 │   │   ├── layout/            # 布局组件
@@ -180,7 +179,6 @@ study-pilot/
 │   │   ├── actions/           # Server Actions
 │   │   ├── ai/                # AI提供商抽象
 │   │   ├── srs.ts             # SM-2算法实现
-│   │   └── stripe.ts          # 支付逻辑
 │   ├── stores/                # Zustand状态管理
 │   ├── types/                 # TypeScript类型定义
 │   └── messages/              # i18n翻译文件
@@ -203,11 +201,6 @@ study-pilot/
 - 单设备登录强制（active_session_id）
 - Realtime订阅监控会话变化
 - 检测到异常立即退出登录
-
-### 支付安全
-- Stripe Webhook签名验证
-- 幂等性处理（防止重复支付）
-- 服务端订单验证
 
 ## 性能优化
 
@@ -242,7 +235,6 @@ study-pilot/
 - Node.js 18+
 - pnpm（推荐）或 npm
 - Supabase项目（数据库+认证）
-- Stripe账号（支付）
 - ZhipuAI API密钥（AI功能）
 
 ### 环境变量
@@ -251,11 +243,6 @@ study-pilot/
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
-
-# Stripe
-STRIPE_SECRET_KEY=
-NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=
-STRIPE_WEBHOOK_SECRET=
 
 # AI
 ZHIPU_API_KEY=
@@ -296,7 +283,6 @@ npx supabase gen types typescript --project-id <project-id> > src/types/database
 3. 自动部署main分支
 
 ### 注意事项
-- 配置Stripe Webhook端点
 - 设置Supabase重定向URL
 
 ## 路线图
