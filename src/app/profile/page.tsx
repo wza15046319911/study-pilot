@@ -211,6 +211,13 @@ export default async function ProfilePage() {
     .eq("user_id", user.id)
     .order("added_at", { ascending: false });
 
+  // Fetch completed weekly practice count (distinct weekly practices fully completed)
+  const weeklyPracticeSubmissionsPromise = (
+    supabase.from("weekly_practice_submissions") as any
+  )
+    .select("weekly_practice_id, answered_count, total_count")
+    .eq("user_id", user.id);
+
   const [
     profileResult,
     userAnswersResult,
@@ -223,6 +230,7 @@ export default async function ProfilePage() {
     userQuestionBanksResult,
     homeworkAssignmentsResult,
     userExamsResult,
+    weeklyPracticeSubmissionsResult,
   ] = await Promise.all([
     profilePromise,
     userAnswersPromise,
@@ -235,6 +243,7 @@ export default async function ProfilePage() {
     userQuestionBanksPromise,
     homeworkAssignmentsPromise,
     userExamsPromise,
+    weeklyPracticeSubmissionsPromise,
   ]);
 
   const referralStats = referralStatsResult || {
@@ -242,6 +251,19 @@ export default async function ProfilePage() {
     unusedReferrals: 0,
     unlockedBanks: 0,
   };
+
+  // Calculate completed weekly practices (distinct practices where answered_count >= total_count)
+  const weeklySubmissions = (weeklyPracticeSubmissionsResult.data || []) as Array<{
+    weekly_practice_id: number;
+    answered_count: number;
+    total_count: number;
+  }>;
+  const completedWeeklyPracticeIds = new Set(
+    weeklySubmissions
+      .filter((s) => s.total_count > 0 && s.answered_count >= s.total_count)
+      .map((s) => s.weekly_practice_id),
+  );
+  const completedWeeks = completedWeeklyPracticeIds.size;
 
   const profile = profileResult.data as Profile | null;
 
@@ -468,6 +490,7 @@ export default async function ProfilePage() {
           homeworkStats={homeworkStats}
           homeworkPreview={homeworkPreview}
           isAdmin={userData.is_admin || false}
+          completedWeeks={completedWeeks}
         />
       </main>
     </div>

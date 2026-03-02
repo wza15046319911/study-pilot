@@ -10,7 +10,7 @@ export function getStripeServer(): Stripe {
       throw new Error("Missing STRIPE_SECRET_KEY environment variable");
     }
     stripeInstance = new Stripe(secretKey, {
-      apiVersion: "2025-12-15.clover",
+      apiVersion: "2026-02-25.clover",
       typescript: true,
     });
   }

@@ -142,6 +142,7 @@ interface ProfileContentProps {
     completedAt: string | null;
   }>;
   isAdmin?: boolean;
+  completedWeeks?: number;
 }
 
 export function ProfileContent({
@@ -155,6 +156,7 @@ export function ProfileContent({
   homeworkStats = { assigned: 0, due: 0, graded: 0, expired: 0 },
   homeworkPreview = [],
   isAdmin = false,
+  completedWeeks = 0,
 }: ProfileContentProps) {
   const t = useTranslations("profileDashboard");
   const [open, setOpen] = useState(false);
@@ -491,7 +493,7 @@ export function ProfileContent({
                             key={`week-dot-${idx}`}
                             className={cn(
                               "size-2.5 rounded-full",
-                              idx < (user.streak_days || 0)
+                              idx < completedWeeks
                                 ? "bg-sky-500"
                                 : "bg-gray-200 dark:bg-gray-700"
                             )}
