@@ -587,7 +587,20 @@ export function PracticeSession({
 
     // Record answer for progress tracking
     const { recordAnswer } = await import("@/lib/actions/recordAnswer");
-    await recordAnswer(currentQuestion.id, answer, isCorrect, "practice");
+    const recordResult = await recordAnswer(
+      currentQuestion.id,
+      answer,
+      isCorrect,
+      "practice",
+    );
+    if (!recordResult.success) {
+      console.error(
+        "Failed to persist practice answer:",
+        recordResult.error,
+        "questionId:",
+        currentQuestion.id,
+      );
+    }
 
     if (!isCorrect) {
       // Record mistake immediately

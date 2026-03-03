@@ -135,7 +135,20 @@ export default function ImmersiveSession({
 
     // Record answer for progress tracking
     const { recordAnswer } = await import("@/lib/actions/recordAnswer");
-    await recordAnswer(currentQuestion.id, userAnswer, isCorrect, "immersive");
+    const recordResult = await recordAnswer(
+      currentQuestion.id,
+      userAnswer,
+      isCorrect,
+      "immersive",
+    );
+    if (!recordResult.success) {
+      console.error(
+        "Failed to persist immersive answer:",
+        recordResult.error,
+        "questionId:",
+        currentQuestion.id,
+      );
+    }
 
     // Only record mistake if wrong
     if (!isCorrect) {

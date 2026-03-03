@@ -39,7 +39,7 @@ export async function recordAnswer(
   }
 
   // Insert into user_answers
-  await (supabase as any).from("user_answers").insert({
+  const { error } = await (supabase as any).from("user_answers").insert({
     user_id: user.id,
     question_id: validation.data.questionId,
     user_answer: validation.data.userAnswer,
@@ -47,5 +47,11 @@ export async function recordAnswer(
     time_spent: validation.data.timeSpent,
     mode: validation.data.mode,
   });
+
+  if (error) {
+    console.error("Failed to record answer:", error);
+    return { success: false, error: error.message || "Failed to record answer" };
+  }
+
   return { success: true };
 }

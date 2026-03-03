@@ -37,12 +37,20 @@ export default function FlashcardSession({
   const handleRate = async (isCorrect: boolean) => {
     // 1. Record the answer for progress tracking
     const { recordAnswer } = await import("@/lib/actions/recordAnswer");
-    await recordAnswer(
+    const recordResult = await recordAnswer(
       currentQuestion.id,
       isCorrect ? "correct" : "incorrect",
       isCorrect,
-      "flashcard"
+      "flashcard",
     );
+    if (!recordResult.success) {
+      console.error(
+        "Failed to persist flashcard answer:",
+        recordResult.error,
+        "questionId:",
+        currentQuestion.id,
+      );
+    }
 
     // 2. Save review to DB
     await saveFlashcardReview(currentQuestion.id);

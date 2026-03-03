@@ -315,15 +315,26 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
   const [previewLoadingId, setPreviewLoadingId] = useState<number | null>(
     null,
   );
+  const previewRequestSeqRef = useRef(0);
 
   const handlePreview = async (question: Question) => {
+    const requestSeq = previewRequestSeqRef.current + 1;
+    previewRequestSeqRef.current = requestSeq;
+
     setPreviewLoadingId(question.id);
+    setPreviewQuestion(null);
     setPreviewUsage(undefined);
+
     try {
       const [fullRes, usageRes] = await Promise.all([
         supabase.from("questions").select("*").eq("id", question.id).single(),
         getQuestionUsage(question.id),
       ]);
+
+      // Ignore stale responses from older clicks to prevent cross-question preview mix-ups.
+      if (previewRequestSeqRef.current !== requestSeq) {
+        return;
+      }
 
       const { data: full } = fullRes;
       if (full) {
@@ -333,7 +344,9 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
         setPreviewUsage(usageRes.data);
       }
     } finally {
-      setPreviewLoadingId(null);
+      if (previewRequestSeqRef.current === requestSeq) {
+        setPreviewLoadingId(null);
+      }
     }
   };
 
@@ -1006,7 +1019,12 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
       <QuestionPreviewModal
         isOpen={!!previewQuestion}
         question={previewQuestion}
-        onClose={() => setPreviewQuestion(null)}
+        onClose={() => {
+          previewRequestSeqRef.current += 1;
+          setPreviewQuestion(null);
+          setPreviewUsage(undefined);
+          setPreviewLoadingId(null);
+        }}
         usage={previewUsage}
       />
     </div>
