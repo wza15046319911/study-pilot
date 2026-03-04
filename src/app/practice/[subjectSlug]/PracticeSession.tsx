@@ -9,6 +9,11 @@ import { Button } from "@/components/ui/Button";
 import { formatTime } from "@/lib/utils";
 import { isQuestionCorrect } from "@/lib/answerValidation";
 import { createClient } from "@/lib/supabase/client";
+import {
+  addMistakeManually,
+  recordWrongAnswerMistake,
+  setBookmark,
+} from "./actions";
 import { Question, Profile, QuestionOption } from "@/types/database";
 import { CodeBlock } from "@/components/ui/CodeBlock";
 import { LatexContent } from "@/components/ui/LatexContent";
@@ -521,32 +526,24 @@ export function PracticeSession({
     setIsAddingMistake(true);
     const questionId = currentQuestion.id;
 
-    // Check if already exists
-    const { data: existing } = await supabase
-      .from("mistakes")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("question_id", questionId)
-      .maybeSingle();
+    try {
+      const result = await addMistakeManually(questionId);
+      if (!result.success) {
+        alert("Failed to add to mistakes. Please retry.");
+        return;
+      }
 
-    if (!existing) {
-      await supabase.from("mistakes").insert({
-        user_id: user.id,
-        question_id: questionId,
-        error_count: 1,
-        error_type: "manual",
-        last_error_at: new Date().toISOString(),
-      } as any);
+      setAddedMistake(true);
+      setTimeout(() => setAddedMistake(false), 2000);
+    } finally {
+      setIsAddingMistake(false);
     }
-
-    setAddedMistake(true);
-    setTimeout(() => setAddedMistake(false), 2000);
-    setIsAddingMistake(false);
   };
 
   const toggleBookmark = async () => {
     const questionId = currentQuestion.id;
     const isBookmarked = bookmarks.has(questionId);
+    const previousBookmarks = bookmarks;
 
     // Optimistic update
     const newBookmarks = new Set(bookmarks);
@@ -557,17 +554,10 @@ export function PracticeSession({
     }
     setBookmarks(newBookmarks);
 
-    if (isBookmarked) {
-      await supabase
-        .from("bookmarks")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("question_id", questionId);
-    } else {
-      await supabase.from("bookmarks").insert({
-        user_id: user.id,
-        question_id: questionId,
-      } as any);
+    const result = await setBookmark(questionId, !isBookmarked);
+    if (!result.success) {
+      setBookmarks(previousBookmarks);
+      alert("Bookmark failed, please retry.");
     }
   };
 
@@ -603,31 +593,18 @@ export function PracticeSession({
     }
 
     if (!isCorrect) {
-      // Record mistake immediately
-      const { data: existingData } = await supabase
-        .from("mistakes")
-        .select("error_count")
-        .eq("user_id", user.id)
-        .eq("question_id", currentQuestion.id)
-        .maybeSingle();
-
-      const existing = existingData as { error_count: number } | null;
-      const newCount = (existing?.error_count || 0) + 1;
-
-      const { error: upsertError } = await supabase.from("mistakes").upsert(
-        {
-          user_id: user.id,
-          question_id: currentQuestion.id,
-          error_count: newCount,
-          error_type: "wrong_answer",
-          last_wrong_answer: answer,
-          last_error_at: new Date().toISOString(),
-        } as any,
-        { onConflict: "user_id,question_id" },
+      const mistakeResult = await recordWrongAnswerMistake(
+        currentQuestion.id,
+        answer,
       );
-
-      if (upsertError) {
-        console.error("Failed to record mistake:", upsertError);
+      if (!mistakeResult.success) {
+        console.error(
+          "Failed to record mistake:",
+          mistakeResult.error,
+          "questionId:",
+          currentQuestion.id,
+        );
+        alert("Failed to add to mistakes. Please retry.");
       }
     }
   };

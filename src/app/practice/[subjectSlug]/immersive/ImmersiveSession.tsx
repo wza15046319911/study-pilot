@@ -8,6 +8,7 @@ import { CodeBlock } from "@/components/ui/CodeBlock";
 import { createClient } from "@/lib/supabase/client";
 import { isQuestionCorrect } from "@/lib/answerValidation";
 import { Question, Profile, QuestionOption } from "@/types/database";
+import { recordWrongAnswerMistake, setBookmark } from "../actions";
 import {
   Bookmark,
   AlertTriangle,
@@ -152,27 +153,19 @@ export default function ImmersiveSession({
 
     // Only record mistake if wrong
     if (!isCorrect) {
-      const { data: existingData } = await supabase
-        .from("mistakes")
-        .select("error_count")
-        .eq("user_id", user.id)
-        .eq("question_id", currentQuestion.id)
-        .single();
-
-      const existing = existingData as { error_count: number } | null;
-      const newCount = (existing?.error_count || 0) + 1;
-
-      await supabase.from("mistakes").upsert(
-        {
-          user_id: user.id,
-          question_id: currentQuestion.id,
-          error_count: newCount,
-          error_type: "wrong_answer",
-          last_wrong_answer: userAnswer,
-          last_error_at: new Date().toISOString(),
-        } as any,
-        { onConflict: "user_id,question_id" },
+      const mistakeResult = await recordWrongAnswerMistake(
+        currentQuestion.id,
+        userAnswer,
       );
+      if (!mistakeResult.success) {
+        console.error(
+          "Failed to persist immersive mistake:",
+          mistakeResult.error,
+          "questionId:",
+          currentQuestion.id,
+        );
+        alert("Failed to add to mistakes. Please retry.");
+      }
     }
 
     setQuestionsAnswered((prev) => prev + 1);
@@ -191,20 +184,13 @@ export default function ImmersiveSession({
 
   const toggleBookmark = async () => {
     if (!currentQuestion) return;
+    const nextState = !isBookmarked;
+    setIsBookmarked(nextState);
 
-    if (isBookmarked) {
-      await supabase
-        .from("bookmarks")
-        .delete()
-        .eq("user_id", user.id)
-        .eq("question_id", currentQuestion.id);
-      setIsBookmarked(false);
-    } else {
-      await supabase.from("bookmarks").insert({
-        user_id: user.id,
-        question_id: currentQuestion.id,
-      } as any);
-      setIsBookmarked(true);
+    const result = await setBookmark(currentQuestion.id, nextState);
+    if (!result.success) {
+      setIsBookmarked(!nextState);
+      alert("Bookmark failed, please retry.");
     }
   };
 
