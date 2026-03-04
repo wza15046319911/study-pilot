@@ -260,6 +260,8 @@ export interface Database {
           error_type: string | null;
           last_error_at: string;
           created_at: string;
+          last_wrong_answer: string | null;
+          note: string | null;
         };
         Insert: {
           id?: number;
@@ -269,6 +271,8 @@ export interface Database {
           error_type?: string | null;
           last_error_at?: string;
           created_at?: string;
+          last_wrong_answer?: string | null;
+          note?: string | null;
         };
         Update: {
           id?: number;
@@ -278,6 +282,8 @@ export interface Database {
           error_type?: string | null;
           last_error_at?: string;
           created_at?: string;
+          last_wrong_answer?: string | null;
+          note?: string | null;
         };
       };
       user_progress: {
@@ -338,18 +344,21 @@ export interface Database {
           user_id: string;
           question_id: number;
           created_at: string;
+          note: string | null;
         };
         Insert: {
           id?: number;
           user_id: string;
           question_id: number;
           created_at?: string;
+          note?: string | null;
         };
         Update: {
           id?: number;
           user_id?: string;
           question_id?: number;
           created_at?: string;
+          note?: string | null;
         };
       };
       exams: {

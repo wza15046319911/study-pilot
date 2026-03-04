@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import dynamic from "next/dynamic";
@@ -22,6 +22,18 @@ import {
 import { LatexContent } from "@/components/ui/LatexContent";
 import { useTranslations } from "next-intl";
 
+const NOTE_MAX_LENGTH = 500;
+const NOTE_DEBOUNCE_MS = 600;
+
+type NoteSaveState = "saving" | "saved" | "error";
+
+type SubjectTab = {
+  id: number;
+  name: string;
+  slug: string;
+  count: number;
+};
+
 const ExportMistakesModal = dynamic(
   () =>
     import("@/components/modals/ExportMistakesModal").then(
@@ -38,6 +50,7 @@ interface MistakeData {
   last_wrong_answer: string | null;
   error_count: number;
   created_at: string;
+  note: string | null;
   questions: {
     id: number;
     title: string;
@@ -64,7 +77,6 @@ interface MistakesClientProps {
   mistakes: MistakeData[];
   userId: string;
   isVip: boolean;
-  stats?: any;
 }
 
 export default function MistakesClient({
@@ -77,10 +89,79 @@ export default function MistakesClient({
   const [mistakes, setMistakes] = useState(initialMistakes);
   const [showExportModal, setShowExportModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [mistakeNotes, setMistakeNotes] = useState<Record<number, string>>(() =>
+    Object.fromEntries(initialMistakes.map((mistake) => [mistake.id, mistake.note || ""])),
+  );
+  const [noteSaveStates, setNoteSaveStates] = useState<
+    Record<number, NoteSaveState | undefined>
+  >({});
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const supabase = useMemo(() => createClient(), []);
+  const noteTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+
+  const clearNoteTimer = useCallback((mistakeId: number) => {
+    const timer = noteTimersRef.current[mistakeId];
+    if (!timer) return;
+    clearTimeout(timer);
+    delete noteTimersRef.current[mistakeId];
+  }, []);
+
+  const persistNote = useCallback(
+    async (mistakeId: number, noteValue: string) => {
+      const normalizedNote = noteValue.trim().length === 0 ? null : noteValue;
+      const { error } = await supabase
+        .from("mistakes")
+        .update({ note: normalizedNote } as unknown as never)
+        .eq("id", mistakeId);
+
+      if (error) {
+        setNoteSaveStates((prev) => ({ ...prev, [mistakeId]: "error" }));
+        return;
+      }
+
+      setMistakes((prev) =>
+        prev.map((mistake) =>
+          mistake.id === mistakeId ? { ...mistake, note: normalizedNote } : mistake,
+        ),
+      );
+      setNoteSaveStates((prev) => ({ ...prev, [mistakeId]: "saved" }));
+    },
+    [supabase],
+  );
+
+  const handleNoteChange = useCallback(
+    (mistakeId: number, value: string) => {
+      const nextValue = value.slice(0, NOTE_MAX_LENGTH);
+      setMistakeNotes((prev) => ({ ...prev, [mistakeId]: nextValue }));
+      setNoteSaveStates((prev) => ({ ...prev, [mistakeId]: "saving" }));
+      clearNoteTimer(mistakeId);
+      noteTimersRef.current[mistakeId] = setTimeout(() => {
+        delete noteTimersRef.current[mistakeId];
+        void persistNote(mistakeId, nextValue);
+      }, NOTE_DEBOUNCE_MS);
+    },
+    [clearNoteTimer, persistNote],
+  );
+
+  useEffect(() => {
+    const noteTimers = noteTimersRef.current;
+    return () => {
+      Object.values(noteTimers).forEach((timer) => clearTimeout(timer));
+    };
+  }, []);
 
   const handleRemoveMistake = async (mistakeId: number) => {
+    clearNoteTimer(mistakeId);
+    setMistakeNotes((prev) => {
+      const next = { ...prev };
+      delete next[mistakeId];
+      return next;
+    });
+    setNoteSaveStates((prev) => {
+      const next = { ...prev };
+      delete next[mistakeId];
+      return next;
+    });
     setMistakes((prev) => prev.filter((m) => m.id !== mistakeId));
     await supabase.from("mistakes").delete().eq("id", mistakeId);
   };
@@ -105,8 +186,8 @@ export default function MistakesClient({
     }
   };
 
-  const subjects = useMemo(() => {
-    const uniqueSubjects = new Map();
+  const subjects = useMemo<SubjectTab[]>(() => {
+    const uniqueSubjects = new Map<number, SubjectTab>();
     mistakes.forEach((m) => {
       if (!uniqueSubjects.has(m.questions.subject_id)) {
         uniqueSubjects.set(m.questions.subject_id, {
@@ -116,10 +197,22 @@ export default function MistakesClient({
           count: 0,
         });
       }
-      uniqueSubjects.get(m.questions.subject_id).count++;
+      const subject = uniqueSubjects.get(m.questions.subject_id);
+      if (subject) {
+        subject.count++;
+      }
     });
     return Array.from(uniqueSubjects.values());
   }, [mistakes]);
+
+  const exportableMistakes = useMemo(
+    () =>
+      mistakes.map((mistake) => ({
+        ...mistake,
+        last_wrong_answer: mistake.last_wrong_answer || "",
+      })),
+    [mistakes],
+  );
 
   const filteredMistakes = useMemo(() => {
     const normalizedSearch = deferredSearchQuery.trim().toLowerCase();
@@ -130,9 +223,10 @@ export default function MistakesClient({
     return mistakes.filter(
       (m) =>
         m.questions.title.toLowerCase().includes(normalizedSearch) ||
-        m.questions.content.toLowerCase().includes(normalizedSearch),
+        m.questions.content.toLowerCase().includes(normalizedSearch) ||
+        (mistakeNotes[m.id] || "").toLowerCase().includes(normalizedSearch),
     );
-  }, [mistakes, deferredSearchQuery]);
+  }, [mistakeNotes, mistakes, deferredSearchQuery]);
 
   return (
     <div className="flex-grow w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -197,7 +291,7 @@ export default function MistakesClient({
                 {mistakes.length}
               </span>
             </TabsTrigger>
-            {subjects.map((subject: any) => (
+            {subjects.map((subject) => (
               <TabsTrigger
                 key={subject.id}
                 value={subject.name}
@@ -231,13 +325,16 @@ export default function MistakesClient({
                   key={mistake.id}
                   mistake={mistake}
                   onRemove={handleRemoveMistake}
+                  noteValue={mistakeNotes[mistake.id] || ""}
+                  noteState={noteSaveStates[mistake.id]}
+                  onNoteChange={handleNoteChange}
                   t={t}
                 />
               ))}
             </div>
           </TabsContent>
 
-          {subjects.map((subject: any) => {
+          {subjects.map((subject) => {
             const subjectMistakes = filteredMistakes.filter(
               (m) => m.questions.subject_id === subject.id,
             );
@@ -265,6 +362,9 @@ export default function MistakesClient({
                         key={mistake.id}
                         mistake={mistake}
                         onRemove={handleRemoveMistake}
+                        noteValue={mistakeNotes[mistake.id] || ""}
+                        noteState={noteSaveStates[mistake.id]}
+                        onNoteChange={handleNoteChange}
                         t={t}
                       />
                     ))
@@ -284,7 +384,7 @@ export default function MistakesClient({
         <ExportMistakesModal
           isOpen={showExportModal}
           onClose={() => setShowExportModal(false)}
-          mistakes={mistakes as any}
+          mistakes={exportableMistakes}
           userId={userId}
         />
       ) : null}
@@ -295,10 +395,16 @@ export default function MistakesClient({
 function MistakeCard({
   mistake,
   onRemove,
+  noteValue,
+  noteState,
+  onNoteChange,
   t,
 }: {
   mistake: MistakeData;
   onRemove: (id: number) => void;
+  noteValue: string;
+  noteState?: NoteSaveState;
+  onNoteChange: (id: number, value: string) => void;
   t: ReturnType<typeof useTranslations>;
 }) {
   return (
@@ -326,7 +432,7 @@ function MistakeCard({
             <LatexContent>{mistake.questions.content}</LatexContent>
           </div>
           {(() => {
-            let options: any[] = [];
+            let options: unknown[] = [];
             if (Array.isArray(mistake.questions.options)) {
               options = mistake.questions.options;
             } else if (
@@ -344,15 +450,19 @@ function MistakeCard({
               return (
                 <div className="space-y-2 mt-4 pl-1">
                   {options.map((option, idx) => {
+                    const parsedOption =
+                      typeof option === "object" && option
+                        ? (option as { label?: string; content?: string })
+                        : null;
                     const derivedLabel =
                       typeof option === "string"
                         ? String.fromCharCode(65 + idx)
-                        : option?.label || String.fromCharCode(65 + idx);
+                        : parsedOption?.label || String.fromCharCode(65 + idx);
                     const derivedContent =
                       typeof option === "string"
                         ? option
-                        : (option?.content ??
-                          option?.label ??
+                        : (parsedOption?.content ??
+                          parsedOption?.label ??
                           JSON.stringify(option));
 
                     return (
@@ -392,6 +502,31 @@ function MistakeCard({
           <p className="font-mono text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-900 p-2 rounded border border-green-100 dark:border-green-900/20">
             {mistake.questions.answer}
           </p>
+        </div>
+        <div className="space-y-1.5 pt-1">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-blue-500 uppercase tracking-wider">
+              {t("noteLabel")}
+            </span>
+            <span className="text-xs text-gray-400">
+              {t("noteLimit", { count: noteValue.length })}
+            </span>
+          </div>
+          <textarea
+            value={noteValue}
+            onChange={(e) => onNoteChange(mistake.id, e.target.value)}
+            placeholder={t("notePlaceholder")}
+            className="w-full min-h-[90px] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+          />
+          <div className="text-xs">
+            {noteState === "saving" ? (
+              <span className="text-gray-400">{t("noteSaving")}</span>
+            ) : noteState === "saved" ? (
+              <span className="text-green-600 dark:text-green-400">{t("noteSaved")}</span>
+            ) : noteState === "error" ? (
+              <span className="text-red-500">{t("noteSaveError")}</span>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>

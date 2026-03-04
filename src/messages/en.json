@@ -731,6 +731,12 @@
       "scopedPlaceholder": "Search {subject} mistakes..."
     },
     "subtitle": "Detailed breakdown of questions you've missed.",
+    "noteLabel": "Mistake Note",
+    "notePlaceholder": "Write why you got this wrong and how to avoid it next time...",
+    "noteSaving": "Saving...",
+    "noteSaved": "Saved",
+    "noteSaveError": "Save failed",
+    "noteLimit": "{count}/500",
     "tabs": {
       "allSubjects": "All Subjects"
     },
@@ -1064,6 +1070,12 @@
     "practiceAll": "Practice All",
     "searchPlaceholder": "Search bookmarks...",
     "foundCount": "{count} found",
+    "noteLabel": "Bookmark Note",
+    "notePlaceholder": "Write your quick review note for this question...",
+    "noteSaving": "Saving...",
+    "noteSaved": "Saved",
+    "noteSaveError": "Save failed",
+    "noteLimit": "{count}/500",
     "empty": {
       "title": "No bookmarks yet",
       "description": "Save questions during practice to find them here.",

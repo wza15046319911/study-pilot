@@ -731,6 +731,12 @@
       "scopedPlaceholder": "搜索 {subject} 错题..."
     },
     "subtitle": "查看你做错题目的详细分析。",
+    "noteLabel": "错题笔记",
+    "notePlaceholder": "记录错误原因和下次避免方法...",
+    "noteSaving": "保存中...",
+    "noteSaved": "已保存",
+    "noteSaveError": "保存失败",
+    "noteLimit": "{count}/500",
     "tabs": {
       "allSubjects": "全部科目"
     },
@@ -1064,6 +1070,12 @@
     "practiceAll": "全部练习",
     "searchPlaceholder": "搜索收藏...",
     "foundCount": "找到 {count} 条",
+    "noteLabel": "收藏笔记",
+    "notePlaceholder": "写下这道题的复习要点...",
+    "noteSaving": "保存中...",
+    "noteSaved": "已保存",
+    "noteSaveError": "保存失败",
+    "noteLimit": "{count}/500",
     "empty": {
       "title": "还没有收藏",
       "description": "练习时收藏题目后，会显示在这里。",

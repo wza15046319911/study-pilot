@@ -70,6 +70,7 @@ export default async function MistakesPage() {
       last_wrong_answer,
       error_count,
       created_at,
+      note,
       questions!inner (
         id,
         title,

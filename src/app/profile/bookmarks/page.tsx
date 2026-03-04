@@ -66,6 +66,7 @@ export default async function BookmarksPage() {
       id,
       question_id,
       created_at,
+      note,
       questions!inner (
         id,
         title,

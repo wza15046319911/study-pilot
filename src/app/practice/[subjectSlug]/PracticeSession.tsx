@@ -13,6 +13,8 @@ import {
   addMistakeManually,
   recordWrongAnswerMistake,
   setBookmark,
+  upsertBookmarkNote,
+  upsertMistakeNote,
 } from "./actions";
 import { Question, Profile, QuestionOption } from "@/types/database";
 import { CodeBlock } from "@/components/ui/CodeBlock";
@@ -41,6 +43,11 @@ import {
   RotateCcw,
   RefreshCw,
 } from "lucide-react";
+
+const NOTE_MAX_LENGTH = 500;
+const NOTE_DEBOUNCE_MS = 600;
+
+type NoteSaveState = "saving" | "saved" | "error";
 
 const HandwriteCanvas = dynamic(
   () =>
@@ -92,6 +99,14 @@ export function PracticeSession({
     Record<number, { hasRun: boolean; allPassed: boolean }>
   >({});
   const [bookmarks, setBookmarks] = useState<Set<number>>(new Set());
+  const [bookmarkNotes, setBookmarkNotes] = useState<Record<number, string>>({});
+  const [mistakeNotes, setMistakeNotes] = useState<Record<number, string>>({});
+  const [bookmarkNoteSaveStates, setBookmarkNoteSaveStates] = useState<
+    Record<number, NoteSaveState | undefined>
+  >({});
+  const [mistakeNoteSaveStates, setMistakeNoteSaveStates] = useState<
+    Record<number, NoteSaveState | undefined>
+  >({});
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResults, setShowResults] = useState(false);
@@ -105,10 +120,18 @@ export function PracticeSession({
   const progressSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
     null,
   );
+  const bookmarkNoteTimersRef = useRef<
+    Record<number, ReturnType<typeof setTimeout>>
+  >({});
+  const mistakeNoteTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>(
+    {},
+  );
+  const bookmarkNoteRequestIdRef = useRef<Record<number, number>>({});
+  const mistakeNoteRequestIdRef = useRef<Record<number, number>>({});
   const isHydratingSessionRef = useRef(true);
   const hasRestoredSessionRef = useRef(false);
 
-  const supabase: any = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   const sessionStorageKey = useMemo(() => {
     const questionSignature = questions.map((q) => q.id).join("-");
@@ -162,6 +185,26 @@ export function PracticeSession({
 
   const currentQuestion = questions[currentIndex];
   const isChecked = checkedAnswers[currentQuestion.id];
+  const currentBookmarkNote = bookmarkNotes[currentQuestion.id] || "";
+  const currentMistakeNote = mistakeNotes[currentQuestion.id] || "";
+  const currentBookmarkNoteSaveState =
+    bookmarkNoteSaveStates[currentQuestion.id];
+  const currentMistakeNoteSaveState =
+    mistakeNoteSaveStates[currentQuestion.id];
+
+  const clearBookmarkNoteTimer = useCallback((questionId: number) => {
+    const timer = bookmarkNoteTimersRef.current[questionId];
+    if (!timer) return;
+    clearTimeout(timer);
+    delete bookmarkNoteTimersRef.current[questionId];
+  }, []);
+
+  const clearMistakeNoteTimer = useCallback((questionId: number) => {
+    const timer = mistakeNoteTimersRef.current[questionId];
+    if (!timer) return;
+    clearTimeout(timer);
+    delete mistakeNoteTimersRef.current[questionId];
+  }, []);
 
   const isQuestionMarkedCorrect = useCallback(
     (question: Question, userAnswer?: string) => {
@@ -402,11 +445,15 @@ export function PracticeSession({
   ]);
 
   useEffect(() => {
+    const bookmarkNoteTimers = bookmarkNoteTimersRef.current;
+    const mistakeNoteTimers = mistakeNoteTimersRef.current;
     return () => {
       if (progressSaveTimeoutRef.current) {
         clearTimeout(progressSaveTimeoutRef.current);
         progressSaveTimeoutRef.current = null;
       }
+      Object.values(bookmarkNoteTimers).forEach((timer) => clearTimeout(timer));
+      Object.values(mistakeNoteTimers).forEach((timer) => clearTimeout(timer));
     };
   }, []);
 
@@ -415,19 +462,49 @@ export function PracticeSession({
     const fetchBookmarks = async () => {
       const { data } = await supabase
         .from("bookmarks")
-        .select("question_id")
+        .select("question_id, note")
         .eq("user_id", user.id)
         .in(
           "question_id",
           questions.map((q) => q.id),
         );
+      const bookmarkRows = data as { question_id: number; note: string | null }[] | null;
 
-      if (data) {
-        setBookmarks(new Set(data.map((b: any) => b.question_id)));
+      if (bookmarkRows) {
+        setBookmarks(new Set(bookmarkRows.map((bookmark) => bookmark.question_id)));
+        const bookmarkNoteMap: Record<number, string> = {};
+        bookmarkRows.forEach((bookmark) => {
+          bookmarkNoteMap[bookmark.question_id] = bookmark.note || "";
+        });
+        setBookmarkNotes(bookmarkNoteMap);
       }
     };
-    fetchBookmarks();
-  }, [questions, user.id]);
+    void fetchBookmarks();
+  }, [questions, supabase, user.id]);
+
+  // Fetch mistakes
+  useEffect(() => {
+    const fetchMistakes = async () => {
+      const { data } = await supabase
+        .from("mistakes")
+        .select("question_id, note")
+        .eq("user_id", user.id)
+        .in(
+          "question_id",
+          questions.map((q) => q.id),
+        );
+      const mistakeRows = data as { question_id: number; note: string | null }[] | null;
+
+      if (mistakeRows) {
+        const mistakeNoteMap: Record<number, string> = {};
+        mistakeRows.forEach((mistake) => {
+          mistakeNoteMap[mistake.question_id] = mistake.note || "";
+        });
+        setMistakeNotes(mistakeNoteMap);
+      }
+    };
+    void fetchMistakes();
+  }, [questions, supabase, user.id]);
 
   // Fetch Topics
   useEffect(() => {
@@ -437,15 +514,16 @@ export function PracticeSession({
         .from("topics")
         .select("id, name")
         .eq("subject_id", subjectId);
+      const topicRows = data as { id: number; name: string }[] | null;
 
-      if (data) {
+      if (topicRows) {
         const topicMap: Record<number, string> = {};
-        data.forEach((t: any) => (topicMap[t.id] = t.name));
+        topicRows.forEach((topic) => (topicMap[topic.id] = topic.name));
         setTopics(topicMap);
       }
     };
-    fetchTopics();
-  }, [subjectId]);
+    void fetchTopics();
+  }, [subjectId, supabase]);
 
   // Group questions by topic
   const groupedQuestions = useMemo(() => {
@@ -540,15 +618,81 @@ export function PracticeSession({
     }
   };
 
+  const handleBookmarkNoteChange = useCallback(
+    (questionId: number, value: string) => {
+      const nextValue = value.slice(0, NOTE_MAX_LENGTH);
+      const requestId = (bookmarkNoteRequestIdRef.current[questionId] || 0) + 1;
+      bookmarkNoteRequestIdRef.current[questionId] = requestId;
+      setBookmarkNotes((prev) => ({ ...prev, [questionId]: nextValue }));
+      setBookmarkNoteSaveStates((prev) => ({ ...prev, [questionId]: "saving" }));
+      clearBookmarkNoteTimer(questionId);
+      bookmarkNoteTimersRef.current[questionId] = setTimeout(async () => {
+        delete bookmarkNoteTimersRef.current[questionId];
+        const result = await upsertBookmarkNote(questionId, nextValue);
+        if (bookmarkNoteRequestIdRef.current[questionId] !== requestId) return;
+
+        if (!result.success) {
+          setBookmarkNoteSaveStates((prev) => ({ ...prev, [questionId]: "error" }));
+          return;
+        }
+
+        setBookmarkNoteSaveStates((prev) => ({ ...prev, [questionId]: "saved" }));
+        if (nextValue.trim().length > 0) {
+          setBookmarks((prev) => {
+            if (prev.has(questionId)) return prev;
+            const next = new Set(prev);
+            next.add(questionId);
+            return next;
+          });
+        }
+      }, NOTE_DEBOUNCE_MS);
+    },
+    [clearBookmarkNoteTimer],
+  );
+
+  const handleMistakeNoteChange = useCallback(
+    (questionId: number, value: string) => {
+      const nextValue = value.slice(0, NOTE_MAX_LENGTH);
+      const requestId = (mistakeNoteRequestIdRef.current[questionId] || 0) + 1;
+      mistakeNoteRequestIdRef.current[questionId] = requestId;
+      setMistakeNotes((prev) => ({ ...prev, [questionId]: nextValue }));
+      setMistakeNoteSaveStates((prev) => ({ ...prev, [questionId]: "saving" }));
+      clearMistakeNoteTimer(questionId);
+      mistakeNoteTimersRef.current[questionId] = setTimeout(async () => {
+        delete mistakeNoteTimersRef.current[questionId];
+        const result = await upsertMistakeNote(questionId, nextValue);
+        if (mistakeNoteRequestIdRef.current[questionId] !== requestId) return;
+
+        if (!result.success) {
+          setMistakeNoteSaveStates((prev) => ({ ...prev, [questionId]: "error" }));
+          return;
+        }
+
+        setMistakeNoteSaveStates((prev) => ({ ...prev, [questionId]: "saved" }));
+      }, NOTE_DEBOUNCE_MS);
+    },
+    [clearMistakeNoteTimer],
+  );
+
   const toggleBookmark = async () => {
     const questionId = currentQuestion.id;
     const isBookmarked = bookmarks.has(questionId);
     const previousBookmarks = bookmarks;
+    const previousBookmarkNote = bookmarkNotes[questionId] || "";
+    const previousBookmarkNoteStatus = bookmarkNoteSaveStates[questionId];
 
     // Optimistic update
     const newBookmarks = new Set(bookmarks);
     if (isBookmarked) {
       newBookmarks.delete(questionId);
+      bookmarkNoteRequestIdRef.current[questionId] =
+        (bookmarkNoteRequestIdRef.current[questionId] || 0) + 1;
+      clearBookmarkNoteTimer(questionId);
+      setBookmarkNotes((prev) => ({ ...prev, [questionId]: "" }));
+      setBookmarkNoteSaveStates((prev) => ({
+        ...prev,
+        [questionId]: undefined,
+      }));
     } else {
       newBookmarks.add(questionId);
     }
@@ -557,6 +701,13 @@ export function PracticeSession({
     const result = await setBookmark(questionId, !isBookmarked);
     if (!result.success) {
       setBookmarks(previousBookmarks);
+      if (isBookmarked) {
+        setBookmarkNotes((prev) => ({ ...prev, [questionId]: previousBookmarkNote }));
+        setBookmarkNoteSaveStates((prev) => ({
+          ...prev,
+          [questionId]: previousBookmarkNoteStatus,
+        }));
+      }
       alert("Bookmark failed, please retry.");
     }
   };
@@ -660,7 +811,7 @@ export function PracticeSession({
         .from("profiles")
         .update({
           last_practice_date: new Date().toISOString(),
-        } as any)
+        } as unknown as never)
         .eq("id", user.id);
 
       if (homeworkId) {
@@ -1027,8 +1178,8 @@ export function PracticeSession({
                   currentQuestion.options.length > 0 ? (
                     /* Multiple Choice Options */
                     <div className="space-y-4">
-                      {(currentQuestion.options as any[])?.map(
-                        (option: any, index: number) => {
+                      {(currentQuestion.options as unknown as QuestionOption[])?.map(
+                        (option, index: number) => {
                           const optionLabel =
                             String.fromCharCode(97 + index) + ")"; // a), b), c)...
                           const userAnswer = answers[currentQuestion.id];
@@ -1174,6 +1325,82 @@ export function PracticeSession({
                       />
                     </div>
                   )}
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full border-t border-gray-200 dark:border-gray-800 pt-6">
+              <div className="mb-4">
+                <h3 className="text-sm font-semibold tracking-wide uppercase text-gray-600 dark:text-gray-300">
+                  Notes
+                </h3>
+                <p className="text-xs text-gray-400 mt-1">
+                  Save review notes for bookmarks and mistakes separately.
+                </p>
+              </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor={`bookmark-note-${currentQuestion.id}`}
+                      className="text-xs font-semibold text-amber-600 uppercase tracking-wide"
+                    >
+                      Bookmark Note
+                    </label>
+                    <span className="text-xs text-gray-400">
+                      {currentBookmarkNote.length}/500
+                    </span>
+                  </div>
+                  <textarea
+                    id={`bookmark-note-${currentQuestion.id}`}
+                    value={currentBookmarkNote}
+                    onChange={(e) =>
+                      handleBookmarkNoteChange(currentQuestion.id, e.target.value)
+                    }
+                    placeholder="Write a quick review note for this question..."
+                    className="w-full min-h-[110px] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 dark:focus:border-amber-400 transition-colors"
+                  />
+                  <p className="text-xs min-h-[16px]">
+                    {currentBookmarkNoteSaveState === "saving" ? (
+                      <span className="text-gray-400">Saving...</span>
+                    ) : currentBookmarkNoteSaveState === "saved" ? (
+                      <span className="text-green-600 dark:text-green-400">Saved</span>
+                    ) : currentBookmarkNoteSaveState === "error" ? (
+                      <span className="text-red-500">Save failed</span>
+                    ) : null}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label
+                      htmlFor={`mistake-note-${currentQuestion.id}`}
+                      className="text-xs font-semibold text-red-500 uppercase tracking-wide"
+                    >
+                      Mistake Note
+                    </label>
+                    <span className="text-xs text-gray-400">
+                      {currentMistakeNote.length}/500
+                    </span>
+                  </div>
+                  <textarea
+                    id={`mistake-note-${currentQuestion.id}`}
+                    value={currentMistakeNote}
+                    onChange={(e) =>
+                      handleMistakeNoteChange(currentQuestion.id, e.target.value)
+                    }
+                    placeholder="Record why this question was tricky and what to avoid next time..."
+                    className="w-full min-h-[110px] rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 dark:focus:border-red-400 transition-colors"
+                  />
+                  <p className="text-xs min-h-[16px]">
+                    {currentMistakeNoteSaveState === "saving" ? (
+                      <span className="text-gray-400">Saving...</span>
+                    ) : currentMistakeNoteSaveState === "saved" ? (
+                      <span className="text-green-600 dark:text-green-400">Saved</span>
+                    ) : currentMistakeNoteSaveState === "error" ? (
+                      <span className="text-red-500">Save failed</span>
+                    ) : null}
+                  </p>
                 </div>
               </div>
             </div>

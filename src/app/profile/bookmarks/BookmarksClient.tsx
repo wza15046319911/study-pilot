@@ -1,6 +1,6 @@
 "use client";
 
-import { useDeferredValue, useMemo, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
@@ -18,10 +18,16 @@ import {
 import { encodeId } from "@/lib/ids";
 import { useTranslations } from "next-intl";
 
+const NOTE_MAX_LENGTH = 500;
+const NOTE_DEBOUNCE_MS = 600;
+
+type NoteSaveState = "saving" | "saved" | "error";
+
 interface BookmarkData {
   id: number;
   question_id: number;
   created_at: string;
+  note: string | null;
   questions: {
     id: number;
     title: string;
@@ -47,10 +53,79 @@ export default function BookmarksClient({
   const router = useRouter();
   const [bookmarks, setBookmarks] = useState(initialBookmarks);
   const [searchQuery, setSearchQuery] = useState("");
+  const [bookmarkNotes, setBookmarkNotes] = useState<Record<number, string>>(() =>
+    Object.fromEntries(initialBookmarks.map((bookmark) => [bookmark.id, bookmark.note || "" ])),
+  );
+  const [noteSaveStates, setNoteSaveStates] = useState<
+    Record<number, NoteSaveState | undefined>
+  >({});
   const deferredSearchQuery = useDeferredValue(searchQuery);
   const supabase = useMemo(() => createClient(), []);
+  const noteTimersRef = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+
+  const clearNoteTimer = useCallback((bookmarkId: number) => {
+    const timer = noteTimersRef.current[bookmarkId];
+    if (!timer) return;
+    clearTimeout(timer);
+    delete noteTimersRef.current[bookmarkId];
+  }, []);
+
+  const persistNote = useCallback(
+    async (bookmarkId: number, noteValue: string) => {
+      const normalizedNote = noteValue.trim().length === 0 ? null : noteValue;
+      const { error } = await supabase
+        .from("bookmarks")
+        .update({ note: normalizedNote } as unknown as never)
+        .eq("id", bookmarkId);
+
+      if (error) {
+        setNoteSaveStates((prev) => ({ ...prev, [bookmarkId]: "error" }));
+        return;
+      }
+
+      setBookmarks((prev) =>
+        prev.map((bookmark) =>
+          bookmark.id === bookmarkId ? { ...bookmark, note: normalizedNote } : bookmark,
+        ),
+      );
+      setNoteSaveStates((prev) => ({ ...prev, [bookmarkId]: "saved" }));
+    },
+    [supabase],
+  );
+
+  const handleNoteChange = useCallback(
+    (bookmarkId: number, value: string) => {
+      const nextValue = value.slice(0, NOTE_MAX_LENGTH);
+      setBookmarkNotes((prev) => ({ ...prev, [bookmarkId]: nextValue }));
+      setNoteSaveStates((prev) => ({ ...prev, [bookmarkId]: "saving" }));
+      clearNoteTimer(bookmarkId);
+      noteTimersRef.current[bookmarkId] = setTimeout(() => {
+        delete noteTimersRef.current[bookmarkId];
+        void persistNote(bookmarkId, nextValue);
+      }, NOTE_DEBOUNCE_MS);
+    },
+    [clearNoteTimer, persistNote],
+  );
+
+  useEffect(() => {
+    const noteTimers = noteTimersRef.current;
+    return () => {
+      Object.values(noteTimers).forEach((timer) => clearTimeout(timer));
+    };
+  }, []);
 
   const handleRemoveBookmark = async (bookmarkId: number) => {
+    clearNoteTimer(bookmarkId);
+    setBookmarkNotes((prev) => {
+      const next = { ...prev };
+      delete next[bookmarkId];
+      return next;
+    });
+    setNoteSaveStates((prev) => {
+      const next = { ...prev };
+      delete next[bookmarkId];
+      return next;
+    });
     setBookmarks((prev) => prev.filter((b) => b.id !== bookmarkId));
     await supabase.from("bookmarks").delete().eq("id", bookmarkId);
   };
@@ -80,9 +155,10 @@ export default function BookmarksClient({
     return bookmarks.filter(
       (bookmark) =>
         bookmark.questions.title.toLowerCase().includes(normalizedSearch) ||
-        bookmark.questions.content.toLowerCase().includes(normalizedSearch),
+        bookmark.questions.content.toLowerCase().includes(normalizedSearch) ||
+        (bookmarkNotes[bookmark.id] || "").toLowerCase().includes(normalizedSearch),
     );
-  }, [bookmarks, deferredSearchQuery]);
+  }, [bookmarks, bookmarkNotes, deferredSearchQuery]);
 
   const groupedBySubject = useMemo(() => {
     return filteredBookmarks.reduce(
@@ -239,6 +315,44 @@ export default function BookmarksClient({
                         <p className="text-sm text-gray-500 line-clamp-2">
                           {bookmark.questions.content}
                         </p>
+                        <div
+                          className="mt-4"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <div className="flex items-center justify-between mb-1.5">
+                            <label
+                              htmlFor={`bookmark-note-${bookmark.id}`}
+                              className="text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wide"
+                            >
+                              {t("noteLabel")}
+                            </label>
+                            <span className="text-xs text-gray-400">
+                              {t("noteLimit", {
+                                count: (bookmarkNotes[bookmark.id] || "").length,
+                              })}
+                            </span>
+                          </div>
+                          <textarea
+                            id={`bookmark-note-${bookmark.id}`}
+                            value={bookmarkNotes[bookmark.id] || ""}
+                            onChange={(e) =>
+                              handleNoteChange(bookmark.id, e.target.value)
+                            }
+                            placeholder={t("notePlaceholder")}
+                            className="w-full min-h-[92px] rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-950 px-3 py-2 text-sm text-gray-800 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
+                          />
+                          <div className="text-xs mt-1.5">
+                            {noteSaveStates[bookmark.id] === "saving" ? (
+                              <span className="text-gray-400">{t("noteSaving")}</span>
+                            ) : noteSaveStates[bookmark.id] === "saved" ? (
+                              <span className="text-green-600 dark:text-green-400">
+                                {t("noteSaved")}
+                              </span>
+                            ) : noteSaveStates[bookmark.id] === "error" ? (
+                              <span className="text-red-500">{t("noteSaveError")}</span>
+                            ) : null}
+                          </div>
+                        </div>
                       </div>
 
                       <div className="flex flex-col gap-2">
