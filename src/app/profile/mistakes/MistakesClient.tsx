@@ -150,7 +150,9 @@ export default function MistakesClient({
     };
   }, []);
 
-  const handleRemoveMistake = async (mistakeId: number) => {
+  const handleRemoveMistake = async (mistakeId: number, questionId: number) => {
+    const removedMistake = mistakes.find((mistake) => mistake.id === mistakeId);
+    const removedNote = mistakeNotes[mistakeId] || "";
     clearNoteTimer(mistakeId);
     setMistakeNotes((prev) => {
       const next = { ...prev };
@@ -163,7 +165,31 @@ export default function MistakesClient({
       return next;
     });
     setMistakes((prev) => prev.filter((m) => m.id !== mistakeId));
-    await supabase.from("mistakes").delete().eq("id", mistakeId);
+    const { error: deleteByIdError, count: deletedByIdCount } = await supabase
+      .from("mistakes")
+      .delete({ count: "exact" })
+      .eq("id", mistakeId)
+      .eq("user_id", userId);
+
+    if (!deleteByIdError && (deletedByIdCount || 0) > 0) {
+      return;
+    }
+
+    const { error: fallbackDeleteError, count: fallbackDeletedCount } = await supabase
+      .from("mistakes")
+      .delete({ count: "exact" })
+      .eq("question_id", questionId)
+      .eq("user_id", userId);
+
+    if (!fallbackDeleteError && (fallbackDeletedCount || 0) > 0) {
+      return;
+    }
+
+    if (removedMistake) {
+      setMistakes((prev) => [removedMistake, ...prev]);
+    }
+    setMistakeNotes((prev) => ({ ...prev, [mistakeId]: removedNote }));
+    setNoteSaveStates((prev) => ({ ...prev, [mistakeId]: "error" }));
   };
 
   const handlePracticeAll = () => {
@@ -401,7 +427,7 @@ function MistakeCard({
   t,
 }: {
   mistake: MistakeData;
-  onRemove: (id: number) => void;
+  onRemove: (id: number, questionId: number) => void;
   noteValue: string;
   noteState?: NoteSaveState;
   onNoteChange: (id: number, value: string) => void;
@@ -410,7 +436,7 @@ function MistakeCard({
   return (
     <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-red-200 dark:hover:border-red-900/40 transition-colors flex flex-col md:flex-row gap-6 relative group">
       <button
-        onClick={() => onRemove(mistake.id)}
+        onClick={() => onRemove(mistake.id, mistake.question_id)}
         className="absolute top-4 right-4 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
         title={t("remove")}
       >
