@@ -69,7 +69,7 @@ export function CalendarView({ events }: CalendarViewProps) {
   const eventPropGetter = useCallback(
     (event: CalendarEvent) => {
       let className = "border-0 rounded-md shadow-sm transition-all ";
-      let style: React.CSSProperties = {
+      const style: React.CSSProperties = {
         color: "white",
       };
 
