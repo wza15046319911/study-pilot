@@ -14,6 +14,7 @@ import {
   MessageSquare,
   PhoneCall,
 } from "lucide-react";
+import { canViewExplanation, maskExplanationsForUser } from "@/lib/access";
 
 interface PageProps {
   params: Promise<{
@@ -76,7 +77,7 @@ export default async function PastExamAnswersPage(props: PageProps) {
 
   const profilePromise = supabase
     .from("profiles")
-    .select("id, username, avatar_url, is_vip")
+    .select("id, username, avatar_url, is_vip, is_admin")
     .eq("id", user.id)
     .single();
 
@@ -110,8 +111,14 @@ export default async function PastExamAnswersPage(props: PageProps) {
   ]);
 
   const profile = profileResult.data as
-    | { username?: string; avatar_url?: string; is_vip?: boolean }
+    | {
+        username?: string;
+        avatar_url?: string;
+        is_vip?: boolean;
+        is_admin?: boolean;
+      }
     | null;
+  const canViewExplanationContent = canViewExplanation(profile);
 
   const userData = {
     username: profile?.username || user.email?.split("@")[0] || "User",
@@ -121,8 +128,9 @@ export default async function PastExamAnswersPage(props: PageProps) {
 
   const papers = ((papersResult.data as any[]) || []).map((paper) => ({
     ...paper,
-    questions: (paper.questions || []).sort(
-      (a: any, b: any) => a.order_index - b.order_index
+    questions: maskExplanationsForUser(
+      (paper.questions || []).sort((a: any, b: any) => a.order_index - b.order_index),
+      profile,
     ),
   }));
 
@@ -301,16 +309,34 @@ export default async function PastExamAnswersPage(props: PageProps) {
                                   </div>
                                 )}
 
-                                {question.explanation && (
-                                  <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/20 p-4">
-                                    <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-widest mb-2">
-                                      Explanation
-                                    </p>
-                                    <p className="text-slate-700 dark:text-slate-200 whitespace-pre-wrap">
-                                      {question.explanation}
-                                    </p>
-                                  </div>
-                                )}
+                                <div className="rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-900/20 p-4">
+                                  <p className="text-xs font-semibold text-amber-700 dark:text-amber-300 uppercase tracking-widest mb-2">
+                                    Explanation
+                                  </p>
+                                  {canViewExplanationContent ? (
+                                    question.explanation ? (
+                                      <p className="text-slate-700 dark:text-slate-200 whitespace-pre-wrap">
+                                        {question.explanation}
+                                      </p>
+                                    ) : (
+                                      <p className="text-slate-700 dark:text-slate-200 whitespace-pre-wrap">
+                                        No explanation provided.
+                                      </p>
+                                    )
+                                  ) : (
+                                    <div className="flex flex-col gap-2">
+                                      <p className="text-slate-700 dark:text-slate-200 whitespace-pre-wrap">
+                                        答案解析仅 Premium/Admin 可见。
+                                      </p>
+                                      <Link
+                                        href="/pricing"
+                                        className="inline-flex w-fit items-center rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 transition-colors"
+                                      >
+                                        Upgrade to Premium
+                                      </Link>
+                                    </div>
+                                  )}
+                                </div>
                               </div>
                             );
                           })}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { GlassPanel } from "@/components/ui/GlassPanel";
@@ -132,6 +133,7 @@ export function PracticeSession({
   const hasRestoredSessionRef = useRef(false);
 
   const supabase = useMemo(() => createClient(), []);
+  const canViewExplanationContent = Boolean(user.is_vip || user.is_admin);
 
   const sessionStorageKey = useMemo(() => {
     const questionSignature = questions.map((q) => q.id).join("-");
@@ -1432,12 +1434,26 @@ export function PracticeSession({
                           <p className="font-serif font-bold text-xl mb-2">
                             {isCorrectAnswer ? "Correct" : "Incorrect"}
                           </p>
-                          <p className="font-serif text-lg leading-relaxed opacity-90">
-                            {currentQuestion.explanation ||
-                              (currentQuestion.type === "coding_challenge"
-                                ? "请完成作答后提交。"
-                                : "No explanation provided.")}
-                          </p>
+                          {canViewExplanationContent ? (
+                            <p className="font-serif text-lg leading-relaxed opacity-90">
+                              {currentQuestion.explanation ||
+                                (currentQuestion.type === "coding_challenge"
+                                  ? "请完成作答后提交。"
+                                  : "No explanation provided.")}
+                            </p>
+                          ) : (
+                            <div className="space-y-3">
+                              <p className="font-serif text-lg leading-relaxed opacity-90">
+                                答案解析仅 Premium/Admin 可见。
+                              </p>
+                              <Link
+                                href="/pricing"
+                                className="inline-flex w-fit items-center rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 dark:bg-white dark:text-black dark:hover:bg-gray-200 transition-colors"
+                              >
+                                Upgrade to Premium
+                              </Link>
+                            </div>
+                          )}
                         </div>
 
                         <div className="pt-4 border-t border-current/10 w-full">

@@ -6,6 +6,7 @@ import { NotFoundPage } from "@/components/ui/NotFoundPage";
 import { PastExamAnswerContent } from "../PastExamAnswerContent";
 import { decodeId } from "@/lib/ids";
 import { getTranslations } from "next-intl/server";
+import { canViewExplanation, maskExplanationsForUser } from "@/lib/access";
 
 interface PageProps {
   params: Promise<{
@@ -147,7 +148,7 @@ export default async function PastExamPaperPage({ params }: PageProps) {
 
   const profileResult = await supabase
     .from("profiles")
-    .select("id, username, avatar_url, is_vip")
+    .select("id, username, avatar_url, is_vip, is_admin")
     .eq("id", user.id)
     .single();
   const profile = profileResult.data as {
@@ -155,7 +156,10 @@ export default async function PastExamPaperPage({ params }: PageProps) {
     username: string | null;
     avatar_url: string | null;
     is_vip: boolean;
+    is_admin: boolean;
   } | null;
+  const canViewExplanationContent = canViewExplanation(profile);
+  const maskedQuestionList = maskExplanationsForUser(questionList, profile);
 
   const userData = {
     username: profile?.username || user.email?.split("@")[0] || t("fallbackUser"),
@@ -168,8 +172,9 @@ export default async function PastExamPaperPage({ params }: PageProps) {
       user={userData}
       subject={subject}
       exam={pastExam}
-      questions={questionList}
+      questions={maskedQuestionList}
       typeCounts={typeCountList}
+      canViewExplanation={canViewExplanationContent}
     />
   );
 }

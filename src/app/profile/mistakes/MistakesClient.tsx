@@ -18,6 +18,7 @@ import {
   RotateCw,
   Search,
   Check,
+  Sparkles,
 } from "lucide-react";
 import { LatexContent } from "@/components/ui/LatexContent";
 import { useTranslations } from "next-intl";
@@ -58,6 +59,7 @@ interface MistakeData {
     difficulty: string;
     type: string;
     answer: string;
+    explanation?: string | null;
     options?: unknown;
     subject_id: number;
     subjects: {
@@ -77,12 +79,14 @@ interface MistakesClientProps {
   mistakes: MistakeData[];
   userId: string;
   isVip: boolean;
+  canViewExplanation: boolean;
 }
 
 export default function MistakesClient({
   mistakes: initialMistakes,
   userId,
   isVip,
+  canViewExplanation,
 }: MistakesClientProps) {
   const t = useTranslations("profileMistakes");
   const router = useRouter();
@@ -354,6 +358,7 @@ export default function MistakesClient({
                   noteValue={mistakeNotes[mistake.id] || ""}
                   noteState={noteSaveStates[mistake.id]}
                   onNoteChange={handleNoteChange}
+                  canViewExplanation={canViewExplanation}
                   t={t}
                 />
               ))}
@@ -391,6 +396,7 @@ export default function MistakesClient({
                         noteValue={mistakeNotes[mistake.id] || ""}
                         noteState={noteSaveStates[mistake.id]}
                         onNoteChange={handleNoteChange}
+                        canViewExplanation={canViewExplanation}
                         t={t}
                       />
                     ))
@@ -424,6 +430,7 @@ function MistakeCard({
   noteValue,
   noteState,
   onNoteChange,
+  canViewExplanation,
   t,
 }: {
   mistake: MistakeData;
@@ -431,6 +438,7 @@ function MistakeCard({
   noteValue: string;
   noteState?: NoteSaveState;
   onNoteChange: (id: number, value: string) => void;
+  canViewExplanation: boolean;
   t: ReturnType<typeof useTranslations>;
 }) {
   return (
@@ -528,6 +536,31 @@ function MistakeCard({
           <p className="font-mono text-sm text-gray-700 dark:text-gray-300 bg-white dark:bg-slate-900 p-2 rounded border border-green-100 dark:border-green-900/20">
             {mistake.questions.answer}
           </p>
+        </div>
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2 text-xs font-bold text-amber-500 uppercase tracking-wider">
+            <Sparkles className="size-3.5" />
+            {t("labels.explanation")}
+          </div>
+          <div className="bg-white dark:bg-slate-900 p-3 rounded border border-amber-100 dark:border-amber-900/20 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+            {canViewExplanation ? (
+              mistake.questions.explanation ? (
+                <LatexContent>{mistake.questions.explanation}</LatexContent>
+              ) : (
+                <p>{t("labels.noExplanation")}</p>
+              )
+            ) : (
+              <div className="flex flex-col gap-2">
+                <p>{t("labels.explanationLocked")}</p>
+                <Link
+                  href="/pricing"
+                  className="inline-flex w-fit items-center rounded-lg bg-slate-900 px-3 py-1.5 text-xs font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 transition-colors"
+                >
+                  {t("labels.upgrade")}
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
         <div className="space-y-1.5 pt-1">
           <div className="flex items-center justify-between">

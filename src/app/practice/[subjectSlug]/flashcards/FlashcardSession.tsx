@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
@@ -33,6 +34,7 @@ export default function FlashcardSession({
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentQuestion = questions[currentIndex];
   const [isFlipped, setIsFlipped] = useState(false);
+  const canViewExplanationContent = Boolean(user.is_vip || user.is_admin);
 
   const handleRate = async (isCorrect: boolean) => {
     // 1. Record the answer for progress tracking
@@ -155,10 +157,22 @@ export default function FlashcardSession({
                 <p className="text-xl md:text-2xl font-medium text-[#0d121b] dark:text-white">
                   {currentQuestion.answer}
                 </p>
-                {currentQuestion.explanation && (
-                  <p className="mt-4 text-base text-[#4c669a]">
-                    {currentQuestion.explanation}
-                  </p>
+                {canViewExplanationContent ? (
+                  currentQuestion.explanation && (
+                    <p className="mt-4 text-base text-[#4c669a]">
+                      {currentQuestion.explanation}
+                    </p>
+                  )
+                ) : (
+                  <div className="mt-4 flex flex-col items-center gap-2 text-base text-[#4c669a]">
+                    <p>答案解析仅 Premium/Admin 可见。</p>
+                    <Link
+                      href="/pricing"
+                      className="inline-flex items-center rounded-lg bg-[#0d121b] px-3 py-1.5 text-sm font-semibold text-white hover:bg-[#1f2937] transition-colors"
+                    >
+                      Upgrade to Premium
+                    </Link>
+                  </div>
                 )}
               </div>
             </GlassPanel>

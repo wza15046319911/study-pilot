@@ -717,8 +717,12 @@
     },
     "labels": {
       "correctAnswer": "Correct Answer",
+      "explanation": "Explanation",
+      "explanationLocked": "Explanation is available for Premium/Admin users only.",
       "myAnswer": "My Answer",
-      "noAnswer": "(No Answer)"
+      "noAnswer": "(No Answer)",
+      "noExplanation": "No explanation provided.",
+      "upgrade": "Upgrade to Premium"
     },
     "page": {
       "fallbackUser": "User"

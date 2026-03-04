@@ -4,6 +4,7 @@ import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { PracticeSession } from "@/app/practice/[subjectSlug]/PracticeSession";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
 import { decodeId, slugOrEncodedId } from "@/lib/ids";
+import { maskExplanationsForUser } from "@/lib/access";
 
 interface PageProps {
   params: Promise<{
@@ -184,12 +185,13 @@ export default async function QuestionBankPracticePage(props: PageProps) {
     is_vip: false,
     vip_expires_at: null,
   };
+  const maskedQuestions = maskExplanationsForUser(questions, sessionUser);
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
       <AmbientBackground />
       <PracticeSession
-        questions={questions}
+        questions={maskedQuestions}
         user={sessionUser}
         subjectId={bank.subject_id}
         mode="practice"

@@ -50,11 +50,11 @@ export default async function HomeworkImmersivePage(props: PageProps) {
   }
 
   const { data: profileData } = await (supabase.from("profiles") as any)
-    .select("username, avatar_url, is_vip")
+    .select("username, avatar_url, is_vip, is_admin")
     .eq("id", user.id)
     .single();
 
-  if (!profileData?.is_vip) {
+  if (!profileData?.is_vip && !profileData?.is_admin) {
     redirect("/pricing");
   }
 

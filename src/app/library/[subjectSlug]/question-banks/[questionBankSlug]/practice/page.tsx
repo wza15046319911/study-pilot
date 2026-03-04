@@ -5,6 +5,7 @@ import { PracticeSession } from "@/app/practice/[subjectSlug]/PracticeSession";
 import { Profile, Question } from "@/types/database";
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
 import { getTranslations } from "next-intl/server";
+import { maskExplanationsForUser } from "@/lib/access";
 
 interface PageProps {
   params: Promise<{
@@ -178,12 +179,13 @@ export default async function LibraryQuestionBankPracticePage(
     is_admin: false,
     email_notifications_enabled: true,
   };
+  const maskedQuestions = maskExplanationsForUser(questions, sessionUser);
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-950 dark:to-slate-900">
       <AmbientBackground />
       <PracticeSession
-        questions={questions}
+        questions={maskedQuestions}
         user={sessionUser}
         subjectId={subject.id}
         enableTimer={true}

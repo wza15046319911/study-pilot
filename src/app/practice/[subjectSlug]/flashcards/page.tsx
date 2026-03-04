@@ -4,6 +4,7 @@ import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { Header } from "@/components/layout/Header";
 import FlashcardSession from "./FlashcardSession";
 import { Profile, Question, Subject } from "@/types/database";
+import { maskExplanationsForUser } from "@/lib/access";
 
 interface PageProps {
   params: Promise<{
@@ -85,13 +86,14 @@ export default async function FlashcardsPage(props: PageProps) {
     is_admin: false,
     email_notifications_enabled: true,
   };
+  const maskedQuestions = maskExplanationsForUser(questions, sessionUser);
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc] dark:bg-[#0d121b]">
       <AmbientBackground />
       <Header user={userData} />
       <FlashcardSession
-        questions={questions}
+        questions={maskedQuestions}
         user={sessionUser}
         subjectId={subject.id}
         subjectName={subject.name}

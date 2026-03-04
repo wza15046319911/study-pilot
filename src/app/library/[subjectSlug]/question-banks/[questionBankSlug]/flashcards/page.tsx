@@ -6,6 +6,7 @@ import FlashcardSession from "@/app/practice/[subjectSlug]/flashcards/FlashcardS
 import { NotFoundPage } from "@/components/ui/NotFoundPage";
 import { Profile, Question } from "@/types/database";
 import { getTranslations } from "next-intl/server";
+import { maskExplanationsForUser } from "@/lib/access";
 
 interface PageProps {
   params: Promise<{
@@ -168,13 +169,14 @@ export default async function LibraryQuestionBankFlashcardsPage(
     is_admin: false,
     email_notifications_enabled: true,
   };
+  const maskedQuestions = maskExplanationsForUser(questions, sessionUser);
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc] dark:bg-[#0d121b]">
       <AmbientBackground />
       <Header user={userData} />
       <FlashcardSession
-        questions={questions}
+        questions={maskedQuestions}
         user={sessionUser}
         subjectId={subject.id}
         subjectName={`${bankData.title} - ${subject.name}`}

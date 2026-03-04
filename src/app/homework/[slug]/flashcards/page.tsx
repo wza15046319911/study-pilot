@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import FlashcardSession from "@/app/practice/[subjectSlug]/flashcards/FlashcardSession";
 import { Profile, Question } from "@/types/database";
 import { decodeId } from "@/lib/ids";
+import { maskExplanationsForUser } from "@/lib/access";
 
 interface PageProps {
   params: Promise<{
@@ -50,11 +51,11 @@ export default async function HomeworkFlashcardsPage(props: PageProps) {
   }
 
   const { data: profileData } = await (supabase.from("profiles") as any)
-    .select("username, avatar_url, is_vip")
+    .select("username, avatar_url, is_vip, is_admin")
     .eq("id", user.id)
     .single();
 
-  if (!profileData?.is_vip) {
+  if (!profileData?.is_vip && !profileData?.is_admin) {
     redirect("/pricing");
   }
 
@@ -101,13 +102,14 @@ export default async function HomeworkFlashcardsPage(props: PageProps) {
     is_admin: false,
     email_notifications_enabled: true,
   };
+  const maskedQuestions = maskExplanationsForUser(questions, sessionUser);
 
   return (
     <div className="relative flex min-h-screen w-full flex-col overflow-x-hidden bg-[#f0f4fc] dark:bg-[#0d121b]">
       <AmbientBackground />
       <Header user={userData} />
       <FlashcardSession
-        questions={questions}
+        questions={maskedQuestions}
         user={sessionUser}
         subjectId={homework.subject_id}
         subjectName={`${homework.title}`}

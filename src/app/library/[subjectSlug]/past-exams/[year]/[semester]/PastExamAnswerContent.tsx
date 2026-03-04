@@ -21,6 +21,7 @@ interface PastExamAnswerContentProps {
   exam: { year: number; semester: number; title: string | null };
   questions: PastExamQuestion[];
   typeCounts: { type: string; count: number }[];
+  canViewExplanation: boolean;
 }
 
 const getSemesterLabel = (semester: number) =>
@@ -38,6 +39,7 @@ export function PastExamAnswerContent({
   exam,
   questions,
   typeCounts,
+  canViewExplanation,
 }: PastExamAnswerContentProps) {
   const semesterLabel = getSemesterLabel(exam.semester);
 
@@ -182,18 +184,32 @@ export function PastExamAnswerContent({
                     )}
                   </div>
 
-                  {question.explanation && (
-                    <div>
-                      <div className="text-xs font-semibold uppercase tracking-wider text-amber-500 mb-2">
-                        Explanation
-                      </div>
-                      <div className="rounded-xl bg-amber-50/70 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/40 p-4 text-slate-700 dark:text-slate-300">
-                        <LatexContent className="whitespace-pre-wrap">
-                          {question.explanation}
-                        </LatexContent>
-                      </div>
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-wider text-amber-500 mb-2">
+                      Explanation
                     </div>
-                  )}
+                    <div className="rounded-xl bg-amber-50/70 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/40 p-4 text-slate-700 dark:text-slate-300">
+                      {canViewExplanation ? (
+                        question.explanation ? (
+                          <LatexContent className="whitespace-pre-wrap">
+                            {question.explanation}
+                          </LatexContent>
+                        ) : (
+                          <p>No explanation provided.</p>
+                        )
+                      ) : (
+                        <div className="flex flex-col gap-2">
+                          <p>答案解析仅 Premium/Admin 可见。</p>
+                          <Link
+                            href="/pricing"
+                            className="inline-flex w-fit items-center rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-200 transition-colors"
+                          >
+                            Upgrade to Premium
+                          </Link>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </GlassPanel>
               );
             })}

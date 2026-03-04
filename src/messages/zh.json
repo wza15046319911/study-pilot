@@ -717,8 +717,12 @@
     },
     "labels": {
       "correctAnswer": "正确答案",
+      "explanation": "答案解析",
+      "explanationLocked": "答案解析仅 Premium/Admin 可见。",
       "myAnswer": "我的答案",
-      "noAnswer": "（未作答）"
+      "noAnswer": "（未作答）",
+      "noExplanation": "暂无解析。",
+      "upgrade": "升级到 Premium"
     },
     "page": {
       "fallbackUser": "用户"

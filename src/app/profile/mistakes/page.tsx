@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 // import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { Profile } from "@/types/database";
 import { getTranslations } from "next-intl/server";
+import { canViewExplanation } from "@/lib/access";
 
 export default async function MistakesPage() {
   const t = await getTranslations("profileMistakes.page");
@@ -21,11 +22,12 @@ export default async function MistakesPage() {
   // Fetch user profile for Header
   const { data: profileData } = await supabase
     .from("profiles")
-    .select("id, username, avatar_url, is_vip")
+    .select("id, username, avatar_url, is_vip, is_admin")
     .eq("id", user.id)
     .single();
 
   const profile = profileData as Profile | null;
+  const canViewExplanationContent = canViewExplanation(profile);
 
   // Header user data construction
   const rawProfile = profile || {
@@ -60,6 +62,24 @@ export default async function MistakesPage() {
     is_vip: userData.is_vip,
   };
 
+  const questionSelect = [
+    "id",
+    "title",
+    "content",
+    "difficulty",
+    "type",
+    "answer",
+    "options",
+    "subject_id",
+    "topic_id",
+    "tags",
+    "subjects!inner (id, name, slug)",
+    "topics (id, name)",
+    canViewExplanationContent ? "explanation" : null,
+  ]
+    .filter(Boolean)
+    .join(", ");
+
   // Fetch mistakes with question details
   const { data: mistakes } = await supabase
     .from("mistakes")
@@ -71,27 +91,7 @@ export default async function MistakesPage() {
       error_count,
       created_at,
       note,
-      questions!inner (
-        id,
-        title,
-        content,
-        difficulty,
-        type,
-        answer,
-        options,
-        subject_id,
-        topic_id,
-        tags,
-        subjects!inner (
-          id,
-          name,
-          slug
-        ),
-        topics (
-          id,
-          name
-        )
-      )
+      questions!inner (${questionSelect})
     `
     )
     .eq("user_id", user.id)
@@ -106,6 +106,7 @@ export default async function MistakesPage() {
           mistakes={mistakes || []}
           userId={user.id}
           isVip={Boolean(userData.is_vip)}
+          canViewExplanation={canViewExplanationContent}
         />
       </main>
     </div>
