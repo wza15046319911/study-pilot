@@ -94,8 +94,11 @@ export default function CreateQuestionPage() {
     async function fetchSubjects() {
       const { data } = await supabase.from("subjects").select("id, name");
       if (data) {
-        setSubjects(data);
-        const defaultSubject = data.find((s) => s.name.toLowerCase().includes("csse1001"));
+        const typedSubjects = data as Subject[];
+        setSubjects(typedSubjects);
+        const defaultSubject = typedSubjects.find((s) =>
+          s.name.toLowerCase().includes("csse1001"),
+        );
         if (defaultSubject && !selectedSubject) {
           setSelectedSubject(defaultSubject.id.toString());
         }
@@ -115,7 +118,7 @@ export default function CreateQuestionPage() {
         .select("id, name, subject_id")
         .eq("subject_id", parseInt(selectedSubject, 10));
 
-      if (data) setTopics(data);
+      if (data) setTopics(data as Topic[]);
     }
     fetchTopics();
   }, [selectedSubject, supabase]);
