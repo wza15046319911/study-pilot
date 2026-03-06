@@ -133,7 +133,10 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   // Filters
-  const [subjectFilter, setSubjectFilter] = useState("");
+  const [subjectFilter, setSubjectFilter] = useState(() => {
+    const defaultSubject = subjects.find(s => s.name.toLowerCase().includes("csse1001"));
+    return defaultSubject ? defaultSubject.id.toString() : "";
+  });
   const [typeFilter, setTypeFilter] = useState("");
   const [difficultyFilter, setDifficultyFilter] = useState("");
   const [topicFilter, setTopicFilter] = useState("");
@@ -229,7 +232,7 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
     let query = supabase
       .from("questions")
       .select(
-        "id, subject_id, title, content, type, difficulty, options, topic_id, tags, created_at, subjects(name), topics(name)",
+        "id, subject_id, title, content, type, difficulty, options, code_snippet, topic_id, tags, created_at, subjects(name), topics(name)",
         { count: "estimated" },
       );
 
@@ -693,107 +696,91 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
             <p>No questions found matching your criteria</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 dark:bg-slate-800/50">
-                <tr>
-                  <th className="px-4 py-3 text-left w-10">
-                    <button
-                      onClick={toggleSelectAll}
-                      className="opacity-50 hover:opacity-100"
-                    >
-                      {questions.length > 0 &&
-                      selectedIds.size === questions.length ? (
-                        <CheckSquare className="size-4 text-blue-600" />
-                      ) : (
-                        <Square className="size-4" />
-                      )}
-                    </button>
-                  </th>
-                  <th
-                    className="px-4 py-3 text-left text-xs font-semibold text-[#4c669a] dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors"
-                    onClick={() => handleSort("id")}
+          <div className="w-full flex flex-col">
+            <div className="flex items-center gap-4 px-4 py-3 bg-gray-50 dark:bg-slate-800/50 text-xs font-semibold text-[#4c669a] dark:text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-800">
+              <button
+                onClick={toggleSelectAll}
+                className="opacity-50 hover:opacity-100 flex-shrink-0"
+              >
+                {questions.length > 0 &&
+                selectedIds.size === questions.length ? (
+                  <CheckSquare className="size-4 text-blue-600" />
+                ) : (
+                  <Square className="size-4" />
+                )}
+              </button>
+              <span className="ml-2 hidden sm:inline">Sort by:</span>
+              <button
+                onClick={() => handleSort("id")}
+                className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                ID
+                {sortColumn === "id" &&
+                  (sortDirection === "asc" ? (
+                    <ChevronUp className="size-3" />
+                  ) : (
+                    <ChevronDown className="size-3" />
+                  ))}
+              </button>
+              <button
+                onClick={() => handleSort("type")}
+                className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Type
+                {sortColumn === "type" &&
+                  (sortDirection === "asc" ? (
+                    <ChevronUp className="size-3" />
+                  ) : (
+                    <ChevronDown className="size-3" />
+                  ))}
+              </button>
+              <button
+                onClick={() => handleSort("difficulty")}
+                className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Difficulty
+                {sortColumn === "difficulty" &&
+                  (sortDirection === "asc" ? (
+                    <ChevronUp className="size-3" />
+                  ) : (
+                    <ChevronDown className="size-3" />
+                  ))}
+              </button>
+              <button
+                onClick={() => handleSort("created_at")}
+                className="flex items-center gap-1 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+              >
+                Date
+                {sortColumn === "created_at" &&
+                  (sortDirection === "asc" ? (
+                    <ChevronUp className="size-3" />
+                  ) : (
+                    <ChevronDown className="size-3" />
+                  ))}
+              </button>
+            </div>
+            <div className="flex flex-col divide-y divide-gray-100 dark:divide-gray-800">
+              {questions.map((q) => {
+                const isChoiceType =
+                  q.type === "single_choice" || q.type === "multiple_choice";
+                return (
+                  <div
+                    key={q.id}
+                    onClick={() => toggleSelection(q.id)}
+                    className={`flex flex-col p-4 transition-colors cursor-pointer ${
+                      selectedIds.has(q.id)
+                        ? "bg-blue-50/70 dark:bg-blue-900/20"
+                        : "hover:bg-gray-50 dark:hover:bg-slate-800/30"
+                    }`}
                   >
-                    <div className="flex items-center gap-1">
-                      ID
-                      {sortColumn === "id" &&
-                        (sortDirection === "asc" ? (
-                          <ChevronUp className="size-3" />
-                        ) : (
-                          <ChevronDown className="size-3" />
-                        ))}
-                    </div>
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#4c669a] dark:text-gray-400 uppercase tracking-wider">
-                    Question
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#4c669a] dark:text-gray-400 uppercase tracking-wider">
-                    Subject
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#4c669a] dark:text-gray-400 uppercase tracking-wider">
-                    Topic
-                  </th>
-                  <th
-                    className="px-4 py-3 text-left text-xs font-semibold text-[#4c669a] dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors"
-                    onClick={() => handleSort("type")}
-                  >
-                    <div className="flex items-center gap-1">
-                      Type
-                      {sortColumn === "type" &&
-                        (sortDirection === "asc" ? (
-                          <ChevronUp className="size-3" />
-                        ) : (
-                          <ChevronDown className="size-3" />
-                        ))}
-                    </div>
-                  </th>
-                  <th
-                    className="px-4 py-3 text-left text-xs font-semibold text-[#4c669a] dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50 transition-colors"
-                    onClick={() => handleSort("difficulty")}
-                  >
-                    <div className="flex items-center gap-1">
-                      Difficulty
-                      {sortColumn === "difficulty" &&
-                        (sortDirection === "asc" ? (
-                          <ChevronUp className="size-3" />
-                        ) : (
-                          <ChevronDown className="size-3" />
-                        ))}
-                    </div>
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-[#4c669a] dark:text-gray-400 uppercase tracking-wider">
-                    Tags
-                  </th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-[#4c669a] dark:text-gray-400 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                {questions.map((q) => {
-                  const isChoiceType =
-                    q.type === "single_choice" || q.type === "multiple_choice";
-                  const contentPreview =
-                    q.content.length > 220
-                      ? `${q.content.slice(0, 220)}...`
-                      : q.content;
-                  return (
-                    <tr
-                      key={q.id}
-                      onClick={() => toggleSelection(q.id)}
-                      className={`transition-colors cursor-pointer ${
-                        selectedIds.has(q.id)
-                          ? "bg-blue-50/70 dark:bg-blue-900/20"
-                          : "hover:bg-gray-50 dark:hover:bg-slate-800/30"
-                      }`}
-                    >
-                      <td className="px-4 py-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div className="flex items-center flex-wrap gap-2.5">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             toggleSelection(q.id);
                           }}
-                          className="text-gray-400 hover:text-blue-600"
+                          className="text-gray-400 hover:text-blue-600 mr-1"
                         >
                           {selectedIds.has(q.id) ? (
                             <CheckSquare className="size-4 text-blue-600" />
@@ -801,154 +788,145 @@ export default function QuestionsClient({ subjects }: QuestionsClientProps) {
                             <Square className="size-4" />
                           )}
                         </button>
-                      </td>
-                      <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-400 font-mono">
-                        <div className="flex items-center gap-1.5">
+                        <span className="font-mono text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
                           #{q.id}
                           {orphanStatus[q.id] && (
                             <div title="Orphan: Not referenced anywhere">
                               <AlertCircle className="size-3.5 text-amber-500" />
                             </div>
                           )}
-                        </div>
-                      </td>
-                      <td
-                        className="px-4 py-4 cursor-pointer group/cell"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handlePreview(q);
-                        }}
-                        title="Click to preview"
-                      >
-                        <div className="rounded-lg border border-gray-200 dark:border-gray-800 bg-white/70 dark:bg-slate-900/60 p-3 space-y-2 group-hover/cell:border-blue-300 dark:group-hover/cell:border-blue-700 group-hover/cell:ring-1 group-hover/cell:ring-blue-200 dark:group-hover/cell:ring-blue-800 transition-colors">
-                          <p className="text-sm text-[#0d121b] dark:text-white whitespace-pre-line">
-                            {contentPreview || "No content"}
-                          </p>
-                          {isChoiceType &&
-                            q.options &&
-                            q.options.length > 0 && (
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                {q.options.slice(0, 4).map((opt, idx) => {
-                                  const optionPreview =
-                                    opt.content.length > 80
-                                      ? `${opt.content.slice(0, 80)}...`
-                                      : opt.content;
-                                  return (
-                                    <div
-                                      key={`${q.id}-${idx}`}
-                                      className="text-xs text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-slate-800/60 rounded-md px-2 py-1"
-                                    >
-                                      <span className="font-semibold">
-                                        {opt.label}.
-                                      </span>{" "}
-                                      {optionPreview}
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                            )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 text-sm text-[#4c669a] dark:text-gray-400">
-                        {q.subjects?.name || "-"}
-                      </td>
-                      <td className="px-4 py-4 text-sm text-gray-500 dark:text-gray-500">
-                        {q.topics?.name || "-"}
-                      </td>
-                      <td className="px-4 py-4">
-                        <span className="text-xs px-2 py-1 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400">
+                        </span>
+                        <span className="text-sm font-medium text-[#4c669a] dark:text-gray-300 ml-1">
+                          {q.subjects?.name || "-"}
+                        </span>
+                        <span className="text-sm text-gray-500 dark:text-gray-500">
+                          {q.topics?.name || "-"}
+                        </span>
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 ml-1">
                           {getTypeLabel(q.type)}
                         </span>
-                      </td>
-                      <td className="px-4 py-4">
                         <span
-                          className={`text-xs px-2 py-1 rounded-full font-medium ${getDifficultyColor(
+                          className={`text-xs px-2 py-0.5 rounded-full font-medium ${getDifficultyColor(
                             q.difficulty,
                           )}`}
                         >
                           {q.difficulty}
                         </span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex flex-wrap gap-1">
-                          {q.tags && q.tags.length > 0 ? (
-                            q.tags.slice(0, 3).map((tag, i) => (
-                              <span
-                                key={i}
-                                className="text-xs px-2 py-0.5 rounded-full bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"
-                              >
-                                {tag}
-                              </span>
-                            ))
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handlePreview(q);
+                          }}
+                          disabled={previewLoadingId === q.id}
+                          className="p-1.5 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 transition-colors disabled:opacity-50"
+                          title="Preview"
+                        >
+                          {previewLoadingId === q.id ? (
+                            <Loader2 className="size-4 animate-spin" />
                           ) : (
-                            <span className="text-xs text-gray-400">-</span>
+                            <FileText className="size-4" />
                           )}
-                          {q.tags && q.tags.length > 3 && (
-                            <span className="text-xs text-gray-400">
-                              +{q.tags.length - 3}
-                            </span>
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEdit(q);
+                          }}
+                          disabled={editLoadingId === q.id}
+                          className="p-1.5 rounded-md hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 transition-colors disabled:opacity-50"
+                          title="Edit"
+                        >
+                          {editLoadingId === q.id ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            <Edit2 className="size-4" />
                           )}
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDuplicate(q.id);
+                          }}
+                          className="p-1.5 rounded-md hover:bg-green-100 dark:hover:bg-green-900/50 text-green-600 dark:text-green-400 transition-colors"
+                          title="Duplicate"
+                        >
+                          <Copy className="size-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(q.id);
+                          }}
+                          className="p-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/50 text-red-500 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <div 
+                      className="pl-[34px] mb-2 cursor-pointer"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handlePreview(q);
+                      }}
+                    >
+                      {q.title && (
+                        <h3 className="font-bold text-base text-[#0d121b] dark:text-white mb-1">
+                          {q.title}
+                        </h3>
+                      )}
+                      <div className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-snug">
+                        {q.content || "No content"}
+                      </div>
+
+                      {/* Render code snippet if it exists */}
+                      {q.code_snippet && (
+                        <div className="mt-3 overflow-hidden rounded-md border border-gray-200 dark:border-gray-700 bg-[#0d1117] relative">
+                          <pre className="p-4 text-sm font-mono text-gray-300 overflow-x-auto">
+                            <code>{q.code_snippet}</code>
+                          </pre>
                         </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center justify-end gap-2">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handlePreview(q);
-                            }}
-                            disabled={previewLoadingId === q.id}
-                            className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors disabled:opacity-50"
-                            title="Preview"
-                          >
-                            {previewLoadingId === q.id ? (
-                              <Loader2 className="size-4 animate-spin" />
-                            ) : (
-                              <FileText className="size-4" />
-                            )}
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEdit(q);
-                            }}
-                            disabled={editLoadingId === q.id}
-                            className="p-2 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 text-blue-600 dark:text-blue-400 transition-colors disabled:opacity-50"
-                            title="Edit"
-                          >
-                            {editLoadingId === q.id ? (
-                              <Loader2 className="size-4 animate-spin" />
-                            ) : (
-                              <Edit2 className="size-4" />
-                            )}
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDuplicate(q.id);
-                            }}
-                            className="p-2 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/30 text-green-600 dark:text-green-400 transition-colors"
-                            title="Duplicate"
-                          >
-                            <Copy className="size-4" />
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleDelete(q.id);
-                            }}
-                            className="p-2 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 className="size-4" />
-                          </button>
+                      )}
+                      
+                      {isChoiceType && q.options && q.options.length > 0 && (
+                        <div className="mt-3 flex flex-col gap-2">
+                          {q.options.map((opt, idx) => (
+                            <div
+                              key={`${q.id}-${idx}`}
+                              className="text-sm text-gray-600 dark:text-gray-300 bg-white/60 dark:bg-slate-900/60 border border-gray-200 dark:border-gray-700 rounded-md px-2.5 py-1.5 flex items-start gap-2"
+                            >
+                              <span className="font-semibold text-blue-600 dark:text-blue-400 shrink-0">
+                                {opt.label}.
+                              </span>
+                              <span className="break-words leading-tight">{opt.content}</span>
+                            </div>
+                          ))}
                         </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      )}
+                    </div>
+
+                    <div className="pl-[34px] mt-1 flex flex-wrap gap-1.5">
+                      {q.tags && q.tags.length > 0 ? (
+                        q.tags.map((tag, i) => (
+                          <span
+                            key={i}
+                            className="text-xs px-2 py-0.5 rounded border border-purple-100 dark:border-purple-800 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400"
+                          >
+                            {tag}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="text-xs text-gray-400 italic">No tags</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 

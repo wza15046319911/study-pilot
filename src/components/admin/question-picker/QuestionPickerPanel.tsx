@@ -465,9 +465,38 @@ export function QuestionPickerPanel({
                       className="flex-1 text-left min-w-0"
                       onClick={() => void openPreview(question)}
                     >
-                      <div className="text-sm text-slate-800 dark:text-slate-100 line-clamp-2">
+                      <div className="text-sm text-slate-800 dark:text-slate-100 whitespace-pre-wrap leading-snug">
                         <LatexContent content={question.content} />
                       </div>
+
+                      {/* Code Snippet Preview */}
+                      {question.code_snippet && (
+                        <div className="mt-2 overflow-hidden rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+                          <pre className="p-3 text-xs font-mono text-slate-700 dark:text-slate-300 overflow-x-auto">
+                            <code>{question.code_snippet}</code>
+                          </pre>
+                        </div>
+                      )}
+
+                      {/* Options Preview */}
+                      {question.options && Array.isArray(question.options) && question.options.length > 0 && (
+                        <div className="mt-2 flex flex-col gap-1.5">
+                          {question.options.map((opt: any, idx: number) => (
+                            <div
+                              key={`${question.id}-${idx}`}
+                              className="text-xs text-slate-600 dark:text-slate-400 bg-white/60 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700 rounded p-1.5 flex items-start gap-1.5"
+                            >
+                              <span className="font-semibold text-blue-600 dark:text-blue-400 shrink-0">
+                                {opt.label || String.fromCharCode(65 + idx)}.
+                              </span>
+                              <span className="break-words leading-tight">
+                                {opt.content}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
                       <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-500 dark:text-slate-400">
                         <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5">
                           {question.type.replace("_", " ")}
@@ -517,11 +546,45 @@ export function QuestionPickerPanel({
                       <div className="text-xs text-slate-400 mb-1">
                         #{index + 1}
                       </div>
-                      <div className="text-sm text-slate-800 dark:text-slate-100 line-clamp-2">
+                      <div className="text-sm text-slate-800 dark:text-slate-100 whitespace-pre-wrap leading-snug">
                         <LatexContent content={question.content} />
                       </div>
-                      <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                        {question.type.replace("_", " ")}
+
+                      {/* Code Snippet Preview */}
+                      {question.code_snippet && (
+                        <div className="mt-2 overflow-hidden rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+                          <pre className="p-3 text-xs font-mono text-slate-700 dark:text-slate-300 overflow-x-auto">
+                            <code>{question.code_snippet}</code>
+                          </pre>
+                        </div>
+                      )}
+
+                      {/* Options Preview */}
+                      {question.options && Array.isArray(question.options) && question.options.length > 0 && (
+                        <div className="mt-2 flex flex-col gap-1.5">
+                          {question.options.map((opt: any, idx: number) => (
+                            <div
+                              key={`${question.id}-${idx}`}
+                              className="text-xs text-slate-600 dark:text-slate-400 bg-white/60 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-700 rounded p-1.5 flex items-start gap-1.5"
+                            >
+                              <span className="font-semibold text-blue-600 dark:text-blue-400 shrink-0">
+                                {opt.label || String.fromCharCode(65 + idx)}.
+                              </span>
+                              <span className="break-words leading-tight">
+                                {opt.content}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      <div className="mt-2 text-xs text-slate-500 dark:text-slate-400 flex flex-wrap gap-2">
+                        <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5">
+                          {question.type.replace("_", " ")}
+                        </span>
+                        <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5">
+                          {question.difficulty}
+                        </span>
                       </div>
                     </button>
                     <button

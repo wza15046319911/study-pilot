@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Select } from "@/components/ui/Select";
 import { MarkdownEditor } from "@/components/ui/MarkdownEditor";
 import { TestCaseEditor, TestCasesConfig } from "@/components/admin/TestCaseEditor";
+import Editor from "@monaco-editor/react";
 import {
   X,
   Save,
@@ -604,12 +605,21 @@ export default function EditQuestionModal({
                     <label className="block text-sm font-medium text-[#4c669a] dark:text-gray-400 mb-2">
                       Code Snippet
                     </label>
-                    <Textarea
-                      value={codeSnippet}
-                      onChange={(e) => setCodeSnippet(e.target.value)}
-                      placeholder="Code snippet (if any)..."
-                      className="min-h-[200px] font-mono text-sm"
-                    />
+                    <div className="border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden h-[200px]">
+                      <Editor
+                        height="100%"
+                        defaultLanguage="python"
+                        theme="vs-dark"
+                        value={codeSnippet}
+                        onChange={(value) => setCodeSnippet(value || "")}
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 14,
+                          padding: { top: 16 },
+                          scrollBeyondLastLine: false,
+                        }}
+                      />
+                    </div>
                   </div>
 
                   {/* Explanation */}

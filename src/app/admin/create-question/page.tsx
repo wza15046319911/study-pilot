@@ -93,7 +93,13 @@ export default function CreateQuestionPage() {
   useEffect(() => {
     async function fetchSubjects() {
       const { data } = await supabase.from("subjects").select("id, name");
-      if (data) setSubjects(data);
+      if (data) {
+        setSubjects(data);
+        const defaultSubject = data.find((s) => s.name.toLowerCase().includes("csse1001"));
+        if (defaultSubject && !selectedSubject) {
+          setSelectedSubject(defaultSubject.id.toString());
+        }
+      }
     }
     fetchSubjects();
   }, [supabase]);
