@@ -74,6 +74,8 @@ interface PracticeSessionProps {
   weeklyPracticeId?: number;
   weeklyPracticeMode?: "practice" | "immersive" | "flashcards";
   showTopics?: boolean;
+  /** When true, skip results modal and redirect to exitLink when finished (used for homework, weekly practice, question bank) */
+  skipFinishFlow?: boolean;
 }
 
 export function PracticeSession({
@@ -89,6 +91,7 @@ export function PracticeSession({
   weeklyPracticeId,
   weeklyPracticeMode = "practice",
   showTopics = true,
+  skipFinishFlow = false,
 }: PracticeSessionProps) {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -854,11 +857,16 @@ export function PracticeSession({
         }
       }
 
-      // Show results modal
       sessionStorage.removeItem(sessionStorageKey);
       setFinalScore(correctCount);
-      setShowResults(true);
-      setIsSubmitting(false);
+
+      if (skipFinishFlow) {
+        setIsSubmitting(false);
+        router.push(exitLink);
+      } else {
+        setShowResults(true);
+        setIsSubmitting(false);
+      }
     } catch (error) {
       console.error("Error submitting results:", error);
       setIsSubmitting(false);
@@ -1538,8 +1546,8 @@ export function PracticeSession({
         </div>
       </div>
 
-      {/* Results Modal - Only for Practice Mode */}
-      {mode === "practice" && (
+      {/* Results Modal - Only for Practice Mode, skipped when skipFinishFlow (homework, weekly, question bank) */}
+      {mode === "practice" && !skipFinishFlow && (
         <ResultsModal
           isOpen={showResults}
           score={finalScore}

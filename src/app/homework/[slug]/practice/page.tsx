@@ -168,6 +168,7 @@ export default async function HomeworkPracticePage(props: PageProps) {
         homeworkId={homework.id}
         homeworkMode="practice"
         showTopics={false}
+        skipFinishFlow
       />
     </div>
   );

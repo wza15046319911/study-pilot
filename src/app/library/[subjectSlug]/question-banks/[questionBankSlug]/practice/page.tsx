@@ -190,6 +190,7 @@ export default async function LibraryQuestionBankPracticePage(
         subjectId={subject.id}
         enableTimer={true}
         exitLink={`/library/${subjectSlug}/question-banks/${questionBankSlug}`}
+        skipFinishFlow
       />
     </div>
   );

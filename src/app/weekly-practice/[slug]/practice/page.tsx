@@ -151,6 +151,7 @@ export default async function WeeklyPracticeSessionPage(props: PageProps) {
         weeklyPracticeId={weeklyPractice.id}
         weeklyPracticeMode="practice"
         showTopics
+        skipFinishFlow
       />
     </div>
   );

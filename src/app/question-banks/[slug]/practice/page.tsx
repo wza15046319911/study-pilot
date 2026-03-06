@@ -196,6 +196,7 @@ export default async function QuestionBankPracticePage(props: PageProps) {
         subjectId={bank.subject_id}
         mode="practice"
         exitLink={`/question-banks/${bankRouteId}`}
+        skipFinishFlow
       />
     </div>
   );
