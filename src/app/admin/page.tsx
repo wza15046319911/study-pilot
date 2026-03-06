@@ -13,6 +13,7 @@ import {
   Gift,
   KeyRound,
   Share2,
+  Users,
 } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -96,6 +97,13 @@ export default function AdminDashboard() {
       title: "Operations",
       description: "Review feedback and control growth features.",
       links: [
+        {
+          title: "User Management",
+          description: "View and manage user accounts and roles.",
+          href: "/admin/users",
+          icon: <Users className="size-8 text-indigo-500" />,
+          color: "bg-indigo-100 dark:bg-indigo-900/30",
+        },
         {
           title: "Feedback",
           description: "Review and track submitted user feedback.",
