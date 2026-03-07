@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { VideoLinkButton } from "@/components/common/VideoLinkButton";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { CodeBlock } from "@/components/ui/CodeBlock";
 import { createClient } from "@/lib/supabase/client";
+import { normalizeHttpUrl } from "@/lib/video";
 import { isQuestionCorrect } from "@/lib/answerValidation";
 import { Question, Profile, QuestionOption } from "@/types/database";
 import { recordWrongAnswerMistake, setBookmark } from "../actions";
@@ -28,6 +30,7 @@ interface ImmersiveSessionProps {
   subjectId: number;
   subjectName: string;
   user: Profile;
+  videoUrl?: string | null;
 }
 
 export default function ImmersiveSession({
@@ -35,9 +38,11 @@ export default function ImmersiveSession({
   subjectId,
   subjectName,
   user,
+  videoUrl,
 }: ImmersiveSessionProps) {
   const router = useRouter();
   const supabase = createClient();
+  const normalizedVideoUrl = normalizeHttpUrl(videoUrl);
 
   const [currentQuestion, setCurrentQuestion] = useState<Question | null>(
     initialQuestion,
@@ -299,21 +304,31 @@ export default function ImmersiveSession({
               <span className="text-purple-600 text-sm font-semibold uppercase tracking-wider">
                 {subjectName}
               </span>
-              <button
-                onClick={toggleBookmark}
-                className={`p-2 rounded-full transition-colors ${
-                  isBookmarked
-                    ? "text-yellow-500 bg-yellow-400/10"
-                    : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
-                }`}
-                aria-label={
-                  isBookmarked ? "Remove bookmark" : "Bookmark question"
-                }
-              >
-                <Bookmark
-                  className={`size-5 ${isBookmarked ? "fill-yellow-500" : ""}`}
-                />
-              </button>
+              <div className="flex items-center gap-2">
+                {normalizedVideoUrl && (
+                  <VideoLinkButton
+                    href={normalizedVideoUrl}
+                    label="Watch video"
+                    variant="quiet"
+                    className="px-3 py-1.5 text-xs"
+                  />
+                )}
+                <button
+                  onClick={toggleBookmark}
+                  className={`p-2 rounded-full transition-colors ${
+                    isBookmarked
+                      ? "text-yellow-500 bg-yellow-400/10"
+                      : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                  }`}
+                  aria-label={
+                    isBookmarked ? "Remove bookmark" : "Bookmark question"
+                  }
+                >
+                  <Bookmark
+                    className={`size-5 ${isBookmarked ? "fill-yellow-500" : ""}`}
+                  />
+                </button>
+              </div>
             </div>
 
             {/* Question Content */}

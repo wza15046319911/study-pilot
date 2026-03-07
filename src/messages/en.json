@@ -691,6 +691,7 @@
     },
     "empty": "No homework matches your search or filter.",
     "noDescription": "No description provided.",
+    "videoCta": "Watch video",
     "duePrefix": "Due",
     "progressLabel": "Progress: {answered}/{total}",
     "timeElapsed": "Time elapsed",
@@ -915,6 +916,7 @@
   "profileWeeklyPractice": {
     "cta": {
       "continue": "Continue",
+      "review": "Review",
       "start": "Start"
     },
     "empty": "No weekly practice sets match your filters.",
@@ -941,6 +943,7 @@
     "searchPlaceholder": "Search weekly practice...",
     "status": {
       "completed": "Completed",
+      "expired": "Expired",
       "inProgress": "In progress",
       "notStarted": "Not started"
     },
@@ -995,6 +998,12 @@
       "midterm": "Midterm",
       "undergraduate": "Undergraduate",
       "postgraduate": "Postgraduate"
+    },
+    "video": {
+      "badge": "Video Resource",
+      "cta": "Watch video",
+      "description": "Open a guided walkthrough, lecture clip, or revision explainer for this subject.",
+      "title": "Need a faster refresher before you practise?"
     },
     "mockExams": {
       "title": "Mock Exams"

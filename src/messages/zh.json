@@ -691,6 +691,7 @@
     },
     "empty": "没有匹配当前搜索或筛选的作业。",
     "noDescription": "暂无描述。",
+    "videoCta": "观看视频",
     "duePrefix": "截止",
     "progressLabel": "进度：{answered}/{total}",
     "timeElapsed": "时间消耗",
@@ -915,6 +916,7 @@
   "profileWeeklyPractice": {
     "cta": {
       "continue": "继续",
+      "review": "复习",
       "start": "开始"
     },
     "empty": "没有匹配筛选条件的每周练习。",
@@ -941,6 +943,7 @@
     "searchPlaceholder": "搜索每周练习...",
     "status": {
       "completed": "已完成",
+      "expired": "已过期",
       "inProgress": "进行中",
       "notStarted": "未开始"
     },
@@ -995,6 +998,12 @@
       "midterm": "期中",
       "undergraduate": "本科",
       "postgraduate": "研究生"
+    },
+    "video": {
+      "badge": "视频资源",
+      "cta": "观看视频",
+      "description": "打开该科目的讲解视频、课程片段或考前速刷解析。",
+      "title": "想先用一段视频快速热身？"
     },
     "mockExams": {
       "title": "模拟考试"

@@ -418,6 +418,7 @@ CREATE TABLE IF NOT EXISTS "public"."homeworks" (
     "title" "text" NOT NULL,
     "slug" "text",
     "description" "text",
+    "video_url" "text",
     "subject_id" bigint NOT NULL,
     "is_premium" boolean DEFAULT true NOT NULL,
     "is_published" boolean DEFAULT false NOT NULL,
@@ -868,6 +869,7 @@ CREATE TABLE IF NOT EXISTS "public"."subjects" (
     "id" integer NOT NULL,
     "name" "text" NOT NULL,
     "description" "text",
+    "video_url" "text",
     "icon" "text",
     "category" "text",
     "question_count" integer DEFAULT 0,
@@ -3305,7 +3307,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "service_role";
-
 
 
 

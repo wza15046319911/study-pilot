@@ -29,14 +29,14 @@ export default async function HomeworkPracticePage(props: PageProps) {
   let { data: homework, error: homeworkError } = await (
     supabase.from("homeworks") as any
   )
-    .select("id, slug, subject_id, due_at, allowed_modes")
+    .select("id, slug, subject_id, due_at, allowed_modes, title, video_url")
     .eq("slug", slug)
     .eq("is_published", true)
     .maybeSingle();
 
   if (!homework && decodedHomeworkId !== null) {
     const fallbackResult = await (supabase.from("homeworks") as any)
-      .select("id, slug, subject_id, due_at, allowed_modes")
+      .select("id, slug, subject_id, due_at, allowed_modes, title, video_url")
       .eq("id", decodedHomeworkId)
       .eq("is_published", true)
       .maybeSingle();
@@ -167,6 +167,7 @@ export default async function HomeworkPracticePage(props: PageProps) {
         exitLink="/profile/homework"
         homeworkId={homework.id}
         homeworkMode="practice"
+        sessionVideoUrl={homework.video_url}
         showTopics={false}
         skipFinishFlow
       />

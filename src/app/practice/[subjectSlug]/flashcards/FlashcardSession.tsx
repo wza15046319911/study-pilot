@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { VideoLinkButton } from "@/components/common/VideoLinkButton";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { Question, Profile, FlashcardReview } from "@/types/database";
+import { normalizeHttpUrl } from "@/lib/video";
 import {
   ChevronLeft,
   ChevronRight,
@@ -22,6 +24,7 @@ interface FlashcardSessionProps {
   user: Profile;
   subjectId: number;
   subjectName: string;
+  videoUrl?: string | null;
 }
 
 export default function FlashcardSession({
@@ -29,12 +32,14 @@ export default function FlashcardSession({
   user,
   subjectId,
   subjectName,
+  videoUrl,
 }: FlashcardSessionProps) {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentQuestion = questions[currentIndex];
   const [isFlipped, setIsFlipped] = useState(false);
   const canViewExplanationContent = Boolean(user.is_vip || user.is_admin);
+  const normalizedVideoUrl = normalizeHttpUrl(videoUrl);
 
   const handleRate = async (isCorrect: boolean) => {
     // 1. Record the answer for progress tracking
@@ -104,9 +109,19 @@ export default function FlashcardSession({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-sm font-medium">
-          <Zap className="size-4" />
-          Flashcards
+        <div className="flex items-center gap-3">
+          {normalizedVideoUrl && (
+            <VideoLinkButton
+              href={normalizedVideoUrl}
+              label="Watch video"
+              variant="quiet"
+              className="px-3 py-1.5 text-xs"
+            />
+          )}
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 rounded-full text-sm font-medium">
+            <Zap className="size-4" />
+            Flashcards
+          </div>
         </div>
       </div>
 

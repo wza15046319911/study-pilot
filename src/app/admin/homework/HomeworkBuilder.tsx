@@ -10,7 +10,9 @@ import { Select } from "@/components/ui/Select";
 import { searchUsers } from "@/lib/actions/adminUnlock";
 import { saveHomeworkDraft, pushHomework } from "./actions";
 import { QuestionPickerPanel } from "@/components/admin/question-picker/QuestionPickerPanel";
+import { VideoLinkButton } from "@/components/common/VideoLinkButton";
 import type { QuestionPoolListItem } from "@/lib/actions/questionPool";
+import { isValidHttpUrl, normalizeHttpUrl } from "@/lib/video";
 import {
   ChevronLeft,
   Save,
@@ -38,6 +40,7 @@ interface HomeworkBuilderProps {
     title?: string;
     slug?: string;
     description?: string;
+    video_url?: string | null;
     due_at?: string | null;
     allowed_modes?: string[];
     questions?: QuestionPoolListItem[];
@@ -81,6 +84,7 @@ export default function HomeworkBuilder({
   const [description, setDescription] = useState(
     initialData?.description || "",
   );
+  const [videoUrl, setVideoUrl] = useState(initialData?.video_url || "");
   const [dueAt, setDueAt] = useState<string>(
     toDatetimeLocal(initialData?.due_at),
   );
@@ -160,6 +164,11 @@ export default function HomeworkBuilder({
       return;
     }
 
+    if (videoUrl.trim() && !isValidHttpUrl(videoUrl)) {
+      alert("Video URL must start with http:// or https://");
+      return;
+    }
+
     if (publish && audienceType === "selected" && selectedUsers.length === 0) {
       alert("Please select at least one premium user to assign.");
       return;
@@ -175,6 +184,7 @@ export default function HomeworkBuilder({
         title: title.trim(),
         slug: finalSlug,
         description: description.trim(),
+        videoUrl: normalizeHttpUrl(videoUrl),
         dueAt: fromDatetimeLocal(dueAt),
         allowedModes,
         isPublished: publish,
@@ -302,6 +312,31 @@ export default function HomeworkBuilder({
                   placeholder="Short summary (optional)"
                   className="mt-2"
                 />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  Video URL
+                </label>
+                <Input
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  placeholder="https://example.com/video"
+                  className="mt-2"
+                />
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Optional external walkthrough for this homework.
+                  </p>
+                  {normalizeHttpUrl(videoUrl) && (
+                    <VideoLinkButton
+                      href={normalizeHttpUrl(videoUrl)!}
+                      label="Open link"
+                      variant="quiet"
+                      className="px-3 py-1.5 text-xs"
+                    />
+                  )}
+                </div>
               </div>
 
               <div>

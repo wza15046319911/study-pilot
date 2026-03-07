@@ -3,6 +3,7 @@
 import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
 import { sendHomeworkPushEmails } from "@/lib/email/sendHomeworkPushEmails";
+import { normalizeHttpUrl } from "@/lib/video";
 
 type HomeworkPayload = {
   homeworkId?: number;
@@ -10,6 +11,7 @@ type HomeworkPayload = {
   title: string;
   slug: string;
   description?: string;
+  videoUrl: string | null;
   dueAt: string | null;
   allowedModes: string[];
   isPublished: boolean;
@@ -103,10 +105,15 @@ const getEmailNotificationPreferenceMap = async (userIds: string[]) => {
 
 const upsertHomework = async (data: HomeworkPayload) => {
   const supabase = await createClient();
+  if (data.videoUrl?.trim() && !normalizeHttpUrl(data.videoUrl)) {
+    throw new Error("Video URL must be a valid http(s) URL.");
+  }
+
   const payload = {
     title: data.title,
     slug: data.slug,
     description: data.description,
+    video_url: normalizeHttpUrl(data.videoUrl),
     subject_id: data.subjectId,
     is_premium: true,
     is_published: data.isPublished,
@@ -219,6 +226,10 @@ const assignHomework = async (
 export async function saveHomeworkDraft(data: HomeworkPayload) {
   const homeworkId = await upsertHomework({ ...data, isPublished: false });
   revalidatePath("/admin/homework");
+  revalidatePath("/profile/homework");
+  revalidatePath(`/homework/${data.slug}/practice`);
+  revalidatePath(`/homework/${data.slug}/immersive`);
+  revalidatePath(`/homework/${data.slug}/flashcards`);
   return { success: true, homeworkId };
 }
 
@@ -284,6 +295,9 @@ export async function pushHomework(
 
   revalidatePath("/admin/homework");
   revalidatePath("/profile/homework");
+  revalidatePath(`/homework/${data.slug}/practice`);
+  revalidatePath(`/homework/${data.slug}/immersive`);
+  revalidatePath(`/homework/${data.slug}/flashcards`);
 
   return {
     success: true,

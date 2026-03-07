@@ -4,6 +4,7 @@ import { createAdminClient, createClient } from "@/lib/supabase/server";
 import { Database } from "@/types/database";
 import { revalidatePath } from "next/cache";
 import { encodeId } from "@/lib/ids";
+import { normalizeHttpUrl } from "@/lib/video";
 
 // --- Subjects ---
 
@@ -21,7 +22,17 @@ export async function upsertSubject(
     throw new Error("Unauthorized");
   }
 
-  const { error } = await supabase.from("subjects").upsert(data as any); // Cast to any to bypass strict overload check if needed, but Insert should be fine usually. The error before was Partial<Subject>.
+  const normalizedVideoUrl = normalizeHttpUrl(data.video_url);
+  if (data.video_url?.trim() && !normalizedVideoUrl) {
+    throw new Error("Video URL must be a valid http(s) URL.");
+  }
+
+  const payload = {
+    ...data,
+    video_url: normalizedVideoUrl,
+  };
+
+  const { error } = await supabase.from("subjects").upsert(payload as any); // Cast to any to bypass strict overload check if needed, but Insert should be fine usually. The error before was Partial<Subject>.
   // Actually, let's try without cast first? No, the error "assignable to never" usually implies total mismatch.
   // Let's use `data as any` to be safe and avoid another build fail cycle, as Supabase types can be finicky with helper types vs raw types.
 
@@ -32,6 +43,9 @@ export async function upsertSubject(
 
   revalidatePath("/admin/subjects");
   revalidatePath("/library");
+  if (payload.slug) {
+    revalidatePath(`/library/${payload.slug}`);
+  }
   return { success: true };
 }
 

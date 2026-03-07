@@ -9,6 +9,15 @@ export interface UserFilters {
   vipStatus?: "all" | "vip" | "non-vip";
 }
 
+type AdminProfile = {
+  is_admin: boolean | null;
+};
+
+type ProfileListItem = {
+  id: string;
+  [key: string]: unknown;
+};
+
 // Ensure the caller is an admin
 async function requireAdmin() {
   const supabase = await createClient();
@@ -20,11 +29,12 @@ async function requireAdmin() {
     throw new Error("Unauthorized");
   }
 
-  const { data: profile } = await supabase
+  const { data } = await supabase
     .from("profiles")
     .select("is_admin")
     .eq("id", user.id)
     .single();
+  const profile = data as AdminProfile | null;
 
   if (!profile?.is_admin) {
     throw new Error("Forbidden: Admin access required");
@@ -67,7 +77,8 @@ export async function getUsers(
 
   query = query.order("created_at", { ascending: false }).range(offset, offset + limit - 1);
 
-  const { data: profiles, count, error } = await query;
+  const { data, count, error } = await query;
+  const profiles = (data ?? []) as ProfileListItem[];
 
   if (error) {
     throw new Error(`Failed to fetch users: ${error.message}`);
@@ -89,7 +100,7 @@ export async function getUsers(
     });
 
     return {
-      users: (profiles || []).map((p) => ({
+      users: profiles.map((p) => ({
         ...p,
         email: emailMap.get(p.id) || null,
       })),
@@ -99,7 +110,7 @@ export async function getUsers(
   }
 
   return {
-    users: (profiles || []).map((p) => ({ ...p, email: null })),
+    users: profiles.map((p) => ({ ...p, email: null })),
     total: count || 0,
     pages: Math.ceil((count || 0) / limit),
   };
@@ -116,8 +127,7 @@ export async function updateUserRole(userId: string, isAdmin: boolean) {
 
   const supabase = createAdminClient();
 
-  const { error } = await supabase
-    .from("profiles")
+  const { error } = await (supabase.from("profiles") as any)
     .update({ is_admin: isAdmin })
     .eq("id", userId);
 
@@ -139,8 +149,7 @@ export async function updateUserVip(
 
   const supabase = createAdminClient();
 
-  const { error } = await supabase
-    .from("profiles")
+  const { error } = await (supabase.from("profiles") as any)
     .update({
       is_vip: isVip,
       vip_expires_at: expiresAt,

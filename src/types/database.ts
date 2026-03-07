@@ -112,6 +112,7 @@ export interface Database {
           slug: string;
           name: string;
           description: string | null;
+          video_url: string | null;
           icon: string | null;
           category: string | null;
           question_count: number;
@@ -125,6 +126,7 @@ export interface Database {
           slug?: string;
           name: string;
           description?: string | null;
+          video_url?: string | null;
           icon?: string | null;
           category?: string | null;
           question_count?: number;
@@ -138,6 +140,7 @@ export interface Database {
           slug?: string;
           name?: string;
           description?: string | null;
+          video_url?: string | null;
           icon?: string | null;
           category?: string | null;
           question_count?: number;
@@ -709,6 +712,7 @@ export interface Database {
           title: string;
           slug: string | null;
           description: string | null;
+          video_url: string | null;
           subject_id: number;
           is_premium: boolean;
           is_published: boolean;
@@ -723,6 +727,7 @@ export interface Database {
           title: string;
           slug?: string | null;
           description?: string | null;
+          video_url?: string | null;
           subject_id: number;
           is_premium?: boolean;
           is_published?: boolean;
@@ -737,6 +742,7 @@ export interface Database {
           title?: string;
           slug?: string | null;
           description?: string | null;
+          video_url?: string | null;
           subject_id?: number;
           is_premium?: boolean;
           is_published?: boolean;

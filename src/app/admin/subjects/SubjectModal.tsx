@@ -5,6 +5,8 @@ import { Subject, Topic, SubjectExamDate } from "@/types/database";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { GlassPanel } from "@/components/ui/GlassPanel";
+import { VideoLinkButton } from "@/components/common/VideoLinkButton";
+import { isValidHttpUrl, normalizeHttpUrl } from "@/lib/video";
 import { X, Save, Layers, ListFilter, Calendar } from "lucide-react";
 import { upsertSubject } from "../actions";
 import { useRouter } from "next/navigation";
@@ -34,6 +36,7 @@ export function SubjectModal({
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
   const [icon, setIcon] = useState("");
   const [category, setCategory] = useState("");
   const [isHot, setIsHot] = useState(false);
@@ -46,6 +49,7 @@ export function SubjectModal({
         setName(subject.name);
         setSlug(subject.slug || "");
         setDescription(subject.description || "");
+        setVideoUrl(subject.video_url || "");
         setIcon(subject.icon || "");
         setCategory(subject.category || "");
         setIsHot(subject.is_hot || false);
@@ -56,6 +60,7 @@ export function SubjectModal({
         setName("");
         setSlug("");
         setDescription("");
+        setVideoUrl("");
         setIcon("");
         setCategory("");
         setIsHot(false);
@@ -91,6 +96,11 @@ export function SubjectModal({
       return;
     }
 
+    if (videoUrl.trim() && !isValidHttpUrl(videoUrl)) {
+      alert("Video URL must start with http:// or https://");
+      return;
+    }
+
     setLoading(true);
     try {
       await upsertSubject({
@@ -98,6 +108,7 @@ export function SubjectModal({
         name,
         slug: slug || name.toLowerCase().replace(/\s+/g, "-"), // Fallback
         description: description || null,
+        video_url: normalizeHttpUrl(videoUrl),
         icon: icon || null,
         category: category || null,
         is_hot: isHot,
@@ -204,6 +215,31 @@ export function SubjectModal({
                   placeholder="Short description of the subject..."
                   className="w-full min-h-[80px] p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-[#135bec]/20 focus:border-[#135bec] text-sm dark:text-white"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Video URL
+                </label>
+                <Input
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  placeholder="https://example.com/video"
+                  className="bg-white dark:bg-slate-900"
+                />
+                <div className="flex items-center justify-between gap-3">
+                  <p className="text-xs text-gray-500">
+                    Optional external walkthrough or lecture link.
+                  </p>
+                  {normalizeHttpUrl(videoUrl) && (
+                    <VideoLinkButton
+                      href={normalizeHttpUrl(videoUrl)!}
+                      label="Open link"
+                      variant="quiet"
+                      className="px-3 py-1.5 text-xs"
+                    />
+                  )}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

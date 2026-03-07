@@ -1,10 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { VideoLinkButton } from "@/components/common/VideoLinkButton";
 import { QuestionBankItem } from "@/components/question-bank/QuestionBankItem";
 import { PremiumModal } from "@/components/ui/PremiumModal";
 import { CountdownTimer } from "@/components/ui/CountdownTimer";
 import { GlassPanel } from "@/components/ui/GlassPanel";
+import { getYouTubeEmbedUrl, normalizeHttpUrl } from "@/lib/video";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Link from "next/link";
@@ -26,6 +28,7 @@ interface SubjectContentProps {
     id: number;
     name: string;
     slug: string;
+    video_url?: string | null;
     icon?: string;
   };
   exams: AccessItem[];
@@ -190,6 +193,8 @@ export function SubjectContent({
 
   const groupedBanksByAccessTier = groupByAccessTier(banks);
   const groupedExamsByAccessTier = groupByAccessTier(exams);
+  const subjectVideoUrl = normalizeHttpUrl(subject.video_url);
+  const subjectVideoEmbedUrl = getYouTubeEmbedUrl(subject.video_url);
 
   return (
     <div className="py-12 space-y-12">
@@ -202,8 +207,8 @@ export function SubjectContent({
 
       {/* Hero Section */}
       <section className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center gap-6">
-          <div>
+        <div className="w-full">
+          <div className="w-full">
             <h1 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
               {subject.name}
             </h1>
@@ -234,6 +239,22 @@ export function SubjectContent({
                     />
                   </div>
                 ))}
+              </div>
+            )}
+            {subjectVideoEmbedUrl && (
+              <div className="mt-6 w-full rounded-3xl border border-rose-200/80 bg-[radial-gradient(circle_at_top_right,_rgba(251,113,133,0.18),_transparent_38%),linear-gradient(135deg,rgba(255,255,255,0.96),rgba(255,241,242,0.92))] p-4 shadow-[0_20px_50px_-35px_rgba(244,63,94,0.45)] dark:border-rose-900/60 dark:bg-[radial-gradient(circle_at_top_right,_rgba(244,63,94,0.18),_transparent_38%),linear-gradient(135deg,rgba(15,23,42,0.9),rgba(60,7,22,0.72))]">
+                <div className="w-full shrink-0 overflow-hidden rounded-2xl border border-white/40 bg-slate-950/80 shadow-2xl shadow-slate-950/30">
+                  <div className="aspect-[21/9]">
+                    <iframe
+                      src={subjectVideoEmbedUrl}
+                      title={`${subject.name} video`}
+                      className="h-full w-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      referrerPolicy="strict-origin-when-cross-origin"
+                      allowFullScreen
+                    />
+                  </div>
+                </div>
               </div>
             )}
           </div>

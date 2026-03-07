@@ -109,6 +109,7 @@ export default async function HomeworkImmersivePage(props: PageProps) {
         subjectId={homework.subject_id}
         subjectName={`${homework.title}`}
         user={sessionUser}
+        videoUrl={homework.video_url}
       />
     </div>
   );

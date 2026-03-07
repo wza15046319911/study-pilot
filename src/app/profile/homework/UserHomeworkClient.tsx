@@ -1,10 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { VideoLinkButton } from "@/components/common/VideoLinkButton";
 import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { slugOrEncodedId } from "@/lib/ids";
+import { normalizeHttpUrl } from "@/lib/video";
 import {
   CalendarClock,
   AlarmClock,
@@ -32,6 +34,7 @@ type HomeworkAssignment = {
     title: string;
     slug: string | null;
     description: string | null;
+    video_url?: string | null;
     due_at: string | null;
     allowed_modes?: string[] | null;
     items?: { count: number }[] | null;
@@ -250,6 +253,7 @@ export function UserHomeworkClient({ initialData }: UserHomeworkClientProps) {
             const latestSubmission = assignment.latestSubmission;
             const answeredCount = latestSubmission?.answered_count || 0;
             const totalCount = latestSubmission?.total_count || totalQuestions;
+            const homeworkVideoUrl = normalizeHttpUrl(homework.video_url);
             const hasProgress = answeredCount > 0;
             const isCompleted =
               Boolean(assignment.completed_at) ||
@@ -380,6 +384,13 @@ export function UserHomeworkClient({ initialData }: UserHomeworkClientProps) {
                 </div>
 
                 <div className="flex flex-wrap gap-3 lg:flex-col lg:items-end">
+                  {homeworkVideoUrl && (
+                    <VideoLinkButton
+                      href={homeworkVideoUrl}
+                      label={t("videoCta")}
+                      variant="secondary"
+                    />
+                  )}
                   {allowedModes.map((mode) => {
                     const config = modeMap[mode as keyof typeof modeMap];
                     if (!config) return null;

@@ -113,6 +113,7 @@ export default async function HomeworkFlashcardsPage(props: PageProps) {
         user={sessionUser}
         subjectId={homework.subject_id}
         subjectName={`${homework.title}`}
+        videoUrl={homework.video_url}
       />
     </div>
   );

@@ -138,6 +138,7 @@ export default async function SubjectPage(props: PageProps) {
     id: number;
     name: string;
     slug: string;
+    video_url?: string | null;
     icon?: string;
   } | null;
 

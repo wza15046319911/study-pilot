@@ -4,10 +4,12 @@ import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
+import { VideoLinkButton } from "@/components/common/VideoLinkButton";
 import { GlassPanel } from "@/components/ui/GlassPanel";
 import { PythonCodeEditor } from "@/components/ui/PythonCodeEditor";
 import { Button } from "@/components/ui/Button";
 import { formatTime } from "@/lib/utils";
+import { normalizeHttpUrl } from "@/lib/video";
 import { isQuestionCorrect } from "@/lib/answerValidation";
 import { createClient } from "@/lib/supabase/client";
 import {
@@ -74,6 +76,7 @@ interface PracticeSessionProps {
   weeklyPracticeId?: number;
   weeklyPracticeMode?: "practice" | "immersive" | "flashcards";
   showTopics?: boolean;
+  sessionVideoUrl?: string | null;
   /** When true, skip results modal and redirect to exitLink when finished (used for homework, weekly practice, question bank) */
   skipFinishFlow?: boolean;
 }
@@ -91,6 +94,7 @@ export function PracticeSession({
   weeklyPracticeId,
   weeklyPracticeMode = "practice",
   showTopics = true,
+  sessionVideoUrl,
   skipFinishFlow = false,
 }: PracticeSessionProps) {
   const router = useRouter();
@@ -137,6 +141,7 @@ export function PracticeSession({
 
   const supabase = useMemo(() => createClient(), []);
   const canViewExplanationContent = Boolean(user.is_vip || user.is_admin);
+  const normalizedSessionVideoUrl = normalizeHttpUrl(sessionVideoUrl);
 
   const sessionStorageKey = useMemo(() => {
     const questionSignature = questions.map((q) => q.id).join("-");
@@ -1051,6 +1056,14 @@ export function PracticeSession({
               </p>
             </div>
             <div className="flex items-center gap-2">
+              {normalizedSessionVideoUrl && (
+                <VideoLinkButton
+                  href={normalizedSessionVideoUrl}
+                  label="Watch video"
+                  variant="quiet"
+                  className="px-3 py-1.5 text-xs"
+                />
+              )}
               {mode === "practice" && enableTimer && (
                 <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 px-3 py-1.5 rounded-sm text-xs font-serif bg-white dark:bg-slate-900">
                   <Timer className="size-3.5" />

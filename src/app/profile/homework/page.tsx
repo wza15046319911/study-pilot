@@ -42,6 +42,7 @@ export default async function HomeworkPage() {
         title,
         slug,
         description,
+        video_url,
         due_at,
         allowed_modes,
         subject:subjects (
