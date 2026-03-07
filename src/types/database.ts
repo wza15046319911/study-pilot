@@ -837,6 +837,7 @@ export interface Database {
           title: string;
           slug: string | null;
           description: string | null;
+          video_url: string | null;
           subject_id: number;
           week_start: string | null;
           is_published: boolean;
@@ -850,6 +851,7 @@ export interface Database {
           title: string;
           slug?: string | null;
           description?: string | null;
+          video_url?: string | null;
           subject_id: number;
           week_start?: string | null;
           is_published?: boolean;
@@ -863,6 +865,7 @@ export interface Database {
           title?: string;
           slug?: string | null;
           description?: string | null;
+          video_url?: string | null;
           subject_id?: number;
           week_start?: string | null;
           is_published?: boolean;

@@ -951,6 +951,29 @@
       "accuracy": "正确率",
       "completedWeeks": "完成周数",
       "questionsAnswered": "已答题数"
+    },
+    "videoCta": "观看视频",
+    "videoPage": {
+      "eyebrow": "每周练习视频",
+      "embedTitle": "{title} 视频",
+      "external": {
+        "cta": "打开原视频",
+        "description": "这个视频来源暂时无法直接嵌入，但你仍然可以在新标签页中打开它，并随时回到上方卡片继续练习。",
+        "title": "前往外部视频"
+      },
+      "fallbackUser": "用户",
+      "notFound": {
+        "back": "返回每周练习",
+        "description": "这个每周练习暂时没有可用的视频资源。",
+        "title": "视频暂不可用"
+      },
+      "pageMeta": {
+        "description": "观看 {title} 的视频讲解。",
+        "fallbackDescription": "观看最新的每周练习视频资源。",
+        "fallbackTitle": "每周练习视频 | StudyPilot",
+        "title": "{title} 视频 | 每周练习 | StudyPilot"
+      },
+      "subtitle": "先查看上方练习卡片摘要，再继续观看下面的讲解或复习视频。"
     }
   },
   "results": {

@@ -1,66 +1,33 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { slugOrEncodedId } from "@/lib/ids";
+import { WeeklyPracticeCard } from "@/components/weekly-practice/WeeklyPracticeCard";
+import {
+  getWeeklyPracticeTotalQuestions,
+  isWeeklyPracticeFullyCompleted,
+  type WeeklyPracticeSummaryItem,
+} from "@/components/weekly-practice/shared";
 import {
   getStudyWeekFilterOptions,
   getWeekStartDateKey,
   resolveStudyWeekByStartDate,
-  type ResolvedStudyWeek,
   type StudyWeekCode,
 } from "@/lib/weekly-practice-weeks";
-import { Calendar, Sparkles, Target, Trophy, ArrowUpRight } from "lucide-react";
-import { useLocale, useTranslations } from "next-intl";
-
-type WeeklyPracticeItem = {
-  id: number;
-  title: string;
-  slug: string | null;
-  description: string | null;
-  week_start: string | null;
-  subject: {
-    name: string;
-    slug: string | null;
-  } | null;
-  items?: { count: number }[] | null;
-  latestSubmission?: {
-    submitted_at: string;
-    answered_count: number;
-    correct_count: number;
-    total_count: number;
-  } | null;
-};
+import { Sparkles, Target, Trophy } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 interface UserWeeklyPracticeClientProps {
-  initialData: WeeklyPracticeItem[];
+  initialData: WeeklyPracticeSummaryItem[];
   showSummary?: boolean;
 }
-
-const isFullyCompleted = (
-  submission:
-    | {
-        answered_count: number;
-        total_count: number;
-      }
-    | null
-    | undefined,
-  totalQuestions: number,
-) => {
-  if (!submission) return false;
-  const targetCount = submission.total_count || totalQuestions;
-  if (targetCount <= 0) return false;
-  return submission.answered_count >= targetCount;
-};
 
 export function UserWeeklyPracticeClient({
   initialData,
   showSummary = true,
 }: UserWeeklyPracticeClientProps) {
   const t = useTranslations("profileWeeklyPractice");
-  const locale = useLocale();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [weekFilter, setWeekFilter] = useState<"all-weeks" | StudyWeekCode>(
@@ -76,10 +43,9 @@ export function UserWeeklyPracticeClient({
 
     initialData.forEach((practice) => {
       const submission = practice.latestSubmission;
-      const totalQuestions =
-        submission?.total_count || practice.items?.[0]?.count || 0;
+      const totalQuestions = getWeeklyPracticeTotalQuestions(practice);
       if (submission) {
-        if (isFullyCompleted(submission, totalQuestions)) {
+        if (isWeeklyPracticeFullyCompleted(submission, totalQuestions)) {
           totalCompleted += 1;
         }
         totalAnswered += submission.answered_count;
@@ -109,9 +75,11 @@ export function UserWeeklyPracticeClient({
 
         if (filter === "all") return true;
         const submission = practice.latestSubmission;
-        const totalQuestions =
-          submission?.total_count || practice.items?.[0]?.count || 0;
-        const completed = isFullyCompleted(submission, totalQuestions);
+        const totalQuestions = getWeeklyPracticeTotalQuestions(practice);
+        const completed = isWeeklyPracticeFullyCompleted(
+          submission,
+          totalQuestions,
+        );
         const matchesStatusFilter =
           filter === "completed"
             ? completed
@@ -207,130 +175,9 @@ export function UserWeeklyPracticeClient({
         </div>
       ) : (
         <div className="grid gap-6">
-          {filteredAndSorted.map((practice) => {
-            const submission = practice.latestSubmission;
-            const totalQuestions =
-              submission?.total_count || practice.items?.[0]?.count || 0;
-            const answeredCount = submission?.answered_count || 0;
-            const isCompleted = isFullyCompleted(submission, totalQuestions);
-            const resolvedWeek = practice.resolvedWeek as ResolvedStudyWeek;
-            const isExpired =
-              !isCompleted && resolvedWeek.endDate
-                ? new Date(resolvedWeek.endDate + "T23:59:59Z") < new Date()
-                : false;
-            const isInProgress = Boolean(submission) && !isCompleted;
-            const progressPercent =
-              totalQuestions > 0
-                ? Math.min(
-                    100,
-                    Math.round((answeredCount / totalQuestions) * 100),
-                  )
-                : 0;
-            const weekBadgeText = resolvedWeek.rangeLabel
-              ? `${resolvedWeek.label} · ${resolvedWeek.rangeLabel}`
-              : resolvedWeek.label;
-
-            return (
-              <div
-                key={practice.id}
-                className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm"
-              >
-                <div className="flex flex-col lg:flex-row gap-6">
-                  <div className="flex-1 space-y-3">
-                    <div className="flex flex-wrap items-center gap-3">
-                      <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
-                        <Calendar className="size-3" />
-                        {weekBadgeText}
-                      </span>
-                      {practice.subject?.name && (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                          {practice.subject.name}
-                        </span>
-                      )}
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                          isCompleted
-                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                            : isExpired
-                              ? "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300"
-                              : isInProgress
-                                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                                : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
-                        }`}
-                      >
-                        {isCompleted
-                          ? t("status.completed")
-                          : isExpired
-                            ? t("status.expired")
-                            : isInProgress
-                              ? t("status.inProgress")
-                              : t("status.notStarted")}
-                      </span>
-                    </div>
-
-                    <div>
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                        {practice.title}
-                      </h3>
-                      <p className="mt-2 text-slate-600 dark:text-slate-400">
-                        {practice.description || t("noDescription")}
-                      </p>
-                    </div>
-
-                    <div className="mt-3">
-                      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                        <span>
-                          {t("progress", {
-                            answered: answeredCount,
-                            total: totalQuestions,
-                          })}
-                        </span>
-                        <span>{progressPercent}%</span>
-                      </div>
-                      <div className="mt-2 h-2 w-full rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                        <div
-                          className="h-full bg-gradient-to-r from-indigo-500 via-blue-500 to-cyan-500 transition-all duration-300"
-                          style={{ width: `${progressPercent}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    {submission && (
-                      <div className="text-xs text-slate-500 dark:text-slate-400">
-                        {t("lastSubmitted")}{" "}
-                        {new Intl.DateTimeFormat(
-                          locale === "zh" ? "zh-CN" : "en-AU",
-                          {
-                            dateStyle: "medium",
-                            timeStyle: "short",
-                          },
-                        ).format(new Date(submission.submitted_at))}{" "}
-                        ·{" "}
-                        {t("score", {
-                          correct: submission.correct_count,
-                          total: submission.total_count,
-                        })}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-start justify-end">
-                    <Link
-                      href={`/weekly-practice/${slugOrEncodedId(practice.slug, practice.id)}/practice`}
-                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors"
-                    >
-                      {isCompleted
-                        ? t("cta.review")
-                        : isInProgress
-                          ? t("cta.continue")
-                          : t("cta.start")}
-                      <ArrowUpRight className="size-3" />
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
+          {filteredAndSorted.map((practice) => (
+            <WeeklyPracticeCard key={practice.id} practice={practice} />
+          ))}
         </div>
       )}
     </div>

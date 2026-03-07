@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { fetchWeeklyPracticeSummaries } from "@/lib/weekly-practice";
 import { Header } from "@/components/layout/Header";
 import { AmbientBackground } from "@/components/layout/AmbientBackground";
 import { redirect } from "next/navigation";
@@ -13,25 +14,6 @@ interface PageProps {
     subjectSlug: string;
   }>;
 }
-
-type WeeklyPracticeItem = {
-  id: number;
-  title: string;
-  slug: string | null;
-  description: string | null;
-  week_start: string | null;
-  subject: {
-    name: string;
-    slug: string | null;
-  } | null;
-  items?: { count: number }[] | null;
-  latestSubmission?: {
-    submitted_at: string;
-    answered_count: number;
-    correct_count: number;
-    total_count: number;
-  } | null;
-};
 
 type ProfileSummary = {
   id: string;
@@ -214,25 +196,13 @@ export default async function SubjectPage(props: PageProps) {
     .select("id, exam_type, exam_date, student_level")
     .eq("subject_id", subject.id);
 
-  const weeklyPracticesPromise = supabase
-    .from("weekly_practices")
-    .select(
-      `
-      id,
-      title,
-      slug,
-      description,
-      week_start,
-      subject:subjects (
-        name,
-        slug
-      ),
-      items:weekly_practice_items(count)
-    `,
-    )
-    .eq("is_published", true)
-    .eq("subject_id", subject.id)
-    .order("week_start", { ascending: false });
+  const weeklyPracticesPromise = fetchWeeklyPracticeSummaries((selectClause) =>
+    (supabase.from("weekly_practices") as any)
+      .select(selectClause)
+      .eq("is_published", true)
+      .eq("subject_id", subject.id)
+      .order("week_start", { ascending: false }),
+  );
 
   const pastExamsPromise = supabase
     .from("past_exams")
@@ -332,8 +302,7 @@ export default async function SubjectPage(props: PageProps) {
   const questionCount = questionCountResult.count || 0;
   const examDates = examDatesResult.data || [];
 
-  const weeklyPractices =
-    (weeklyPracticesResult.data as WeeklyPracticeItem[]) || [];
+  const weeklyPractices = weeklyPracticesResult.data || [];
 
   const weeklyPracticeIds = weeklyPractices
     .map((practice) => practice.id)

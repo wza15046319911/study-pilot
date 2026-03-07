@@ -1,7 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
+import { fetchWeeklyPracticeSummaries } from "@/lib/weekly-practice";
 import { redirect } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { UserWeeklyPracticeClient } from "./UserWeeklyPracticeClient";
+import type { WeeklyPracticeSummaryItem } from "@/components/weekly-practice/shared";
 import { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 
@@ -29,23 +31,12 @@ export default async function WeeklyPracticePage() {
     .eq("id", user.id)
     .single();
 
-  const practicesPromise = (supabase.from("weekly_practices") as any)
-    .select(
-      `
-      id,
-      title,
-      slug,
-      description,
-      week_start,
-      subject:subjects (
-        name,
-        slug
-      ),
-      items:weekly_practice_items(count)
-    `,
-    )
-    .eq("is_published", true)
-    .order("week_start", { ascending: false });
+  const practicesPromise = fetchWeeklyPracticeSummaries((selectClause) =>
+    (supabase.from("weekly_practices") as any)
+      .select(selectClause)
+      .eq("is_published", true)
+      .order("week_start", { ascending: false }),
+  );
 
   const [{ data: profile }, { data: practices }] = await Promise.all([
     profilePromise,
@@ -84,7 +75,7 @@ export default async function WeeklyPracticePage() {
   });
 
   const practicesWithProgress =
-    ((practices as any[]) || []).map((practice: any) => ({
+    (((practices as any[]) || []) as WeeklyPracticeSummaryItem[]).map((practice) => ({
       ...practice,
       latestSubmission: latestSubmissionMap.get(practice.id) || null,
     })) || [];

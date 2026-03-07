@@ -1183,6 +1183,7 @@ CREATE TABLE IF NOT EXISTS "public"."weekly_practices" (
     "title" "text" NOT NULL,
     "slug" "text",
     "description" "text",
+    "video_url" "text",
     "subject_id" bigint NOT NULL,
     "week_start" "date",
     "is_published" boolean DEFAULT false NOT NULL,
@@ -3307,7 +3308,6 @@ ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TAB
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "anon";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "authenticated";
 ALTER DEFAULT PRIVILEGES FOR ROLE "postgres" IN SCHEMA "public" GRANT ALL ON TABLES TO "service_role";
-
 
 
 

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { VideoLinkButton } from "@/components/common/VideoLinkButton";
 import { QuestionBankItem } from "@/components/question-bank/QuestionBankItem";
+import type { WeeklyPracticeSummaryItem } from "@/components/weekly-practice/shared";
 import { PremiumModal } from "@/components/ui/PremiumModal";
 import { CountdownTimer } from "@/components/ui/CountdownTimer";
 import { GlassPanel } from "@/components/ui/GlassPanel";
-import { getYouTubeEmbedUrl, normalizeHttpUrl } from "@/lib/video";
+import { getYouTubeEmbedUrl } from "@/lib/video";
 
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import Link from "next/link";
@@ -43,28 +43,9 @@ interface SubjectContentProps {
     exam_date: string;
     student_level?: "undergraduate" | "postgraduate";
   }[];
-  weeklyPractices?: WeeklyPracticeItem[];
+  weeklyPractices?: WeeklyPracticeSummaryItem[];
   pastExams?: PastExamListItem[];
 }
-
-type WeeklyPracticeItem = {
-  id: number;
-  title: string;
-  slug: string | null;
-  description: string | null;
-  week_start: string | null;
-  subject: {
-    name: string;
-    slug: string | null;
-  } | null;
-  items?: { count: number }[] | null;
-  latestSubmission?: {
-    submitted_at: string;
-    answered_count: number;
-    correct_count: number;
-    total_count: number;
-  } | null;
-};
 
 type PastExamListItem = {
   id: number;
@@ -193,7 +174,6 @@ export function SubjectContent({
 
   const groupedBanksByAccessTier = groupByAccessTier(banks);
   const groupedExamsByAccessTier = groupByAccessTier(exams);
-  const subjectVideoUrl = normalizeHttpUrl(subject.video_url);
   const subjectVideoEmbedUrl = getYouTubeEmbedUrl(subject.video_url);
 
   return (

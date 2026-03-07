@@ -7,6 +7,8 @@ import { GlassPanel } from "@/components/ui/GlassPanel";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { VideoLinkButton } from "@/components/common/VideoLinkButton";
+import { isValidHttpUrl, normalizeHttpUrl } from "@/lib/video";
 import { createWeeklyPractice, updateWeeklyPractice } from "./actions";
 import { QuestionPickerPanel } from "@/components/admin/question-picker/QuestionPickerPanel";
 import type { QuestionPoolListItem } from "@/lib/actions/questionPool";
@@ -32,6 +34,7 @@ interface WeeklyPracticeBuilderProps {
     title?: string;
     slug?: string;
     description?: string;
+    video_url?: string | null;
     week_start?: string | null;
     questions?: QuestionPoolListItem[];
   };
@@ -65,6 +68,7 @@ export default function WeeklyPracticeBuilder({
   const [description, setDescription] = useState(
     initialData?.description || "",
   );
+  const [videoUrl, setVideoUrl] = useState(initialData?.video_url || "");
   const [weekStart, setWeekStart] = useState<string>(
     toDateInput(initialData?.week_start),
   );
@@ -92,6 +96,10 @@ export default function WeeklyPracticeBuilder({
       alert("Please fill in all required fields and select questions.");
       return;
     }
+    if (videoUrl.trim() && !isValidHttpUrl(videoUrl)) {
+      alert("Video URL must start with http:// or https://");
+      return;
+    }
 
     setSaving(true);
 
@@ -102,6 +110,7 @@ export default function WeeklyPracticeBuilder({
         title: title.trim(),
         slug: finalSlug,
         description: description.trim(),
+        videoUrl: normalizeHttpUrl(videoUrl),
         weekStart: fromDateInput(weekStart),
         allowedModes: ["standard"],
         isPublished: publish,
@@ -209,6 +218,31 @@ export default function WeeklyPracticeBuilder({
                   placeholder="Short summary (optional)"
                   className="mt-2"
                 />
+              </div>
+
+              <div>
+                <label className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  Video URL
+                </label>
+                <Input
+                  value={videoUrl}
+                  onChange={(e) => setVideoUrl(e.target.value)}
+                  placeholder="https://example.com/video"
+                  className="mt-2"
+                />
+                <div className="mt-2 flex items-center justify-between gap-3">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    Optional external walkthrough or lecture link.
+                  </p>
+                  {normalizeHttpUrl(videoUrl) && (
+                    <VideoLinkButton
+                      href={normalizeHttpUrl(videoUrl)!}
+                      label="Open link"
+                      variant="quiet"
+                      className="px-3 py-1.5 text-xs"
+                    />
+                  )}
+                </div>
               </div>
 
               <div>

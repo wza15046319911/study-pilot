@@ -9,6 +9,7 @@ export async function createWeeklyPractice(data: {
   title: string;
   slug: string;
   description?: string;
+  videoUrl?: string | null;
   weekStart?: string | null;
   allowedModes: string[];
   isPublished: boolean;
@@ -23,6 +24,7 @@ export async function createWeeklyPractice(data: {
       title: data.title,
       slug: data.slug,
       description: data.description,
+      video_url: data.videoUrl,
       subject_id: data.subjectId,
       week_start: data.weekStart,
       allowed_modes: data.allowedModes,
@@ -63,6 +65,7 @@ export async function updateWeeklyPractice(data: {
   title: string;
   slug: string;
   description?: string;
+  videoUrl?: string | null;
   weekStart?: string | null;
   allowedModes: string[];
   isPublished: boolean;
@@ -77,6 +80,7 @@ export async function updateWeeklyPractice(data: {
       title: data.title,
       slug: data.slug,
       description: data.description,
+      video_url: data.videoUrl,
       subject_id: data.subjectId,
       week_start: data.weekStart,
       allowed_modes: data.allowedModes,

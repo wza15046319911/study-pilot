@@ -951,6 +951,29 @@
       "accuracy": "Accuracy",
       "completedWeeks": "Completed Weeks",
       "questionsAnswered": "Questions Answered"
+    },
+    "videoCta": "Watch video",
+    "videoPage": {
+      "eyebrow": "Weekly Practice Video",
+      "embedTitle": "{title} video",
+      "external": {
+        "cta": "Open original video",
+        "description": "This video source cannot be embedded here, but you can still open it in a new tab and continue practicing from the card above.",
+        "title": "Open this video externally"
+      },
+      "fallbackUser": "User",
+      "notFound": {
+        "back": "Back to Weekly Practice",
+        "description": "We couldn't find a video resource for this weekly practice.",
+        "title": "Video Not Available"
+      },
+      "pageMeta": {
+        "description": "Watch the video resource for {title}.",
+        "fallbackDescription": "Watch the latest weekly practice video resource.",
+        "fallbackTitle": "Weekly Practice Video | StudyPilot",
+        "title": "{title} Video | Weekly Practice | StudyPilot"
+      },
+      "subtitle": "Review the summary card above, then watch the walkthrough or explainer below."
     }
   },
   "results": {
