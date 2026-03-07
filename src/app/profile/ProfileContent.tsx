@@ -205,35 +205,38 @@ export function ProfileContent({
     return t("time.daysAgo", { count: Math.floor(diffInSeconds / 86400) });
   };
 
-  const formatHomeworkDueLabel = useCallback((dueAt: string | null) => {
-    if (!dueAt) return t("homework.noDeadline");
+  const formatHomeworkDueLabel = useCallback(
+    (dueAt: string | null) => {
+      if (!dueAt) return t("homework.noDeadline");
 
-    const dueDate = new Date(dueAt);
-    if (Number.isNaN(dueDate.getTime())) return t("homework.noDeadline");
+      const dueDate = new Date(dueAt);
+      if (Number.isNaN(dueDate.getTime())) return t("homework.noDeadline");
 
-    const now = new Date();
-    const isToday =
-      dueDate.getFullYear() === now.getFullYear() &&
-      dueDate.getMonth() === now.getMonth() &&
-      dueDate.getDate() === now.getDate();
+      const now = new Date();
+      const isToday =
+        dueDate.getFullYear() === now.getFullYear() &&
+        dueDate.getMonth() === now.getMonth() &&
+        dueDate.getDate() === now.getDate();
 
-    const timeLabel = dueDate.toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
+      const timeLabel = dueDate.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      });
 
-    if (isToday) {
-      return t("homework.tonight", { time: timeLabel });
-    }
+      if (isToday) {
+        return t("homework.tonight", { time: timeLabel });
+      }
 
-    const dayLabel = dueDate.toLocaleDateString(undefined, {
-      month: "numeric",
-      day: "numeric",
-    });
+      const dayLabel = dueDate.toLocaleDateString(undefined, {
+        month: "numeric",
+        day: "numeric",
+      });
 
-    return `${dayLabel} ${timeLabel}`;
-  }, [t]);
+      return `${dayLabel} ${timeLabel}`;
+    },
+    [t],
+  );
 
   const homeworkRows = useMemo(
     () =>
@@ -308,14 +311,14 @@ export function ProfileContent({
         "h-auto min-h-[85vh]", // Fixed height container for sidebar
       )}
     >
-      <Sidebar open={open} setOpen={setOpen}>
+      <Sidebar open={open} setOpen={setOpen} animate={false}>
         <SidebarBody className="justify-between gap-10">
           <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
             <div className="flex flex-col items-center justify-center mb-8 mt-2">
               <div
                 className={cn(
                   "rounded-full bg-cover bg-center ring-2 ring-gray-100 dark:ring-gray-700 mb-2 transition-all duration-300",
-                  open ? "size-16" : "size-9 mt-1",
+                  "size-16",
                 )}
                 style={
                   user.avatar_url
@@ -329,20 +332,18 @@ export function ProfileContent({
                   </div>
                 )}
               </div>
-              {open && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-center"
-                >
-                  <p className="font-bold text-neutral-800 dark:text-white truncate">
-                    {user.username}
-                  </p>
-                  <p className="text-xs text-neutral-500">
-                    {t("sidebar.level", { level: user.level || 1 })}
-                  </p>
-                </motion.div>
-              )}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-center"
+              >
+                <p className="font-bold text-neutral-800 dark:text-white truncate">
+                  {user.username}
+                </p>
+                <p className="text-xs text-neutral-500">
+                  {t("sidebar.level", { level: user.level || 1 })}
+                </p>
+              </motion.div>
             </div>
 
             <div className="flex flex-col gap-2">
@@ -398,10 +399,10 @@ export function ProfileContent({
                               count: homeworkStats.due,
                             })
                           : (homeworkStats.expired ?? 0) > 0
-                          ? t("homework.expired", {
-                              count: homeworkStats.expired ?? 0,
-                            })
-                          : t("homework.noDueThisWeek")}
+                            ? t("homework.expired", {
+                                count: homeworkStats.expired ?? 0,
+                              })
+                            : t("homework.noDueThisWeek")}
                       </span>
                     </div>
 
@@ -495,7 +496,7 @@ export function ProfileContent({
                               "size-2.5 rounded-full",
                               idx < completedWeeks
                                 ? "bg-sky-500"
-                                : "bg-gray-200 dark:bg-gray-700"
+                                : "bg-gray-200 dark:bg-gray-700",
                             )}
                           />
                         ))}

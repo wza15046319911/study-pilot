@@ -213,6 +213,11 @@ export function UserWeeklyPracticeClient({
               submission?.total_count || practice.items?.[0]?.count || 0;
             const answeredCount = submission?.answered_count || 0;
             const isCompleted = isFullyCompleted(submission, totalQuestions);
+            const resolvedWeek = practice.resolvedWeek as ResolvedStudyWeek;
+            const isExpired =
+              !isCompleted && resolvedWeek.endDate
+                ? new Date(resolvedWeek.endDate + "T23:59:59Z") < new Date()
+                : false;
             const isInProgress = Boolean(submission) && !isCompleted;
             const progressPercent =
               totalQuestions > 0
@@ -221,7 +226,6 @@ export function UserWeeklyPracticeClient({
                     Math.round((answeredCount / totalQuestions) * 100),
                   )
                 : 0;
-            const resolvedWeek = practice.resolvedWeek as ResolvedStudyWeek;
             const weekBadgeText = resolvedWeek.rangeLabel
               ? `${resolvedWeek.label} · ${resolvedWeek.rangeLabel}`
               : resolvedWeek.label;
@@ -247,16 +251,20 @@ export function UserWeeklyPracticeClient({
                         className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
                           isCompleted
                             ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
-                            : isInProgress
-                              ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
-                              : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
+                            : isExpired
+                              ? "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300"
+                              : isInProgress
+                                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                                : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300"
                         }`}
                       >
                         {isCompleted
                           ? t("status.completed")
-                          : isInProgress
-                            ? t("status.inProgress")
-                            : t("status.notStarted")}
+                          : isExpired
+                            ? t("status.expired")
+                            : isInProgress
+                              ? t("status.inProgress")
+                              : t("status.notStarted")}
                       </span>
                     </div>
 
@@ -293,10 +301,11 @@ export function UserWeeklyPracticeClient({
                         {new Intl.DateTimeFormat(
                           locale === "zh" ? "zh-CN" : "en-AU",
                           {
-                          dateStyle: "medium",
-                          timeStyle: "short",
+                            dateStyle: "medium",
+                            timeStyle: "short",
                           },
-                        ).format(new Date(submission.submitted_at))} ·{" "}
+                        ).format(new Date(submission.submitted_at))}{" "}
+                        ·{" "}
                         {t("score", {
                           correct: submission.correct_count,
                           total: submission.total_count,
@@ -310,7 +319,11 @@ export function UserWeeklyPracticeClient({
                       href={`/weekly-practice/${slugOrEncodedId(practice.slug, practice.id)}/practice`}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 transition-colors"
                     >
-                      {isInProgress ? t("cta.continue") : t("cta.start")}
+                      {isCompleted
+                        ? t("cta.review")
+                        : isInProgress
+                          ? t("cta.continue")
+                          : t("cta.start")}
                       <ArrowUpRight className="size-3" />
                     </Link>
                   </div>
